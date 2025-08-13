@@ -10,6 +10,75 @@
         </p>
       </div>
 
+      <!-- 系统整合状态面板 -->
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card title="Grid 集成" class="integration-status">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">{{ gridIntegration.count }} 个插件项目</span>
+            <span :class="['px-2 py-1 text-xs rounded-full', gridIntegration.status === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800']">
+              {{ gridIntegration.status === 'healthy' ? '正常' : '警告' }}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            类型: {{ gridIntegration.types }} 种
+          </div>
+        </Card>
+
+        <Card title="Page 集成" class="integration-status">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">{{ pageIntegration.count }} 个插件页面</span>
+            <span :class="['px-2 py-1 text-xs rounded-full', pageIntegration.status === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800']">
+              {{ pageIntegration.status === 'healthy' ? '正常' : '警告' }}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            路由: {{ pageIntegration.routes }} 个
+          </div>
+        </Card>
+
+        <Card title="Theme 集成" class="integration-status">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">{{ themeIntegration.count }} 个插件主题</span>
+            <span :class="['px-2 py-1 text-xs rounded-full', themeIntegration.status === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800']">
+              {{ themeIntegration.status === 'healthy' ? '正常' : '警告' }}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            活跃: {{ themeIntegration.active }} 个
+          </div>
+        </Card>
+
+        <Card title="性能监控" class="integration-status">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">{{ performanceStats.plugins }} 个插件</span>
+            <span :class="['px-2 py-1 text-xs rounded-full', performanceStats.status === 'good' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">
+              {{ performanceStats.status === 'good' ? '良好' : '需优化' }}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            内存: {{ performanceStats.memory }}MB
+          </div>
+        </Card>
+      </div>
+
+      <!-- 热重载状态 -->
+      <div v-if="isDev" class="mb-6">
+        <Card title="开发工具" class="bg-blue-50 dark:bg-blue-900/20">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-2">
+                <div :class="['w-2 h-2 rounded-full', hotReloadStatus.isReloading ? 'bg-yellow-400' : 'bg-green-400']"></div>
+                <span class="text-sm">热重载: {{ hotReloadStatus.isReloading ? '重载中' : '就绪' }}</span>
+              </div>
+              <div class="text-xs text-gray-500">
+                成功: {{ hotReloadStatus.stats.successfulReloads }} | 失败: {{ hotReloadStatus.stats.failedReloads }}
+              </div>
+            </div>
+            <Button size="small" @click="manualReload">手动重载</Button>
+          </div>
+        </Card>
+      </div>
+
       <div class="flex justify-between items-center mb-6">
         <div class="flex space-x-2">
           <Button @click="refreshPlugins">
@@ -20,6 +89,9 @@
             @click="showInstallModal = true"
           >
             安装插件
+          </Button>
+          <Button @click="showSystemInfo = true">
+            系统信息
           </Button>
         </div>
         <Input
@@ -116,7 +188,10 @@ import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
 import Modal from '@/components/common/Modal.vue'
 import Container from '@/components/layout/Container.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useGridStore } from '@/stores/grid'
+import { usePageStore } from '@/stores/page'
+import { useThemeStore } from '@/stores/theme'
 
 interface Plugin {
   id: string
@@ -130,7 +205,114 @@ interface Plugin {
 // 响应式数据
 const searchQuery = ref('')
 const showInstallModal = ref(false)
+const showSystemInfo = ref(false)
 const installPath = ref('')
+
+// 开发环境检测
+const isDev = ref(import.meta.env.DEV)
+
+// Store 实例
+const gridStore = useGridStore()
+const pageStore = usePageStore()
+const themeStore = useThemeStore()
+
+// 系统整合状态
+const gridIntegration = ref({
+  count: 0,
+  types: 0,
+  status: 'healthy' as 'healthy' | 'warning',
+})
+
+const pageIntegration = ref({
+  count: 0,
+  routes: 0,
+  status: 'healthy' as 'healthy' | 'warning',
+})
+
+const themeIntegration = ref({
+  count: 0,
+  active: 0,
+  status: 'healthy' as 'healthy' | 'warning',
+})
+
+const performanceStats = ref({
+  plugins: 0,
+  memory: 0,
+  status: 'good' as 'good' | 'warning' | 'error',
+})
+
+const hotReloadStatus = ref({
+  isReloading: false,
+  stats: {
+    totalReloads: 0,
+    successfulReloads: 0,
+    failedReloads: 0,
+    lastReloadTime: null as Date | null,
+  },
+})
+
+// 更新系统整合状态
+const updateIntegrationStatus = () => {
+  // 更新 Grid 集成状态
+  const pluginGridItems = gridStore.getPluginItems()
+  gridIntegration.value = {
+    count: pluginGridItems.length,
+    types: gridStore.pluginItemTypes.size,
+    status: pluginGridItems.length > 50 ? 'warning' : 'healthy',
+  }
+
+  // 更新 Page 集成状态  
+  const pluginPages = pageStore.getPluginPages()
+  pageIntegration.value = {
+    count: pluginPages.length,
+    routes: pluginPages.length,
+    status: pluginPages.length > pageStore.pluginPageConfig.maxPluginPages * 0.8 ? 'warning' : 'healthy',
+  }
+
+  // 更新 Theme 集成状态
+  const pluginThemes = themeStore.getPluginThemes()
+  const activeThemes = themeStore.getActivePluginThemes()
+  themeIntegration.value = {
+    count: pluginThemes.length,
+    active: activeThemes.length,
+    status: pluginThemes.length > 20 ? 'warning' : 'healthy',
+  }
+
+  // 更新性能状态
+  if (isDev.value && (window as any).__performanceMonitor) {
+    const report = (window as any).__performanceMonitor.getPerformanceReport()
+    performanceStats.value = {
+      plugins: report.general.totalPlugins,
+      memory: report.memory?.used || 0,
+      status: report.memory?.used > 100 ? 'error' : report.memory?.used > 50 ? 'warning' : 'good',
+    }
+  }
+
+  // 更新热重载状态
+  if (isDev.value && (window as any).__hotReloadManager) {
+    const status = (window as any).__hotReloadManager.getReloadStatus()
+    hotReloadStatus.value = status
+  }
+}
+
+// 手动重载
+const manualReload = async () => {
+  if (isDev.value && (window as any).__hotReloadManager) {
+    try {
+      // 重载所有插件
+      const manager = (window as any).__hotReloadManager
+      const pluginIds = plugins.value.filter(p => p.enabled).map(p => p.id)
+      
+      for (const pluginId of pluginIds) {
+        await manager.manualReload(pluginId)
+      }
+      
+      updateIntegrationStatus()
+    } catch (error) {
+      console.error('Manual reload failed:', error)
+    }
+  }
+}
 
 // 模拟插件数据
 const plugins = ref<Plugin[]>([
@@ -173,6 +355,7 @@ const filteredPlugins = computed(() => {
 const togglePlugin = (plugin: Plugin) => {
   plugin.enabled = !plugin.enabled
   console.log(`插件 ${plugin.name} ${plugin.enabled ? '已启用' : '已禁用'}`)
+  updateIntegrationStatus()
 }
 
 const configurePlugin = (plugin: Plugin) => {
@@ -186,12 +369,14 @@ const removePlugin = (plugin: Plugin) => {
     if (index > -1) {
       plugins.value.splice(index, 1)
       console.log(`插件 ${plugin.name} 已移除`)
+      updateIntegrationStatus()
     }
   }
 }
 
 const refreshPlugins = () => {
   console.log('刷新插件列表')
+  updateIntegrationStatus()
   // 这里可以重新加载插件列表
 }
 
@@ -206,11 +391,46 @@ const installPlugin = () => {
 
   showInstallModal.value = false
   installPath.value = ''
+  updateIntegrationStatus()
 }
+
+let statusInterval: number | null = null
 
 onMounted(() => {
   document.title = 'Mira Launcher - 插件管理'
+  
+  // 初始化状态
+  updateIntegrationStatus()
+  
+  // 定期更新状态 (每5秒)
+  statusInterval = window.setInterval(updateIntegrationStatus, 5000)
+  
+  // 监听性能和重载事件
+  if (isDev.value) {
+    window.addEventListener('performance-event', updateIntegrationStatus)
+    window.addEventListener('plugin-hot-reload', updateIntegrationStatus)
+    window.addEventListener('plugin-config-reload', updateIntegrationStatus)
+  }
 })
+
+// 清理资源
+const cleanup = () => {
+  if (statusInterval) {
+    clearInterval(statusInterval)
+    statusInterval = null
+  }
+  
+  if (isDev.value) {
+    window.removeEventListener('performance-event', updateIntegrationStatus)
+    window.removeEventListener('plugin-hot-reload', updateIntegrationStatus)
+    window.removeEventListener('plugin-config-reload', updateIntegrationStatus)
+  }
+}
+
+// 页面卸载时清理
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', cleanup)
+}
 </script>
 
 <style scoped>
@@ -231,5 +451,89 @@ onMounted(() => {
 .plugin-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.integration-status {
+  border-left: 3px solid #10b981;
+  transition: all 0.2s ease;
+}
+
+.integration-status:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.integration-status .card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .integration-status .card-title {
+  color: #d1d5db;
+}
+
+/* 热重载指示器动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.w-2.h-2.rounded-full.bg-yellow-400 {
+  animation: pulse 1.5s infinite;
+}
+
+/* 状态徽章样式 */
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+
+.text-green-800 {
+  color: #166534;
+}
+
+.bg-yellow-100 {
+  background-color: #fef3c7;
+}
+
+.text-yellow-800 {
+  color: #92400e;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.text-red-800 {
+  color: #991b1b;
+}
+
+/* 深色模式状态徽章 */
+.dark .bg-green-100 {
+  background-color: #166534;
+}
+
+.dark .text-green-800 {
+  color: #dcfce7;
+}
+
+.dark .bg-yellow-100 {
+  background-color: #92400e;
+}
+
+.dark .text-yellow-800 {
+  color: #fef3c7;
+}
+
+.dark .bg-red-100 {
+  background-color: #991b1b;
+}
+
+.dark .text-red-800 {
+  color: #fee2e2;
 }
 </style>

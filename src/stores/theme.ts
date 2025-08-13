@@ -1,5 +1,28 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+
+/**
+ * 插件主题接口
+ */
+interface PluginTheme {
+  id: string
+  name: string
+  pluginId: string
+  styles: Record<string, string>
+  cssVariables: Record<string, string>
+  isActive: boolean
+  mode: 'light' | 'dark' | 'auto'
+}
+
+/**
+ * 插件主题配置
+ */
+interface PluginThemeConfig {
+  allowPluginThemes: boolean
+  maxPluginThemes: number
+  enableHotReload: boolean
+  isolatePluginStyles: boolean
+}
 
 export const useThemeStore = defineStore('theme', () => {
   // 主题模式: 'light' | 'dark' | 'auto'
@@ -7,6 +30,20 @@ export const useThemeStore = defineStore('theme', () => {
 
   // 系统主题
   const systemTheme = ref<'light' | 'dark'>('light')
+
+  // 插件主题配置
+  const pluginThemeConfig = ref<PluginThemeConfig>({
+    allowPluginThemes: true,
+    maxPluginThemes: 30,
+    enableHotReload: true,
+    isolatePluginStyles: true,
+  })
+
+  // 插件主题注册表
+  const pluginThemes = ref<Map<string, PluginTheme>>(new Map())
+
+  // 活跃的插件主题
+  const activePluginThemes = ref<Set<string>>(new Set())
 
   // 当前实际主题
   const currentTheme = computed(() => {
@@ -42,6 +79,9 @@ export const useThemeStore = defineStore('theme', () => {
     } else {
       htmlElement.classList.remove('dark')
     }
+
+    // 刷新插件主题
+    refreshPluginThemes()
   }
 
   // 监听系统主题变化
@@ -72,6 +112,23 @@ export const useThemeStore = defineStore('theme', () => {
       themeMode.value = savedTheme
     }
 
+    // 加载插件主题配置
+    try {
+      const savedPluginConfig = localStorage.getItem('plugin-theme-config')
+      if (savedPluginConfig) {
+        const config = JSON.parse(savedPluginConfig)
+        pluginThemeConfig.value = { ...pluginThemeConfig.value, ...config }
+      }
+
+      const savedActiveThemes = localStorage.getItem('active-plugin-themes')
+      if (savedActiveThemes) {
+        const themes = JSON.parse(savedActiveThemes)
+        activePluginThemes.value = new Set(themes)
+      }
+    } catch (error) {
+      console.error('[Theme] Failed to load plugin theme settings:', error)
+    }
+
     // 开始监听系统主题
     const unwatch = watchSystemTheme()
 
@@ -84,16 +141,229 @@ export const useThemeStore = defineStore('theme', () => {
   // 保存主题设置到 localStorage
   const saveTheme = () => {
     localStorage.setItem('theme-mode', themeMode.value)
+    localStorage.setItem('plugin-theme-config', JSON.stringify(pluginThemeConfig.value))
+    localStorage.setItem('active-plugin-themes', JSON.stringify([...activePluginThemes.value]))
   }
 
+  // 插件主题管理方法
+  const registerPluginTheme = (
+    pluginId: string,
+    themeData: Omit<PluginTheme, 'id' | 'pluginId' | 'isActive'>
+  ) => {
+    if (!pluginThemeConfig.value.allowPluginThemes) {
+      throw new Error('Plugin themes are disabled')
+    }
+
+    if (pluginThemes.value.size >= pluginThemeConfig.value.maxPluginThemes) {
+      throw new Error(`Plugin themes limit reached: ${pluginThemeConfig.value.maxPluginThemes}`)
+    }
+
+    const themeId = `${pluginId}.${themeData.name}`
+    const pluginTheme: PluginTheme = {
+      ...themeData,
+      id: themeId,
+      pluginId,
+      isActive: false,
+    }
+
+    pluginThemes.value.set(themeId, pluginTheme)
+    console.log(`[Theme] Registered plugin theme: ${themeId}`)
+    
+    // 如果主题符合当前模式，自动激活
+    if (shouldActivateTheme(pluginTheme)) {
+      activatePluginTheme(themeId)
+    }
+
+    return themeId
+  }
+
+  const unregisterPluginTheme = (pluginId: string, themeName?: string) => {
+    if (themeName) {
+      const themeId = `${pluginId}.${themeName}`
+      deactivatePluginTheme(themeId)
+      pluginThemes.value.delete(themeId)
+      console.log(`[Theme] Unregistered plugin theme: ${themeId}`)
+    } else {
+      // 移除该插件的所有主题
+      for (const [themeId, theme] of pluginThemes.value) {
+        if (theme.pluginId === pluginId) {
+          deactivatePluginTheme(themeId)
+          pluginThemes.value.delete(themeId)
+        }
+      }
+      console.log(`[Theme] Unregistered all themes for plugin: ${pluginId}`)
+    }
+    
+    saveTheme()
+  }
+
+  const activatePluginTheme = (themeId: string) => {
+    const theme = pluginThemes.value.get(themeId)
+    if (!theme) {
+      console.warn(`[Theme] Theme not found: ${themeId}`)
+      return false
+    }
+
+    // 检查主题模式兼容性
+    if (!shouldActivateTheme(theme)) {
+      console.log(`[Theme] Theme ${themeId} not compatible with current mode: ${currentTheme.value}`)
+      return false
+    }
+
+    theme.isActive = true
+    activePluginThemes.value.add(themeId)
+    
+    // 应用主题样式
+    applyPluginTheme(theme)
+    
+    console.log(`[Theme] Activated plugin theme: ${themeId}`)
+    saveTheme()
+    return true
+  }
+
+  const deactivatePluginTheme = (themeId: string) => {
+    const theme = pluginThemes.value.get(themeId)
+    if (!theme) return false
+
+    theme.isActive = false
+    activePluginThemes.value.delete(themeId)
+    
+    // 移除主题样式
+    removePluginTheme(theme)
+    
+    console.log(`[Theme] Deactivated plugin theme: ${themeId}`)
+    saveTheme()
+    return true
+  }
+
+  const shouldActivateTheme = (theme: PluginTheme): boolean => {
+    if (theme.mode === 'auto') return true
+    return theme.mode === currentTheme.value
+  }
+
+  const applyPluginTheme = (theme: PluginTheme) => {
+    const styleId = `plugin-theme-${theme.id}`
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style')
+      styleElement.id = styleId
+      styleElement.setAttribute('data-plugin-id', theme.pluginId)
+      
+      if (pluginThemeConfig.value.isolatePluginStyles) {
+        // 添加插件样式隔离
+        styleElement.setAttribute('data-isolated', 'true')
+      }
+      
+      document.head.appendChild(styleElement)
+    }
+
+    // 构建CSS内容
+    let cssContent = ''
+    
+    // 添加CSS变量
+    if (Object.keys(theme.cssVariables).length > 0) {
+      cssContent += ':root {\n'
+      for (const [key, value] of Object.entries(theme.cssVariables)) {
+        cssContent += `  --plugin-${theme.pluginId}-${key}: ${value};\n`
+      }
+      cssContent += '}\n\n'
+    }
+
+    // 添加样式规则
+    for (const [selector, rules] of Object.entries(theme.styles)) {
+      const prefixedSelector = pluginThemeConfig.value.isolatePluginStyles 
+        ? `[data-plugin="${theme.pluginId}"] ${selector}`
+        : selector
+      
+      cssContent += `${prefixedSelector} {\n${rules}\n}\n\n`
+    }
+
+    styleElement.textContent = cssContent
+  }
+
+  const removePluginTheme = (theme: PluginTheme) => {
+    const styleId = `plugin-theme-${theme.id}`
+    const styleElement = document.getElementById(styleId)
+    
+    if (styleElement) {
+      styleElement.remove()
+    }
+  }
+
+  const refreshPluginThemes = () => {
+    // 重新应用所有活跃的插件主题
+    for (const themeId of activePluginThemes.value) {
+      const theme = pluginThemes.value.get(themeId)
+      if (theme && shouldActivateTheme(theme)) {
+        applyPluginTheme(theme)
+      } else if (theme) {
+        deactivatePluginTheme(themeId)
+      }
+    }
+  }
+
+  const updatePluginThemeConfig = (newConfig: Partial<PluginThemeConfig>) => {
+    pluginThemeConfig.value = { ...pluginThemeConfig.value, ...newConfig }
+    saveTheme()
+    
+    // 如果禁用了插件主题，停用所有插件主题
+    if (!newConfig.allowPluginThemes) {
+      for (const themeId of activePluginThemes.value) {
+        deactivatePluginTheme(themeId)
+      }
+    }
+    
+    console.log('[Theme] Updated plugin theme config:', newConfig)
+  }
+
+  const getPluginThemes = (pluginId?: string) => {
+    const themes = Array.from(pluginThemes.value.values())
+    
+    if (pluginId) {
+      return themes.filter(theme => theme.pluginId === pluginId)
+    }
+    
+    return themes
+  }
+
+  const getActivePluginThemes = () => {
+    return Array.from(activePluginThemes.value)
+      .map(themeId => pluginThemes.value.get(themeId))
+      .filter(Boolean) as PluginTheme[]
+  }
+
+  // 监听主题变化，自动刷新插件主题
+  watch(currentTheme, () => {
+    refreshPluginThemes()
+  })
+
   return {
+    // 基础主题状态
     themeMode,
     systemTheme,
     currentTheme,
+    
+    // 插件主题状态
+    pluginThemeConfig,
+    pluginThemes,
+    activePluginThemes,
+
+    // 基础主题方法
     setThemeMode,
     toggleTheme,
     applyTheme,
     initTheme,
     saveTheme,
+
+    // 插件主题方法
+    registerPluginTheme,
+    unregisterPluginTheme,
+    activatePluginTheme,
+    deactivatePluginTheme,
+    refreshPluginThemes,
+    updatePluginThemeConfig,
+    getPluginThemes,
+    getActivePluginThemes,
   }
 })

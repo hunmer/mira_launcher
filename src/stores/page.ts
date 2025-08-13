@@ -3,6 +3,26 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useGridStore } from './grid'
 
+/**
+ * 插件页面接口
+ */
+interface PluginPage extends Page {
+  pluginId?: string
+  pluginType?: 'overlay' | 'modal' | 'fullscreen' | 'embedded'
+  pluginData?: Record<string, any>
+  isPluginManaged?: boolean
+}
+
+/**
+ * 插件页面配置
+ */
+interface PluginPageConfig {
+  allowPluginPages: boolean
+  maxPluginPages: number
+  pluginPagePrefix: string
+  isolatePluginRoutes: boolean
+}
+
 export const usePageStore = defineStore('page', () => {
   // 页面列表
   const pages = ref<Page[]>([])
@@ -31,6 +51,26 @@ export const usePageStore = defineStore('page', () => {
     layout: 'grid',
     theme: 'inherit',
   })
+
+  // 插件页面配置
+  const pluginPageConfig = ref<PluginPageConfig>({
+    allowPluginPages: true,
+    maxPluginPages: 20,
+    pluginPagePrefix: '/plugin/',
+    isolatePluginRoutes: true,
+  })
+
+  // 插件页面组件注册表
+  const pluginPageComponents = ref<Map<string, {
+    component: any
+    metadata: Record<string, any>
+    lifecycle: {
+      onMount?: () => void
+      onUnmount?: () => void
+      onActivate?: () => void
+      onDeactivate?: () => void
+    }
+  }>>(new Map())
 
   // 计算属性
   const currentPage = computed(() => {
@@ -367,6 +407,7 @@ export const usePageStore = defineStore('page', () => {
           pages: pages.value,
           currentPageIndex: currentPageIndex.value,
           config: config.value,
+          pluginPageConfig: pluginPageConfig.value,
           history: history.value.slice(0, 50), // 只保存最近50条历史
           navigation: navigation.value.slice(0, 25), // 只保存最近25条导航
         }
@@ -397,6 +438,10 @@ export const usePageStore = defineStore('page', () => {
 
         if (data.config) {
           config.value = { ...config.value, ...data.config }
+        }
+
+        if (data.pluginPageConfig) {
+          pluginPageConfig.value = { ...pluginPageConfig.value, ...data.pluginPageConfig }
         }
 
         if (data.history && Array.isArray(data.history)) {
@@ -458,6 +503,148 @@ export const usePageStore = defineStore('page', () => {
     }
   }
 
+  // 插件页面管理方法
+  const registerPluginPage = (
+    pluginId: string,
+    pageId: string,
+    component: any,
+    metadata: Record<string, any> = {},
+    lifecycle: any = {}
+  ) => {
+    if (!pluginPageConfig.value.allowPluginPages) {
+      throw new Error('Plugin pages are disabled')
+    }
+
+    const pluginPages = pages.value.filter((page: any) => page.pluginId)
+    if (pluginPages.length >= pluginPageConfig.value.maxPluginPages) {
+      throw new Error(`Plugin pages limit reached: ${pluginPageConfig.value.maxPluginPages}`)
+    }
+
+    const componentKey = `${pluginId}.${pageId}`
+    pluginPageComponents.value.set(componentKey, {
+      component,
+      metadata,
+      lifecycle,
+    })
+
+    const route = pluginPageConfig.value.isolatePluginRoutes 
+      ? `${pluginPageConfig.value.pluginPagePrefix}${pluginId}/${pageId}`
+      : `/${pageId}`
+
+    const newPageId = addPage({
+      name: metadata['title'] || pageId,
+      route,
+      description: metadata['description'] || `Plugin page: ${pageId}`,
+      pluginId,
+      pluginType: metadata['type'] || 'embedded',
+      pluginData: metadata['data'] || {},
+      isPluginManaged: true,
+    } as PluginPage)
+
+    console.log(`[Page] Registered plugin page: ${componentKey}`)
+    return newPageId
+  }
+
+  const unregisterPluginPage = (pluginId: string, pageId?: string) => {
+    if (pageId) {
+      const componentKey = `${pluginId}.${pageId}`
+      const entry = pluginPageComponents.value.get(componentKey)
+      
+      if (entry && entry.lifecycle.onUnmount) {
+        try {
+          entry.lifecycle.onUnmount()
+        } catch (error) {
+          console.error(`[Page] Error in plugin page unmount lifecycle:`, error)
+        }
+      }
+
+      pluginPageComponents.value.delete(componentKey)
+      
+      // 移除页面
+      const pageIndex = pages.value.findIndex((page: any) => 
+        page.pluginId === pluginId && page.route.includes(pageId)
+      )
+      if (pageIndex !== -1) {
+        removePage(pages.value[pageIndex]!.id)
+      }
+      
+      console.log(`[Page] Unregistered plugin page: ${componentKey}`)
+    } else {
+      // 移除该插件的所有页面
+      const pluginPages = pages.value.filter((page: any) => page.pluginId === pluginId)
+      
+      for (const page of pluginPages) {
+        removePage(page.id)
+      }
+      
+      // 清理组件注册
+      for (const [key] of pluginPageComponents.value) {
+        if (key.startsWith(`${pluginId}.`)) {
+          const entry = pluginPageComponents.value.get(key)
+          if (entry && entry.lifecycle.onUnmount) {
+            try {
+              entry.lifecycle.onUnmount()
+            } catch (error) {
+              console.error(`[Page] Error in plugin page unmount lifecycle:`, error)
+            }
+          }
+          pluginPageComponents.value.delete(key)
+        }
+      }
+      
+      console.log(`[Page] Unregistered all pages for plugin: ${pluginId}`)
+    }
+  }
+
+  const getPluginPageComponent = (pluginId: string, pageId: string) => {
+    const componentKey = `${pluginId}.${pageId}`
+    return pluginPageComponents.value.get(componentKey)
+  }
+
+  const activatePluginPage = (pluginId: string, pageId: string) => {
+    const componentKey = `${pluginId}.${pageId}`
+    const entry = pluginPageComponents.value.get(componentKey)
+    
+    if (entry && entry.lifecycle.onActivate) {
+      try {
+        entry.lifecycle.onActivate()
+        console.log(`[Page] Activated plugin page: ${componentKey}`)
+      } catch (error) {
+        console.error(`[Page] Error in plugin page activate lifecycle:`, error)
+      }
+    }
+  }
+
+  const deactivatePluginPage = (pluginId: string, pageId: string) => {
+    const componentKey = `${pluginId}.${pageId}`
+    const entry = pluginPageComponents.value.get(componentKey)
+    
+    if (entry && entry.lifecycle.onDeactivate) {
+      try {
+        entry.lifecycle.onDeactivate()
+        console.log(`[Page] Deactivated plugin page: ${componentKey}`)
+      } catch (error) {
+        console.error(`[Page] Error in plugin page deactivate lifecycle:`, error)
+      }
+    }
+  }
+
+  const updatePluginPageConfig = (newConfig: Partial<PluginPageConfig>) => {
+    pluginPageConfig.value = { ...pluginPageConfig.value, ...newConfig }
+    saveToStorage()
+    console.log('[Page] Updated plugin page config:', newConfig)
+  }
+
+  const getPluginPages = (pluginId?: string) => {
+    const pluginPages = pages.value.filter((page: any) => page.pluginId)
+    
+    if (pluginId) {
+      return pluginPages.filter((page: any) => page.pluginId === pluginId)
+    }
+    
+    return pluginPages
+  }
+
   // 监听配置变化
   watch(() => config.value.autoSave, (newValue) => {
     if (newValue) {
@@ -494,6 +681,8 @@ export const usePageStore = defineStore('page', () => {
     navigation,
     pageState,
     config,
+    pluginPageConfig,
+    pluginPageComponents,
 
     // 计算属性
     currentPage,
@@ -543,5 +732,14 @@ export const usePageStore = defineStore('page', () => {
     // 自动保存
     startAutoSave,
     stopAutoSave,
+
+    // 插件页面管理
+    registerPluginPage,
+    unregisterPluginPage,
+    getPluginPageComponent,
+    activatePluginPage,
+    deactivatePluginPage,
+    updatePluginPageConfig,
+    getPluginPages,
   }
 })

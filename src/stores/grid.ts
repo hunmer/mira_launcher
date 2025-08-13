@@ -2,6 +2,24 @@ import type { DragState, GridConfig, GridHistory, GridItem } from '@/types/compo
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
+/**
+ * 插件相关的网格项目类型
+ */
+interface PluginGridItem extends GridItem {
+  pluginId?: string
+  pluginType?: 'widget' | 'launcher' | 'shortcut'
+  pluginData?: Record<string, any>
+}
+
+/**
+ * 插件网格配置
+ */
+interface PluginGridConfig {
+  allowPluginItems: boolean
+  pluginItemsLimit: number
+  pluginRenderMode: 'isolated' | 'integrated'
+}
+
 export const useGridStore = defineStore('grid', () => {
   // 网格配置
   const config = ref<GridConfig>({
@@ -11,8 +29,22 @@ export const useGridStore = defineStore('grid', () => {
     autoRows: true,
   })
 
+  // 插件网格配置
+  const pluginConfig = ref<PluginGridConfig>({
+    allowPluginItems: true,
+    pluginItemsLimit: 50,
+    pluginRenderMode: 'integrated',
+  })
+
   // 网格项目数据
   const items = ref<GridItem[]>([])
+
+  // 插件注册的自定义项目类型
+  const pluginItemTypes = ref<Map<string, {
+    renderer: any
+    validator: (data: any) => boolean
+    defaultData: Record<string, any>
+  }>>(new Map())
 
   // 拖拽状态
   const dragState = ref<DragState>({
@@ -258,6 +290,7 @@ export const useGridStore = defineStore('grid', () => {
     try {
       const data = {
         config: config.value,
+        pluginConfig: pluginConfig.value,
         items: items.value,
         selectedItems: selectedItems.value,
         timestamp: Date.now(),
@@ -276,6 +309,10 @@ export const useGridStore = defineStore('grid', () => {
 
         if (data.config) {
           config.value = data.config
+        }
+
+        if (data.pluginConfig) {
+          pluginConfig.value = { ...pluginConfig.value, ...data.pluginConfig }
         }
 
         if (data.items) {
@@ -348,6 +385,110 @@ export const useGridStore = defineStore('grid', () => {
     saveToStorage()
   }
 
+  // 插件集成方法
+  const registerPluginItemType = (
+    pluginId: string,
+    typeName: string,
+    renderer: any,
+    validator: (data: any) => boolean,
+    defaultData: Record<string, any> = {}
+  ) => {
+    const typeKey = `${pluginId}.${typeName}`
+    pluginItemTypes.value.set(typeKey, {
+      renderer,
+      validator,
+      defaultData,
+    })
+    
+    console.log(`[Grid] Registered plugin item type: ${typeKey}`)
+    return typeKey
+  }
+
+  const unregisterPluginItemType = (pluginId: string, typeName?: string) => {
+    if (typeName) {
+      const typeKey = `${pluginId}.${typeName}`
+      pluginItemTypes.value.delete(typeKey)
+      console.log(`[Grid] Unregistered plugin item type: ${typeKey}`)
+    } else {
+      // 移除该插件的所有类型
+      for (const [key] of pluginItemTypes.value) {
+        if (key.startsWith(`${pluginId}.`)) {
+          pluginItemTypes.value.delete(key)
+        }
+      }
+      console.log(`[Grid] Unregistered all item types for plugin: ${pluginId}`)
+    }
+  }
+
+  const addPluginItem = (pluginId: string, itemData: Partial<PluginGridItem>) => {
+    if (!pluginConfig.value.allowPluginItems) {
+      throw new Error('Plugin items are disabled')
+    }
+
+    const pluginItems = items.value.filter((item: any) => item.pluginId)
+    if (pluginItems.length >= pluginConfig.value.pluginItemsLimit) {
+      throw new Error(`Plugin items limit reached: ${pluginConfig.value.pluginItemsLimit}`)
+    }
+
+    const newItem: PluginGridItem = {
+      ...itemData,
+      id: generateId(),
+      pluginId,
+      pluginType: itemData.pluginType || 'widget',
+      pluginData: itemData.pluginData || {},
+      lastUsed: new Date(),
+    } as PluginGridItem
+
+    items.value.push(newItem)
+    addToHistory('add', newItem)
+    saveToStorage()
+
+    console.log(`[Grid] Added plugin item for ${pluginId}:`, newItem.id)
+    return newItem.id
+  }
+
+  const removePluginItems = (pluginId: string) => {
+    const initialLength = items.value.length
+    items.value = items.value.filter((item: any) => {
+      return item.pluginId !== pluginId
+    })
+
+    const removedCount = initialLength - items.value.length
+    if (removedCount > 0) {
+      saveToStorage()
+      console.log(`[Grid] Removed ${removedCount} items for plugin: ${pluginId}`)
+    }
+
+    return removedCount
+  }
+
+  const updatePluginConfig = (newConfig: Partial<PluginGridConfig>) => {
+    pluginConfig.value = { ...pluginConfig.value, ...newConfig }
+    saveToStorage()
+    console.log('[Grid] Updated plugin config:', newConfig)
+  }
+
+  const getPluginItems = (pluginId?: string) => {
+    const pluginItems = items.value.filter((item: any) => item.pluginId)
+    
+    if (pluginId) {
+      return pluginItems.filter((item: any) => item.pluginId === pluginId)
+    }
+    
+    return pluginItems
+  }
+
+  const syncWithPlugin = (pluginId: string, callback: (items: PluginGridItem[]) => void) => {
+    const pluginItems = getPluginItems(pluginId) as PluginGridItem[]
+    
+    try {
+      callback(pluginItems)
+      console.log(`[Grid] Synced with plugin: ${pluginId}`)
+    } catch (error) {
+      console.error(`[Grid] Sync failed with plugin ${pluginId}:`, error)
+    }
+  }
+
   // 工具函数
   const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2)
@@ -357,17 +498,19 @@ export const useGridStore = defineStore('grid', () => {
   loadFromStorage()
 
   // 自动保存监听
-  watch([config, items, selectedItems], () => {
+  watch([config, pluginConfig, items, selectedItems], () => {
     saveToStorage()
   }, { deep: true })
 
   return {
     // 状态
     config,
+    pluginConfig,
     items,
     dragState,
     history,
     selectedItems,
+    pluginItemTypes,
 
     // 计算属性
     itemCount,
@@ -415,5 +558,14 @@ export const useGridStore = defineStore('grid', () => {
     // 项目数据管理
     loadItems,
     clearItems,
+
+    // 插件集成方法
+    registerPluginItemType,
+    unregisterPluginItemType,
+    addPluginItem,
+    removePluginItems,
+    updatePluginConfig,
+    getPluginItems,
+    syncWithPlugin,
   }
 })

@@ -1,0 +1,132 @@
+/**
+ * 插件系统核心模块导出
+ * 
+ * 这个文件统一导出插件系统的所有核心组件，
+ * 方便其他模块进行导入和使用
+ */
+
+// 核心类
+export { BasePlugin } from './BasePlugin'
+export { PluginManager, createReactivePluginManager } from './PluginManager'
+export { EventBus, createReactiveEventBus, globalEventBus, eventBusUtils } from './EventBus'
+
+// 工具函数
+export { usePluginStore } from '@/stores/plugin'
+
+// 类型定义 (从 types 模块重新导出，方便使用)
+export type {
+  PluginMetadata,
+  PluginState,
+  PluginAPI,
+  PluginRegistryEntry,
+  PluginConfiguration,
+  PluginEventType,
+  EventListener,
+  EventListenerOptions,
+  PluginEvent,
+  PluginInfo,
+  PluginStats,
+  PluginLifecycleEvent,
+} from '@/types/plugin'
+
+// 导入核心类用于函数内部使用
+import { BasePlugin } from './BasePlugin'
+import { PluginManager } from './PluginManager'
+import { EventBus } from './EventBus'
+import type { PluginMetadata } from '@/types/plugin'
+
+/**
+ * 插件系统快速初始化函数
+ * 
+ * @param config 插件系统配置
+ * @returns 插件管理器实例
+ */
+export function createPluginSystem(config?: {
+  maxPlugins?: number
+  autoActivate?: boolean
+  enableSandbox?: boolean
+  sandboxTimeout?: number
+  loadTimeout?: number
+}) {
+  const eventBus = new EventBus()
+  const pluginManager = new PluginManager(eventBus, config)
+  
+  return {
+    eventBus,
+    pluginManager,
+    
+    // 便捷方法
+    async register(pluginClass: new () => BasePlugin, metadata: PluginMetadata) {
+      return await pluginManager.register(pluginClass, metadata)
+    },
+    
+    async activate(pluginId: string) {
+      return await pluginManager.activate(pluginId)
+    },
+    
+    async deactivate(pluginId: string) {
+      return await pluginManager.deactivate(pluginId)
+    },
+    
+    getPlugin(pluginId: string) {
+      return pluginManager.getPlugin(pluginId)
+    },
+    
+    getAllPlugins() {
+      return pluginManager.getAllPlugins()
+    },
+    
+    getStats() {
+      return pluginManager.getStats()
+    },
+    
+    async destroy() {
+      return await pluginManager.destroy()
+    }
+  }
+}
+
+/**
+ * 默认配置
+ */
+export const defaultPluginConfig = {
+  maxPlugins: 100,
+  autoActivate: false,
+  enableSandbox: true,
+  sandboxTimeout: 5000,
+  loadTimeout: 10000,
+}
+
+/**
+ * 常用的插件事件类型常量
+ */
+export const PLUGIN_EVENTS = {
+  REGISTERED: 'plugin:registered' as const,
+  BEFORE_LOAD: 'plugin:beforeLoad' as const,
+  LOADED: 'plugin:loaded' as const,
+  BEFORE_ACTIVATE: 'plugin:beforeActivate' as const,
+  ACTIVATED: 'plugin:activated' as const,
+  BEFORE_DEACTIVATE: 'plugin:beforeDeactivate' as const,
+  DEACTIVATED: 'plugin:deactivated' as const,
+  BEFORE_UNLOAD: 'plugin:beforeUnload' as const,
+  UNLOADED: 'plugin:unloaded' as const,
+  ERROR: 'plugin:error' as const,
+  STATE_CHANGED: 'plugin:stateChanged' as const,
+  CONFIG_CHANGED: 'plugin:configChanged' as const,
+} as const
+
+/**
+ * 插件状态常量
+ */
+export const PLUGIN_STATES = {
+  REGISTERED: 'registered' as const,
+  UNLOADED: 'unloaded' as const,
+  LOADING: 'loading' as const,
+  LOADED: 'loaded' as const,
+  ACTIVATING: 'activating' as const,
+  ACTIVE: 'active' as const,
+  DEACTIVATING: 'deactivating' as const,
+  INACTIVE: 'inactive' as const,
+  UNLOADING: 'unloading' as const,
+  ERROR: 'error' as const,
+} as const
