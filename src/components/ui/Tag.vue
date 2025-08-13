@@ -32,21 +32,21 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   closable: false,
   checkable: false,
-  checked: false
+  checked: false,
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'close'): void
   (e: 'click', event: MouseEvent): void
 }
 
-const emit = defineEmits<Emits>()
-
 // 样式类
 const tagClass = computed(() => {
   return [
     'inline-flex items-center',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 

@@ -17,17 +17,26 @@
       :style="cardStyle"
       @close="handleClose"
     >
-      <template #header v-if="$slots['header']">
+      <template
+        v-if="$slots['header']"
+        #header
+      >
         <slot name="header" />
       </template>
       
       <slot />
       
-      <template #footer v-if="$slots['footer']">
+      <template
+        v-if="$slots['footer']"
+        #footer
+      >
         <slot name="footer" />
       </template>
       
-      <template #action v-if="$slots['action']">
+      <template
+        v-if="$slots['action']"
+        #action
+      >
         <div class="flex justify-end space-x-2">
           <slot name="action" />
         </div>
@@ -54,8 +63,10 @@ const props = withDefaults(defineProps<Props>(), {
   closable: true,
   maskClosable: true,
   closeOnEsc: true,
-  autoFocus: true
+  autoFocus: true,
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'update:show', value: boolean): void
@@ -63,8 +74,6 @@ interface Emits {
   (e: 'after-leave'): void
   (e: 'close'): void
 }
-
-const emit = defineEmits<Emits>()
 
 // 内部显示状态管理
 const modalVisible = ref(props.show)
@@ -84,7 +93,7 @@ const cardStyle = computed(() => {
   return {
     width: typeof props.width === 'number' ? `${props.width}px` : props.width,
     maxWidth: '90vw',
-    maxHeight: '90vh'
+    maxHeight: '90vh',
   }
 })
 
@@ -92,7 +101,7 @@ const cardStyle = computed(() => {
 const modalClass = computed(() => {
   return [
     'flex items-center justify-center',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 

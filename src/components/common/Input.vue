@@ -14,10 +14,16 @@
     @focus="handleFocus"
     @blur="handleBlur"
   >
-    <template #prefix v-if="$slots['prefix']">
+    <template
+      v-if="$slots['prefix']"
+      #prefix
+    >
       <slot name="prefix" />
     </template>
-    <template #suffix v-if="$slots['suffix']">
+    <template
+      v-if="$slots['suffix']"
+      #suffix
+    >
       <slot name="suffix" />
     </template>
   </NInput>
@@ -41,8 +47,10 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   readonly: false,
   clearable: false,
-  size: 'medium'
+  size: 'medium',
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'update:value', value: string): void
@@ -51,8 +59,6 @@ interface Emits {
   (e: 'focus', event: FocusEvent): void
   (e: 'blur', event: FocusEvent): void
 }
-
-const emit = defineEmits<Emits>()
 
 // 内部值管理
 const inputValue = ref(props.value)
@@ -71,7 +77,7 @@ watch(inputValue, (newValue) => {
 const inputClass = computed(() => {
   return [
     'transition-all duration-200',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 

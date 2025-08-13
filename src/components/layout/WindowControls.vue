@@ -2,24 +2,33 @@
   <div class="flex items-center space-x-1 no-drag">
     <button 
       class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600"
-      @click="handleMinimize"
       title="最小化"
+      @click="handleMinimize"
     >
-      <MinimizeIcon :size="12" class="text-gray-600 dark:text-gray-400" />
+      <MinimizeIcon
+        :size="12"
+        class="text-gray-600 dark:text-gray-400"
+      />
     </button>
     <button 
       class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600"
-      @click="handleMaximize"
       title="最大化"
+      @click="handleMaximize"
     >
-      <MaximizeIcon :size="12" class="text-gray-600 dark:text-gray-400" />
+      <MaximizeIcon
+        :size="12"
+        class="text-gray-600 dark:text-gray-400"
+      />
     </button>
     <button 
       class="window-control-btn hover:bg-red-500 hover:text-white"
-      @click="handleClose"
       title="關閉"
+      @click="handleClose"
     >
-      <CloseIcon :size="12" class="text-gray-600 dark:text-gray-400" />
+      <CloseIcon
+        :size="12"
+        class="text-gray-600 dark:text-gray-400"
+      />
     </button>
   </div>
 </template>

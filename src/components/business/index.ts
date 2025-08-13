@@ -1,7 +1,14 @@
 // 业务组件导出
 // 包含插件管理器、应用启动器等业务相关组件
 
-// 注意：业务组件待实现
+// 页面管理组件
+export { default as PageIndicator } from './PageIndicator.vue'
+export { default as PageManager } from './PageManager.vue'
+
+// 搜索组件
+export { default as QuickSearch } from './QuickSearch.vue'
+
+// 注意：其他业务组件待实现
 // export { default as PluginManager } from './PluginManager.vue'
 // export { default as AppLauncher } from './AppLauncher.vue'
 // export { default as AppItem } from './AppItem.vue'

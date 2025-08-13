@@ -8,7 +8,6 @@ module.exports = {
     extends: [
         'eslint:recommended',
         '@vue/eslint-config-typescript',
-        '@vue/eslint-config-prettier',
         'plugin:vue/vue3-essential',
         'plugin:vue/vue3-strongly-recommended',
         'plugin:vue/vue3-recommended',
@@ -50,10 +49,7 @@ module.exports = {
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-inferrable-types': 'off',
-        '@typescript-eslint/prefer-const': 'error',
-        '@typescript-eslint/no-non-null-assertion': 'warn',
-
-        // 一般規則
+        '@typescript-eslint/no-non-null-assertion': 'warn',    // 一般規則
         'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
         'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
         'prefer-const': 'error',
@@ -71,7 +67,6 @@ module.exports = {
     overrides: [
         {
             files: ['**/__tests__/**/*', '**/*.{test,spec}.*'],
-            extends: ['plugin:vitest/recommended'],
             rules: {
                 '@typescript-eslint/no-explicit-any': 'off',
             },

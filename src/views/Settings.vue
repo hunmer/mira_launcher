@@ -16,8 +16,12 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">主题模式</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">选择浅色或深色主题</p>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  主题模式
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  选择浅色或深色主题
+                </p>
               </div>
               <Button @click="toggleTheme">
                 {{ isDark ? '切换到浅色模式' : '切换到深色模式' }}
@@ -31,18 +35,34 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">开机自启动</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">系统启动时自动运行 Mira Launcher</p>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  开机自启动
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  系统启动时自动运行 Mira Launcher
+                </p>
               </div>
-              <input type="checkbox" class="toggle" v-model="autoStart" />
+              <input
+                v-model="autoStart"
+                type="checkbox"
+                class="toggle"
+              >
             </div>
             
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">最小化到系统托盘</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">关闭窗口时最小化到系统托盘</p>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  最小化到系统托盘
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  关闭窗口时最小化到系统托盘
+                </p>
               </div>
-              <input type="checkbox" class="toggle" v-model="minimizeToTray" />
+              <input
+                v-model="minimizeToTray"
+                type="checkbox"
+                class="toggle"
+              >
             </div>
           </div>
         </Card>
@@ -52,8 +72,12 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">全局唤醒快捷键</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">快速显示/隐藏启动器窗口</p>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  全局唤醒快捷键
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  快速显示/隐藏启动器窗口
+                </p>
               </div>
               <Input 
                 v-model="globalHotkey" 
@@ -69,14 +93,23 @@
       <Divider class="my-6" />
 
       <div class="flex justify-between">
-        <Button @click="$router.back()" variant="outline">
+        <Button
+          variant="outline"
+          @click="$router.back()"
+        >
           返回
         </Button>
         <div class="space-x-2">
-          <Button @click="resetSettings" variant="outline">
+          <Button
+            variant="outline"
+            @click="resetSettings"
+          >
             重置设置
           </Button>
-          <Button @click="saveSettings" type="primary">
+          <Button
+            type="primary"
+            @click="saveSettings"
+          >
             保存设置
           </Button>
         </div>
@@ -106,7 +139,7 @@ const saveSettings = () => {
   console.log('保存设置:', {
     autoStart: autoStart.value,
     minimizeToTray: minimizeToTray.value,
-    globalHotkey: globalHotkey.value
+    globalHotkey: globalHotkey.value,
   })
 }
 

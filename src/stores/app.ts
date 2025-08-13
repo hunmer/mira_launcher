@@ -18,6 +18,6 @@ export const useAppStore = defineStore('app', () => {
     isLoading,
     appName,
     appVersion,
-    setLoading
+    setLoading,
   }
 })

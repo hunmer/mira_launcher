@@ -21,14 +21,14 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   size: 12,
-  color: 'currentColor'
+  color: 'currentColor',
 })
 
 // 样式类
 const iconClass = computed(() => {
   return [
     'text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

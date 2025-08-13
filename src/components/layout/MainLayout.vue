@@ -47,16 +47,16 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  contentTransition: 'fade'
+  contentTransition: 'fade',
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'window-minimize'): void
   (e: 'window-maximize'): void
   (e: 'window-close'): void
 }
-
-const emit = defineEmits<Emits>()
 
 // Store
 const appStore = useAppStore()

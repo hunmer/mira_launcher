@@ -25,14 +25,14 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   loading: false,
   disabled: false,
-  block: false
+  block: false,
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'click', event: MouseEvent): void
 }
-
-const emit = defineEmits<Emits>()
 
 // 转换类型到 Naive UI 的类型
 const naiveType = computed(() => {
@@ -42,7 +42,7 @@ const naiveType = computed(() => {
     secondary: 'tertiary',
     success: 'success',
     warning: 'warning',
-    error: 'error'
+    error: 'error',
   }
   return typeMap[props.type] || 'default'
 })
@@ -51,7 +51,7 @@ const naiveType = computed(() => {
 const buttonClass = computed(() => {
   return [
     'transition-all duration-200',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 

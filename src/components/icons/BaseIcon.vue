@@ -22,14 +22,14 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   size: 16,
-  color: 'currentColor'
+  color: 'currentColor',
 })
 
 // 样式类
 const iconClass = computed(() => {
   return [
     'inline-flex items-center justify-center',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

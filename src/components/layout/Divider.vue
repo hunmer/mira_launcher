@@ -1,9 +1,15 @@
 <template>
   <div :class="dividerClass">
-    <div v-if="text" class="divider-text">
+    <div
+      v-if="text"
+      class="divider-text"
+    >
       {{ text }}
     </div>
-    <div v-else-if="$slots['default']" class="divider-text">
+    <div
+      v-else-if="$slots['default']"
+      class="divider-text"
+    >
       <slot />
     </div>
   </div>
@@ -24,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   text: '',
   orientation: 'horizontal',
   size: 'normal',
-  variant: 'solid'
+  variant: 'solid',
 })
 
 // 样式类计算
@@ -42,7 +48,7 @@ const dividerClass = computed(() => {
   const sizeMap = {
     thin: 'divider-thin',
     normal: 'divider-normal',
-    thick: 'divider-thick'
+    thick: 'divider-thick',
   }
   classes.push(sizeMap[props.size])
   
@@ -50,7 +56,7 @@ const dividerClass = computed(() => {
   const variantMap = {
     solid: 'border-solid',
     dashed: 'border-dashed',
-    dotted: 'border-dotted'
+    dotted: 'border-dotted',
   }
   classes.push(variantMap[props.variant])
   

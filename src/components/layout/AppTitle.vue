@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center space-x-2 no-drag">
-    <AppIcon :size="16" class="text-primary-600 dark:text-primary-400" />
+    <AppIcon
+      :size="16"
+      class="text-primary-600 dark:text-primary-400"
+    />
     <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
       {{ appName }}
     </span>
@@ -18,7 +21,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showIcon: true
+  showIcon: true,
 })
 
 // Store

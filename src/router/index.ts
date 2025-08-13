@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 // 路由組件的懶載入
 const Home = () => import('@/views/Home.vue')
@@ -11,7 +11,7 @@ const About = () => import('@/views/About.vue')
 // 路由配置
 const routes: RouteRecordRaw[] = [
     {
-        path: '/',
+        path: '/home',
         name: 'Home',
         component: Home,
         meta: {
@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
         },
     },
     {
-        path: '/applications',
+        path: '/',
         name: 'Applications',
         component: Applications,
         meta: {
@@ -104,14 +104,14 @@ const router = createRouter({
 // 全局前置守衛
 router.beforeEach(async (to, from, next) => {
     // 設置頁面標題
-    if (to.meta.title) {
-        document.title = `${to.meta.title} - Mira Launcher`
+    if (to.meta?.['title']) {
+        document.title = `${to.meta['title']} - Mira Launcher`
     } else {
         document.title = 'Mira Launcher'
     }
 
     // 檢查是否需要認證
-    if (to.meta.requiresAuth) {
+    if (to.meta?.['requiresAuth']) {
         // 這裡可以添加認證邏輯
         // 目前應用不需要認證，所以直接通過
         next()
@@ -123,7 +123,7 @@ router.beforeEach(async (to, from, next) => {
 // 全局後置鉤子
 router.afterEach((to, from) => {
     // 路由變化後的邏輯
-    console.log(`路由從 ${from.name} 切換到 ${to.name}`)
+    console.log(`路由從 ${String(from.name)} 切換到 ${String(to.name)}`)
 
     // 可以在這裡添加頁面分析、錯誤追蹤等
 })

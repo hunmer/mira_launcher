@@ -12,8 +12,15 @@
 
       <div class="flex justify-between items-center mb-6">
         <div class="flex space-x-2">
-          <Button @click="refreshPlugins">刷新</Button>
-          <Button @click="showInstallModal = true" type="primary">安装插件</Button>
+          <Button @click="refreshPlugins">
+            刷新
+          </Button>
+          <Button
+            type="primary"
+            @click="showInstallModal = true"
+          >
+            安装插件
+          </Button>
         </div>
         <Input 
           v-model="searchQuery" 
@@ -42,8 +49,8 @@
               </span>
               <Button 
                 size="small" 
-                @click="togglePlugin(plugin)"
                 :type="plugin.enabled ? 'default' : 'primary'"
+                @click="togglePlugin(plugin)"
               >
                 {{ plugin.enabled ? '禁用' : '启用' }}
               </Button>
@@ -60,10 +67,18 @@
               <span>{{ plugin.author }}</span>
             </div>
             <div class="flex justify-end space-x-2 mt-4">
-              <Button size="small" variant="outline" @click="configurePlugin(plugin)">
+              <Button
+                size="small"
+                variant="outline"
+                @click="configurePlugin(plugin)"
+              >
                 配置
               </Button>
-              <Button size="small" variant="outline" @click="removePlugin(plugin)">
+              <Button
+                size="small"
+                variant="outline"
+                @click="removePlugin(plugin)"
+              >
                 移除
               </Button>
             </div>
@@ -120,7 +135,7 @@ const plugins = ref<Plugin[]>([
     description: '在启动器中显示实时天气信息',
     version: '1.2.0',
     author: 'WeatherApp Inc.',
-    enabled: true
+    enabled: true,
   },
   {
     id: 'system-monitor',
@@ -128,7 +143,7 @@ const plugins = ref<Plugin[]>([
     description: '监控系统资源使用情况',
     version: '2.1.3',
     author: 'SysTools',
-    enabled: false
+    enabled: false,
   },
   {
     id: 'quick-notes',
@@ -136,8 +151,8 @@ const plugins = ref<Plugin[]>([
     description: '快速创建和管理笔记',
     version: '1.0.5',
     author: 'NotesDev',
-    enabled: true
-  }
+    enabled: true,
+  },
 ])
 
 // 计算属性
@@ -145,7 +160,7 @@ const filteredPlugins = computed(() => {
   if (!searchQuery.value) return plugins.value
   return plugins.value.filter(plugin => 
     plugin.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    plugin.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    plugin.description.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
 

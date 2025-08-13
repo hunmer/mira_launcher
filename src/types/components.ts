@@ -53,17 +53,45 @@ export interface GridItem {
         width: number
         height: number
     }
+    gridSize?: '1x1' | '1x2' | '2x1' | '2x2'
+    selected?: boolean
+    disabled?: boolean
+    pinned?: boolean
+    lastUsed?: Date
 }
 
 // 网格配置类型
 export interface GridConfig {
-    columns: number
-    rows: number
-    gap: number
-    itemSize: {
+    columns: number | 'auto'
+    rows?: number
+    gap: number | 'sm' | 'md' | 'lg' | 'xl'
+    responsive?: boolean
+    autoRows?: boolean
+    itemSize?: {
         width: number
         height: number
     }
+}
+
+// 拖拽状态类型
+export interface DragState {
+    isDragging: boolean
+    draggedItem?: GridItem
+    draggedFromIndex?: number
+    draggedToIndex?: number
+    ghostElement?: HTMLElement
+    placeholderVisible?: boolean
+}
+
+// 网格历史记录类型
+export interface GridHistory {
+    id: string
+    timestamp: Date
+    action: 'add' | 'remove' | 'move' | 'update' | 'reorder'
+    item?: GridItem
+    oldPosition?: number
+    newPosition?: number
+    data?: any
 }
 
 // 插件信息类型
@@ -99,6 +127,21 @@ export interface ComponentEvents {
     blur: (event: FocusEvent) => void
 }
 
+// 网格组件类型
+export interface GridContainerProps extends BaseComponentProps {
+    columns?: number | 'auto'
+    gap?: number | 'sm' | 'md' | 'lg' | 'xl'
+    responsive?: boolean
+    autoRows?: boolean
+}
+
+export interface GridItemProps extends BaseComponentProps {
+    size?: '1x1' | '1x2' | '2x1' | '2x2'
+    selected?: boolean
+    disabled?: boolean
+    hoverable?: boolean
+}
+
 // 插槽类型
 export interface ComponentSlots {
     default?: () => any
@@ -106,4 +149,49 @@ export interface ComponentSlots {
     footer?: () => any
     prefix?: () => any
     suffix?: () => any
+}
+
+// 页面相关类型
+export interface Page {
+    id: string
+    name: string
+    route: string
+    gridData: GridItem[]
+    config: PageConfig
+    createdAt: Date
+    lastVisited: Date
+    icon?: string
+    description?: string
+    pinned?: boolean
+}
+
+export interface PageConfig {
+    maxPages?: number
+    enableAnimation?: boolean
+    autoSave?: boolean
+    saveInterval?: number
+    layout?: 'grid' | 'list' | 'custom'
+    theme?: 'inherit' | 'light' | 'dark'
+}
+
+export interface PageHistory {
+    id: string
+    pageId: string
+    timestamp: Date
+    action: 'visit' | 'create' | 'update' | 'delete'
+    data?: any
+}
+
+export interface PageNavigation {
+    from: string
+    to: string
+    timestamp: Date
+    duration?: number
+}
+
+export interface PageState {
+    loading: boolean
+    error?: string
+    isDirty: boolean
+    lastSaved?: Date
 }

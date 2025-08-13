@@ -5,11 +5,17 @@
     :class="emptyClass"
     v-bind="$attrs"
   >
-    <template #icon v-if="$slots['icon']">
+    <template
+      v-if="$slots['icon']"
+      #icon
+    >
       <slot name="icon" />
     </template>
     
-    <template #extra v-if="$slots['extra']">
+    <template
+      v-if="$slots['extra']"
+      #extra
+    >
       <slot name="extra" />
     </template>
     
@@ -29,14 +35,14 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   description: '暂无数据',
-  size: 'medium'
+  size: 'medium',
 })
 
 // 样式类
 const emptyClass = computed(() => {
   return [
     'flex flex-col items-center justify-center',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

@@ -6,7 +6,10 @@
         mode="out-in"
         appear
       >
-        <component :is="Component" :key="route.fullPath" />
+        <component
+          :is="Component"
+          :key="route.fullPath"
+        />
       </Transition>
     </RouterView>
   </main>
@@ -21,7 +24,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  transition: 'fade'
+  transition: 'fade',
 })
 
 const route = useRoute()

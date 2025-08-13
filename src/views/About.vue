@@ -2,7 +2,10 @@
   <div class="about-page">
     <Container class="max-w-2xl mx-auto text-center">
       <div class="mb-8">
-        <AppIcon :size="96" class="mx-auto mb-6 text-blue-500" />
+        <AppIcon
+          :size="96"
+          class="mx-auto mb-6 text-blue-500"
+        />
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
           Mira Launcher
         </h1>
@@ -15,10 +18,14 @@
       </div>
 
       <Card class="text-left mb-6">
-        <h2 class="text-lg font-semibold mb-4">技术栈</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          技术栈
+        </h2>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <h3 class="font-medium text-gray-900 dark:text-white mb-2">前端技术</h3>
+            <h3 class="font-medium text-gray-900 dark:text-white mb-2">
+              前端技术
+            </h3>
             <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
               <li>• Vue 3 (Composition API)</li>
               <li>• TypeScript</li>
@@ -29,7 +36,9 @@
             </ul>
           </div>
           <div>
-            <h3 class="font-medium text-gray-900 dark:text-white mb-2">后端技术</h3>
+            <h3 class="font-medium text-gray-900 dark:text-white mb-2">
+              后端技术
+            </h3>
             <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
               <li>• Tauri 1.5</li>
               <li>• Rust</li>
@@ -40,7 +49,9 @@
       </Card>
 
       <Card class="text-left mb-6">
-        <h2 class="text-lg font-semibold mb-4">主要特性</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          主要特性
+        </h2>
         <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
           <li>• 🚀 轻量级设计，启动快速</li>
           <li>• 🎨 现代化界面，支持深色模式</li>
@@ -52,7 +63,9 @@
       </Card>
 
       <Card class="text-left mb-6">
-        <h2 class="text-lg font-semibold mb-4">系统信息</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          系统信息
+        </h2>
         <div class="space-y-2 text-sm">
           <div class="flex justify-between">
             <span class="text-gray-500">操作系统:</span>
@@ -74,13 +87,22 @@
       </Card>
 
       <div class="flex justify-center space-x-4">
-        <Button @click="checkUpdate" type="primary">
+        <Button
+          type="primary"
+          @click="checkUpdate"
+        >
           检查更新
         </Button>
-        <Button @click="openGithub" variant="outline">
+        <Button
+          variant="outline"
+          @click="openGithub"
+        >
           GitHub 仓库
         </Button>
-        <Button @click="$router.back()" variant="outline">
+        <Button
+          variant="outline"
+          @click="$router.back()"
+        >
           返回
         </Button>
       </div>
@@ -105,7 +127,7 @@ const systemInfo = ref({
   os: 'Windows 11',
   arch: 'x64',
   memory: '45.2 MB',
-  tauriVersion: '1.5.0'
+  tauriVersion: '1.5.0',
 })
 
 const checkUpdate = async () => {

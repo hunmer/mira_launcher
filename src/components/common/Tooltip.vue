@@ -37,14 +37,14 @@ const props = withDefaults(defineProps<Props>(), {
   trigger: 'hover',
   placement: 'top',
   delay: 100,
-  disabled: false
+  disabled: false,
 })
 
 // 样式类
 const tooltipClass = computed(() => {
   return [
     'inline-block',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

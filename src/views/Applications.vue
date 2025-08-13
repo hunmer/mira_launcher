@@ -12,75 +12,81 @@
 
       <div class="flex justify-between items-center mb-6">
         <div class="flex space-x-2">
-          <Button @click="scanApplications">扫描应用</Button>
-          <Button @click="addCustomApp" type="primary">添加应用</Button>
+          <Button @click="scanApplications">
+            扫描应用
+          </Button>
+          <Button
+            type="primary"
+            @click="addCustomApp"
+          >
+            添加应用
+          </Button>
         </div>
         <div class="flex space-x-2">
-          <Input 
-            v-model="searchQuery" 
+          <Input
+            v-model="searchQuery"
             placeholder="搜索应用..."
             class="w-64"
           />
-          <select 
-            v-model="sortBy" 
+          <select
+            v-model="sortBy"
             class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
-            <option value="name">按名称排序</option>
-            <option value="recent">最近使用</option>
-            <option value="category">按分类排序</option>
+            <option value="name">
+              按名称排序
+            </option>
+            <option value="recent">
+              最近使用
+            </option>
+            <option value="category">
+              按分类排序
+            </option>
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        <div
+      <GridContainer
+        :items="gridItems"
+        :draggable="true"
+        @drag-update="handleDragUpdate"
+      >
+        <GridItem
           v-for="app in filteredApps"
           :key="app.id"
-          class="app-item"
           @click="launchApp(app)"
-          @contextmenu.prevent="showContextMenu(app, $event)"
+          @contextmenu="showContextMenu(app, $event)"
         >
-          <div class="app-icon">
-            <img 
-              v-if="app.icon" 
-              :src="app.icon" 
+          <template #icon>
+            <img
+              v-if="app.icon"
+              :src="app.icon"
               :alt="app.name"
               class="w-12 h-12 object-contain"
-            />
-            <AppIcon 
+            >
+            <AppIcon
               v-else
-              name="monitor" 
-              :size="48" 
+              name="monitor"
+              :size="48"
               class="text-gray-400"
             />
-          </div>
-          <div class="app-name">{{ app.name }}</div>
-        </div>
-      </div>
+          </template>
+          <template #label>
+            {{ app.name }}
+          </template>
+        </GridItem>
+      </GridContainer>
 
-      <!-- 右键菜单 -->
-      <div 
-        v-if="contextMenu.show"
-        :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
-        class="context-menu"
-        @click="hideContextMenu"
-      >
-        <div class="context-menu-item" @click="launchApp(contextMenu.app!)">
-          启动应用
-        </div>
-        <div class="context-menu-item" @click="pinToQuickAccess(contextMenu.app!)">
-          固定到快速访问
-        </div>
-        <div class="context-menu-item" @click="editApp(contextMenu.app!)">
-          编辑
-        </div>
-        <div class="context-menu-item danger" @click="removeApp(contextMenu.app!)">
-          移除
-        </div>
-      </div>
+      <!-- ContextMenu组件 -->
+      <ContextMenu
+        v-model:show="contextMenu.show"
+        :x="contextMenu.x"
+        :y="contextMenu.y"
+        :items="contextMenuItems"
+        @select="handleContextMenuSelect"
+      />
 
       <!-- 添加应用模态框 -->
-      <Modal 
+      <Modal
         v-model:show="showAddModal"
         title="添加应用"
         @positive-click="saveCustomApp"
@@ -89,27 +95,46 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-1">应用名称</label>
-            <Input v-model="newApp.name" placeholder="输入应用名称" />
+            <Input
+              v-model="newApp.name"
+              placeholder="输入应用名称"
+            />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">执行路径</label>
-            <Input v-model="newApp.path" placeholder="选择或输入可执行文件路径" />
+            <Input
+              v-model="newApp.path"
+              placeholder="选择或输入可执行文件路径"
+            />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">图标路径（可选）</label>
-            <Input v-model="newApp.icon" placeholder="选择图标文件" />
+            <Input
+              v-model="newApp.icon"
+              placeholder="选择图标文件"
+            />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">分类</label>
-            <select 
+            <select
               v-model="newApp.category"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              <option value="productivity">生产力</option>
-              <option value="entertainment">娱乐</option>
-              <option value="development">开发</option>
-              <option value="utility">工具</option>
-              <option value="other">其他</option>
+              <option value="productivity">
+                生产力
+              </option>
+              <option value="entertainment">
+                娱乐
+              </option>
+              <option value="development">
+                开发
+              </option>
+              <option value="utility">
+                工具
+              </option>
+              <option value="other">
+                其他
+              </option>
             </select>
           </div>
         </div>
@@ -119,7 +144,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import type { MenuItem } from '@/components/common/ContextMenu.vue'
+import ContextMenu from '@/components/common/ContextMenu.vue'
+import { GridContainer, GridItem } from '@/components/grid'
+import { useGridStore } from '@/stores/grid'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 interface Application {
   id: string
@@ -136,6 +165,9 @@ const searchQuery = ref('')
 const sortBy = ref('name')
 const showAddModal = ref(false)
 
+// Store
+const gridStore = useGridStore()
+
 // 应用列表
 const applications = ref<Application[]>([
   {
@@ -143,21 +175,21 @@ const applications = ref<Application[]>([
     name: 'Google Chrome',
     path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     category: 'productivity',
-    lastUsed: new Date()
+    lastUsed: new Date(),
   },
   {
     id: 'vscode',
     name: 'Visual Studio Code',
     path: 'C:\\Users\\Username\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe',
     category: 'development',
-    lastUsed: new Date()
+    lastUsed: new Date(),
   },
   {
     id: 'notepad',
     name: '记事本',
     path: 'C:\\Windows\\System32\\notepad.exe',
-    category: 'utility'
-  }
+    category: 'utility',
+  },
 ])
 
 // 新应用表单
@@ -165,7 +197,7 @@ const newApp = reactive({
   name: '',
   path: '',
   icon: '',
-  category: 'other'
+  category: 'other',
 })
 
 // 右键菜单
@@ -173,7 +205,7 @@ const contextMenu = reactive({
   show: false,
   x: 0,
   y: 0,
-  app: null as Application | null
+  app: null as Application | null,
 })
 
 // 计算属性
@@ -182,36 +214,81 @@ const filteredApps = computed(() => {
 
   // 搜索过滤
   if (searchQuery.value) {
-    apps = apps.filter(app => 
-      app.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    apps = apps.filter(app =>
+      app.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
     )
   }
 
   // 排序
   switch (sortBy.value) {
-    case 'name':
-      apps.sort((a, b) => a.name.localeCompare(b.name))
-      break
-    case 'recent':
-      apps.sort((a, b) => {
-        const aTime = a.lastUsed?.getTime() || 0
-        const bTime = b.lastUsed?.getTime() || 0
-        return bTime - aTime
-      })
-      break
-    case 'category':
-      apps.sort((a, b) => a.category.localeCompare(b.category))
-      break
+  case 'name':
+    apps.sort((a, b) => a.name.localeCompare(b.name))
+    break
+  case 'recent':
+    apps.sort((a, b) => {
+      const aTime = a.lastUsed?.getTime() || 0
+      const bTime = b.lastUsed?.getTime() || 0
+      return bTime - aTime
+    })
+    break
+  case 'category':
+    apps.sort((a, b) => a.category.localeCompare(b.category))
+    break
   }
 
   return apps
 })
 
+// 转换应用数据为网格项目
+const gridItems = computed(() =>
+  applications.value.map(app => ({
+    id: app.id,
+    name: app.name,
+    icon: app.icon || '',
+    category: app.category,
+    gridSize: '1x1' as const,
+  })),
+)
+
+// 右键菜单项目
+const contextMenuItems = computed((): MenuItem[] => [
+  {
+    label: '启动应用',
+    icon: 'play',
+    action: () => {
+      if (contextMenu.app) launchApp(contextMenu.app)
+    },
+  },
+  {
+    label: contextMenu.app?.pinned ? '取消固定' : '固定到快速访问',
+    icon: 'pin',
+    action: () => {
+      if (contextMenu.app) pinToQuickAccess(contextMenu.app)
+    },
+  },
+  { separator: true, label: '' },
+  {
+    label: '编辑',
+    icon: 'edit',
+    action: () => {
+      if (contextMenu.app) editApp(contextMenu.app)
+    },
+  },
+  {
+    label: '移除',
+    icon: 'trash',
+    danger: true,
+    action: () => {
+      if (contextMenu.app) removeApp(contextMenu.app)
+    },
+  },
+])
+
 // 方法
 const launchApp = async (app: Application) => {
   console.log(`启动应用: ${app.name}`)
   app.lastUsed = new Date()
-  
+
   // 这里可以调用 Tauri API 启动应用
   // await invoke('launch_application', { path: app.path })
 }
@@ -225,6 +302,29 @@ const showContextMenu = (app: Application, event: MouseEvent) => {
 
 const hideContextMenu = () => {
   contextMenu.show = false
+}
+
+// 处理右键菜单选择
+const handleContextMenuSelect = (item: MenuItem) => {
+  if (item.action) {
+    item.action()
+  }
+  hideContextMenu()
+}
+
+// 处理拖拽更新
+const handleDragUpdate = (event: any) => {
+  // 同步拖拽结果到applications数组
+  const { newIndex, oldIndex } = event
+  if (oldIndex !== newIndex && oldIndex !== undefined && newIndex !== undefined) {
+    const movedApp = applications.value.splice(oldIndex, 1)[0]
+    if (movedApp) {
+      applications.value.splice(newIndex, 0, movedApp)
+
+      // 同步到gridStore
+      gridStore.moveItem(oldIndex, newIndex)
+    }
+  }
 }
 
 const pinToQuickAccess = (app: Application) => {
@@ -268,7 +368,7 @@ const saveCustomApp = () => {
     id: Date.now().toString(),
     name: newApp.name,
     path: newApp.path,
-    category: newApp.category
+    category: newApp.category,
   }
 
   if (newApp.icon) {
@@ -276,15 +376,15 @@ const saveCustomApp = () => {
   }
 
   applications.value.push(app)
-  
+
   // 重置表单
   Object.assign(newApp, {
     name: '',
     path: '',
     icon: '',
-    category: 'other'
+    category: 'other',
   })
-  
+
   showAddModal.value = false
 }
 
@@ -310,93 +410,5 @@ onMounted(() => {
 
 .dark .applications-page {
   background-color: #111827;
-}
-
-.app-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-}
-
-.dark .app-item {
-  background-color: #374151;
-  border-color: #4b5563;
-}
-
-.app-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #f3f4f6;
-}
-
-.dark .app-item:hover {
-  background-color: #4b5563;
-}
-
-.app-icon {
-  margin-bottom: 0.5rem;
-}
-
-.app-name {
-  font-size: 0.875rem;
-  text-align: center;
-  color: #374151;
-  font-weight: 500;
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-.dark .app-name {
-  color: #d1d5db;
-}
-
-.context-menu {
-  position: fixed;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
-  z-index: 1000;
-  min-width: 150px;
-}
-
-.dark .context-menu {
-  background-color: #374151;
-  border-color: #4b5563;
-}
-
-.context-menu-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: #374151;
-  transition: background-color 0.2s;
-}
-
-.dark .context-menu-item {
-  color: #d1d5db;
-}
-
-.context-menu-item:hover {
-  background-color: #f3f4f6;
-}
-
-.dark .context-menu-item:hover {
-  background-color: #4b5563;
-}
-
-.context-menu-item.danger {
-  color: #dc2626;
-}
-
-.dark .context-menu-item.danger {
-  color: #ef4444;
 }
 </style>

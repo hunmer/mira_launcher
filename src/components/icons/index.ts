@@ -13,6 +13,8 @@ export { default as MaximizeIcon } from './MaximizeIcon.vue'
 export { default as MinimizeIcon } from './MinimizeIcon.vue'
 
 // 功能图标
+export { default as FileIcon } from './FileIcon.vue'
+export { default as PagesIcon } from './PagesIcon.vue'
 export { default as SearchIcon } from './SearchIcon.vue'
 export { default as SettingsIcon } from './SettingsIcon.vue'
 

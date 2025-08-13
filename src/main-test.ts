@@ -3,7 +3,7 @@ import './styles/main.css'
 
 // 创建简化的 App 组件用于测试
 const App = {
-    template: `
+  template: `
     <div class="min-h-screen bg-gray-50 flex items-center justify-center">
       <div class="bg-white p-8 rounded-lg shadow-lg">
         <h1 class="text-2xl font-bold text-gray-900 mb-4">Mira Launcher</h1>
@@ -13,7 +13,7 @@ const App = {
         </div>
       </div>
     </div>
-  `
+  `,
 }
 
 // 创建并挂载应用

@@ -4,7 +4,10 @@
     :show="show"
     :class="spinnerClass"
   >
-    <template #description v-if="description || $slots['description']">
+    <template
+      v-if="description || $slots['description']"
+      #description
+    >
       <slot name="description">
         {{ description }}
       </slot>
@@ -27,7 +30,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   show: true,
-  description: ''
+  description: '',
 })
 
 // 尺寸映射
@@ -39,7 +42,7 @@ const spinSize = computed(() => {
   const sizeMap = {
     small: 14,
     medium: 20,
-    large: 28
+    large: 28,
   }
   return sizeMap[props.size]
 })
@@ -48,7 +51,7 @@ const spinSize = computed(() => {
 const spinnerClass = computed(() => {
   return [
     'inline-flex items-center justify-center',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

@@ -7,21 +7,33 @@
     v-bind="$attrs"
     @close="handleClose"
   >
-    <template #header v-if="$slots['header']">
+    <template
+      v-if="$slots['header']"
+      #header
+    >
       <slot name="header" />
     </template>
     
-    <template #header-extra v-if="$slots['header-extra']">
+    <template
+      v-if="$slots['header-extra']"
+      #header-extra
+    >
       <slot name="header-extra" />
     </template>
     
     <slot />
     
-    <template #footer v-if="$slots['footer']">
+    <template
+      v-if="$slots['footer']"
+      #footer
+    >
       <slot name="footer" />
     </template>
     
-    <template #action v-if="$slots['action']">
+    <template
+      v-if="$slots['action']"
+      #action
+    >
       <slot name="action" />
     </template>
   </NCard>
@@ -41,21 +53,21 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   title: '',
   hoverable: false,
-  closable: false
+  closable: false,
 })
+
+const emit = defineEmits<Emits>()
 
 interface Emits {
   (e: 'close'): void
 }
-
-const emit = defineEmits<Emits>()
 
 // 样式类
 const cardClass = computed(() => {
   return [
     'transition-all duration-200',
     props.hoverable && 'hover:shadow-lg',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 

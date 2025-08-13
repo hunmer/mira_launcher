@@ -30,14 +30,14 @@ const props = withDefaults(defineProps<Props>(), {
   max: 99,
   showZero: false,
   dot: false,
-  type: 'default'
+  type: 'default',
 })
 
 // 样式类
 const badgeClass = computed(() => {
   return [
     'inline-block',
-    props.class
+    props.class,
   ].filter(Boolean).join(' ')
 })
 </script>

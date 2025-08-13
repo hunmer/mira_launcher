@@ -17,7 +17,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   fluid: false,
   maxWidth: 'full',
-  padding: 'md'
+  padding: 'md',
 })
 
 // 样式类计算
@@ -32,7 +32,7 @@ const containerClass = computed(() => {
       lg: 'max-w-lg',
       xl: 'max-w-xl',
       '2xl': 'max-w-2xl',
-      full: 'max-w-full'
+      full: 'max-w-full',
     }
     classes.push(maxWidthMap[props.maxWidth])
     classes.push('mx-auto')
@@ -46,7 +46,7 @@ const containerClass = computed(() => {
     sm: 'p-2',
     md: 'p-4',
     lg: 'p-6',
-    xl: 'p-8'
+    xl: 'p-8',
   }
   if (paddingMap[props.padding]) {
     classes.push(paddingMap[props.padding])

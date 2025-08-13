@@ -15,3 +15,8 @@ export { default as Card } from './Card.vue'
 
 // 工具提示组件 - 包装 Naive UI NTooltip
 export { default as Tooltip } from './Tooltip.vue'
+
+// 右键上下文菜单组件 - 基于 floating-ui 的智能定位菜单
+export { default as ContextMenu } from './ContextMenu.vue'
+export type { ContextMenuProps, MenuItem } from './ContextMenu.vue'
+
