@@ -1,18 +1,25 @@
 <template>
-  <div class="flex items-center space-x-2 no-drag">
-    <div
-      class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer transition-colors duration-200 shadow-sm border border-red-600/20"
-      title="关闭" @click="handleClose" />
-    <div
-      class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 cursor-pointer transition-colors duration-200 shadow-sm border border-yellow-600/20"
-      title="最小化" @click="handleMinimize" />
-    <div
-      class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 cursor-pointer transition-colors duration-200 shadow-sm border border-green-600/20"
-      title="最大化" @click="handleMaximize" />
+  <div class="window-controls">
+    <!-- 最小化按钮 -->
+    <button class="control-button" title="最小化" @click="handleMinimize">
+      <MinimizeIcon class="control-icon" />
+    </button>
+
+    <!-- 最大化按钮 -->
+    <button class="control-button" title="最大化" @click="handleMaximize">
+      <MaximizeIcon class="control-icon" />
+    </button>
+
+    <!-- 关闭按钮 -->
+    <button class="control-button close-button" title="关闭" @click="handleClose">
+      <CloseIcon class="control-icon" />
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { CloseIcon, MaximizeIcon, MinimizeIcon } from '@/components/icons';
+
 interface Emits {
   (e: 'minimize'): void
   (e: 'maximize'): void
@@ -57,6 +64,57 @@ const handleClose = async () => {
   }
 }
 </script>
+
+<style scoped>
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 100%;
+}
+
+.control-button {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
+}
+
+.control-button:hover {
+  background-color: rgba(156, 163, 175, 0.2);
+}
+
+.dark .control-button:hover {
+  background-color: rgba(75, 85, 99, 0.7);
+}
+
+.close-button:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+.control-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #4b5563;
+  flex-shrink: 0;
+}
+
+.dark .control-icon {
+  color: #d1d5db;
+}
+
+.close-button:hover .control-icon {
+  color: white;
+}
+</style>
 
 <style scoped>
 /* No specific styles needed here anymore as TailwindCSS is used directly */

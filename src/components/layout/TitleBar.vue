@@ -1,16 +1,13 @@
 <template>
-  <div
-    class="drag-region h-12 bg-gradient-to-r from-white/95 to-gray-50/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-lg select-none">
-    <div class="flex items-center justify-between h-full px-6">
-      <!-- 應用標題 -->
-      <div class="no-drag">
-        <AppTitle />
-      </div>
+  <div data-tauri-drag-region class="title-bar">
+    <!-- 應用標題 -->
+    <div class="no-drag title-section">
+      <AppTitle />
+    </div>
 
-      <!-- 視窗控制按鈕 -->
-      <div class="no-drag">
-        <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
-      </div>
+    <!-- 視窗控制按鈕 -->
+    <div class="no-drag controls-section">
+      <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
     </div>
   </div>
 </template>
@@ -42,11 +39,47 @@ const handleClose = () => {
 </script>
 
 <style scoped>
-.drag-region {
-  -webkit-app-region: drag;
+.title-bar {
+  /* Tauri拖拽区域 - 使用 data-tauri-drag-region 属性 */
+  user-select: none;
+  height: 3rem;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  /* 关键：确保单行布局 */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dark .title-bar {
+  background: linear-gradient(to right, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.95));
+  border-bottom-color: #374151;
+}
+
+.title-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  /* 防止flex项目溢出 */
+}
+
+.controls-section {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .no-drag {
-  -webkit-app-region: no-drag;
+  /* 防止按钮区域被拖拽 */
+  pointer-events: auto;
 }
 </style>

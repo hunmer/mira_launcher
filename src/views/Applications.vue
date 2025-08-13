@@ -12,8 +12,8 @@
     <div class="page-container">
       <GridContainer :items="page1Apps" :draggable="true" :min-columns="4" :icon-size="iconSize" :max-icon-size="200"
         @drag-update="handleDragUpdate">
-        <GridItem v-for="app in filteredApps.slice(0, 6)" :key="app.id" :icon-size="iconSize" :max-icon-size="200"
-          @click="launchApp(app)" @contextmenu="showContextMenu(app, $event)">
+        <GridItem v-for="app in filteredApps.slice(0, 6)" :key="app.id" :size="'2x2'" :icon-size="iconSize"
+          :max-icon-size="200" @click="launchApp(app)" @contextmenu="showContextMenu(app, $event)">
           <template #icon>
             <img v-if="app.icon" :src="app.icon" :alt="app.name"
               :style="{ width: iconSize + 'px', height: iconSize + 'px', maxWidth: '200px', maxHeight: '200px' }"
@@ -29,8 +29,8 @@
     <div class="page-container">
       <GridContainer :items="page2Apps" :draggable="true" :min-columns="4" :icon-size="iconSize" :max-icon-size="200"
         @drag-update="handleDragUpdate">
-        <GridItem v-for="app in filteredApps.slice(6)" :key="app.id" :icon-size="iconSize" :max-icon-size="200"
-          @click="launchApp(app)" @contextmenu="showContextMenu(app, $event)">
+        <GridItem v-for="app in filteredApps.slice(6)" :key="app.id" :size="'1x1'" :icon-size="iconSize"
+          :max-icon-size="200" @click="launchApp(app)" @contextmenu="showContextMenu(app, $event)">
           <template #icon>
             <img v-if="app.icon" :src="app.icon" :alt="app.name"
               :style="{ width: iconSize + 'px', height: iconSize + 'px', maxWidth: '200px', maxHeight: '200px' }"
@@ -56,7 +56,7 @@ import ContextMenu from '@/components/common/ContextMenu.vue'
 import { GridContainer, GridItem } from '@/components/grid'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useGridStore } from '@/stores/grid'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 interface Application {
   id: string
@@ -166,7 +166,7 @@ const page2Apps = computed(() =>
     name: app.name,
     icon: app.icon || '',
     category: app.category,
-    gridSize: '1x1' as const,
+    gridSize: '2x2' as const,
   })),
 )
 
@@ -206,7 +206,10 @@ const contextMenuItems = computed((): MenuItem[] => [
 
 // 方法
 const launchApp = async (app: Application) => {
-  console.log(`启动应用: ${app.name}`)
+  // 🔧 调试断点: 在这里设置断点来调试应用启动过程
+  console.log(`启动应用: ${app.name}`, app)
+  console.log(`图标大小: ${iconSize.value}px`)
+
   app.lastUsed = new Date()
   // await invoke('launch_application', { path: app.path })
 }
@@ -270,6 +273,23 @@ const handleClickOutside = () => {
 onMounted(() => {
   document.title = 'Mira Launcher - 应用程序'
   document.addEventListener('click', handleClickOutside)
+  // 阻止右键菜单的默认行为
+  document.addEventListener('contextmenu', (e) => {
+    const target = e.target as HTMLElement
+    if (!target?.closest?.('.context-menu')) {
+      e.preventDefault()
+    }
+  })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('contextmenu', (e) => {
+    const target = e.target as HTMLElement
+    if (!target?.closest?.('.context-menu')) {
+      e.preventDefault()
+    }
+  })
 })
 </script>
 

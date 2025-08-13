@@ -1,19 +1,16 @@
 <template>
-  <div class="flex items-center space-x-3 no-drag">
-    <AppIcon
-      :size="18"
-      class="text-primary-600 dark:text-primary-400"
-    />
-    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+  <div class="app-title-container">
+    <AppIcon :size="18" class="text-primary-600 dark:text-primary-400" />
+    <span class="app-title-text">
       {{ appName }}
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import AppIcon from '@/components/icons/AppIcon.vue'
-import { useAppStore } from '@/stores/app'
-import { storeToRefs } from 'pinia'
+import AppIcon from '@/components/icons/AppIcon.vue';
+import { useAppStore } from '@/stores/app';
+import { storeToRefs } from 'pinia';
 
 interface Props {
   showIcon?: boolean
@@ -27,3 +24,25 @@ const props = withDefaults(defineProps<Props>(), {
 const appStore = useAppStore()
 const { appName } = storeToRefs(appStore)
 </script>
+
+<style scoped>
+.app-title-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.app-title-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dark .app-title-text {
+  color: #e5e7eb;
+}
+</style>
