@@ -1,4 +1,5 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <template>
   <div class="plugin-store-page flex flex-col h-screen">
     <Container class="max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden">
@@ -7,30 +8,30 @@
         <template #start>
           <div class="flex gap-2">
             <Button
+              v-tooltip="'刷新商城'"
               icon="pi pi-refresh"
               text
-              v-tooltip="'刷新商城'"
               @click="refreshStore"
             />
             <Button
+              v-tooltip="'筛选'"
               icon="pi pi-filter"
               severity="info"
               text
-              v-tooltip="'筛选'"
               @click="showFilterModal = true"
             />
             <Button
+              v-tooltip="'我的收藏'"
               icon="pi pi-heart"
               severity="danger"
               text
-              v-tooltip="'我的收藏'"
               @click="showFavorites = !showFavorites"
             />
             <Button
+              v-tooltip="'提交插件'"
               icon="pi pi-upload"
               severity="success"
               text
-              v-tooltip="'提交插件'"
               @click="showSubmitModal = true"
             />
           </div>
@@ -82,22 +83,18 @@
           paginator-template="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           :loading="isLoading"
           data-key="id"
-          class="plugin-table h-full"
+          class="plugin-table"
           striped-rows
-          scrollable
-          scroll-height="flex"
-          :pt="{
-            table: { style: 'min-width: 50rem' },
-            paginator: {
-              root: { class: 'border-t-1 border-gray-300 px-6 py-3' }
-            }
-          }"
+          table-style="min-width: 50rem"
         >
           <template #header>
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                插件商城
+                插件商城 ({{ filteredStorePlugins.length }} 个插件)
               </h2>
+              <div class="text-sm text-gray-500">
+                数据状态: {{ filteredStorePlugins.length > 0 ? '有数据' : '无数据' }}
+              </div>
             </div>
           </template>
 
@@ -144,8 +141,8 @@
                     </div>
                     <i
                       v-if="data.verified"
-                      class="pi pi-verified text-blue-500"
                       v-tooltip="'官方认证'"
+                      class="pi pi-verified text-blue-500"
                     />
                     <Tag
                       v-if="data.featured"
@@ -169,7 +166,10 @@
                       ({{ data.downloads.toLocaleString() }} 下载)
                     </span>
                   </div>
-                  <div v-if="data.features" class="flex flex-wrap gap-1 mt-1">
+                  <div
+                    v-if="data.features"
+                    class="flex flex-wrap gap-1 mt-1"
+                  >
                     <Tag
                       v-for="(feature, index) in data.features.slice(0, 2)"
                       :key="index"
@@ -280,19 +280,19 @@
                   disabled
                 />
                 <Button
+                  v-tooltip="isFavorite(data.id) ? '取消收藏' : '收藏'"
                   :icon="isFavorite(data.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
                   size="small"
                   severity="danger"
                   text
-                  v-tooltip="isFavorite(data.id) ? '取消收藏' : '收藏'"
                   @click="toggleFavorite(data)"
                 />
                 <Button
+                  v-tooltip="'查看详情'"
                   icon="pi pi-eye"
                   size="small"
                   severity="info"
                   text
-                  v-tooltip="'查看详情'"
                   @click="viewPluginDetails(data)"
                 />
               </div>
@@ -492,8 +492,8 @@ const storePlugins = ref([
       '📢 通知系统集成',
       '⌨️ 快捷键支持',
       '📊 实时统计监控',
-      '🔧 完整 API 演示'
-    ]
+      '🔧 完整 API 演示',
+    ],
   },
   {
     id: 'store-plugin-1',
@@ -512,8 +512,8 @@ const storePlugins = ref([
       '📝 快速笔记创建',
       '🔍 全文搜索',
       '📂 分类管理',
-      '☁️ 云端同步'
-    ]
+      '☁️ 云端同步',
+    ],
   },
   {
     id: 'store-plugin-2',
@@ -532,8 +532,8 @@ const storePlugins = ref([
       '🎨 多语言支持',
       '⚙️ 自定义规则',
       '🔧 实时格式化',
-      '📋 批量处理'
-    ]
+      '📋 批量处理',
+    ],
   },
   {
     id: 'weather-widget',
@@ -552,8 +552,8 @@ const storePlugins = ref([
       '🌤️ 实时天气',
       '🌍 多城市支持',
       '📈 7天预报',
-      '🎨 自定义主题'
-    ]
+      '🎨 自定义主题',
+    ],
   },
   {
     id: 'system-monitor',
@@ -572,8 +572,8 @@ const storePlugins = ref([
       '📊 性能监控',
       '💾 内存使用',
       '🔥 CPU温度',
-      '📱 移动端适配'
-    ]
+      '📱 移动端适配',
+    ],
   },
   {
     id: 'music-player',
@@ -592,8 +592,8 @@ const storePlugins = ref([
       '🎵 本地播放',
       '🎼 播放列表',
       '🔊 音效增强',
-      '📻 在线电台'
-    ]
+      '📻 在线电台',
+    ],
   },
   {
     id: 'task-manager',
@@ -612,8 +612,8 @@ const storePlugins = ref([
       '✅ 任务管理',
       '📅 日程安排',
       '👥 团队协作',
-      '📈 进度追踪'
-    ]
+      '📈 进度追踪',
+    ],
   },
   {
     id: 'color-picker',
@@ -632,9 +632,9 @@ const storePlugins = ref([
       '🎨 精确取色',
       '📋 调色板',
       '🔄 格式转换',
-      '💾 颜色历史'
-    ]
-  }
+      '💾 颜色历史',
+    ],
+  },
 ])
 
 // 收藏列表
@@ -643,7 +643,7 @@ const favorites = ref(new Set())
 // 计算属性
 const totalPlugins = computed(() => storePlugins.value.length)
 const installedCount = computed(() => 
-  storePlugins.value.filter(p => isInstalled(p.id)).length
+  storePlugins.value.filter(p => isInstalled(p.id)).length,
 )
 const storeStatus = computed(() => '在线')
 
@@ -678,15 +678,15 @@ const filteredStorePlugins = computed(() => {
   // 排序
   filtered.sort((a, b) => {
     switch (sortBy.value) {
-      case 'rating':
-        return b.rating - a.rating
-      case 'downloads':
-        return b.downloads - a.downloads
-      case 'name':
-        return a.name.localeCompare(b.name)
-      case 'popularity':
-      default:
-        return b.downloads - a.downloads
+    case 'rating':
+      return b.rating - a.rating
+    case 'downloads':
+      return b.downloads - a.downloads
+    case 'name':
+      return a.name.localeCompare(b.name)
+    case 'popularity':
+    default:
+      return b.downloads - a.downloads
     }
   })
 
@@ -723,7 +723,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
 }
 
 const isInstalled = (pluginId: string): boolean => {
@@ -758,6 +758,7 @@ const refreshStore = async () => {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const installPlugin = async (plugin: any) => {
   try {
     // 模拟安装过程
@@ -786,6 +787,7 @@ const installPlugin = async (plugin: any) => {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toggleFavorite = (plugin: any) => {
   if (favorites.value.has(plugin.id)) {
     favorites.value.delete(plugin.id)
@@ -806,6 +808,7 @@ const toggleFavorite = (plugin: any) => {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const viewPluginDetails = (plugin: any) => {
   console.log('查看插件详情:', plugin.name)
   // TODO: 实现插件详情页面

@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed } from 'vue'
 import DataTable from 'primevue/datatable'
 import { useThemeStore } from '@/stores/theme'
 
@@ -19,7 +19,6 @@ defineOptions({
 })
 
 const themeStore = useThemeStore()
-const attrs = useAttrs()
 
 // 计算表格样式类
 const computedClass = computed(() => {
@@ -29,56 +28,89 @@ const computedClass = computed(() => {
     classes.push('dark-theme')
   }
   
-  // 如果有传入的 class，也要合并
-  if (attrs['class']) {
-    if (typeof attrs['class'] === 'string') {
-      classes.push(attrs['class'])
-    } else if (Array.isArray(attrs['class'])) {
-      classes.push(...attrs['class'])
-    }
-  }
-  
   return classes.join(' ')
 })
 </script>
 
-<style scoped>
+<style>
+/* 使用全局样式而不是 scoped，这样可以影响 PrimeVue 组件的内部元素 */
 .custom-datatable {
   width: 100%;
 }
 
-.custom-datatable.dark-theme {
-  /* 暗色模式下的表格样式 */
+.custom-datatable .p-datatable {
+  background: transparent;
+}
+
+.custom-datatable .p-datatable .p-datatable-header {
+  background: transparent;
+  border: none;
+  padding: 1rem 0;
+}
+
+.custom-datatable .p-datatable .p-datatable-thead > tr > th {
+  background: #f1f5f9;
+  color: #374151;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+}
+
+.custom-datatable .p-datatable .p-datatable-tbody > tr > td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  background: white;
+}
+
+.custom-datatable .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.custom-datatable .p-datatable .p-datatable-tbody > tr:hover {
+  background: #e2e8f0 !important;
+}
+
+/* 暗色模式样式 */
+.custom-datatable.dark-theme .p-datatable {
   background-color: rgb(31, 41, 55);
   color: white;
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-header) {
+.custom-datatable.dark-theme .p-datatable .p-datatable-header {
   background-color: rgb(55, 65, 81);
   border-color: rgb(75, 85, 99);
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-tbody > tr) {
+.custom-datatable.dark-theme .p-datatable .p-datatable-thead > tr > th {
+  background-color: rgb(55, 65, 81);
+  border-color: rgb(75, 85, 99);
+  color: rgb(229, 231, 235);
+}
+
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr {
   background-color: rgb(31, 41, 55);
   border-color: rgb(75, 85, 99);
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-tbody > tr:nth-child(even)) {
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr > td {
+  border-color: rgb(75, 85, 99);
+  color: rgb(229, 231, 235);
+  background-color: rgb(31, 41, 55);
+}
+
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:nth-child(even) {
   background-color: rgb(42, 52, 67);
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-tbody > tr:hover) {
-  background-color: rgb(55, 65, 81);
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+  background-color: rgb(42, 52, 67);
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-thead > tr > th) {
-  background-color: rgb(55, 65, 81);
-  border-color: rgb(75, 85, 99);
-  color: rgb(229, 231, 235);
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: rgb(55, 65, 81) !important;
 }
 
-.custom-datatable.dark-theme :deep(.p-datatable-tbody > tr > td) {
-  border-color: rgb(75, 85, 99);
-  color: rgb(229, 231, 235);
+.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:hover > td {
+  background-color: rgb(55, 65, 81) !important;
 }
 </style>

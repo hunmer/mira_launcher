@@ -41,7 +41,9 @@
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100">自动加载插件</div>
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      自动加载插件
+                    </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       启动时自动加载插件目录中的所有插件
                     </div>
@@ -51,7 +53,9 @@
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100">开发模式热重载</div>
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      开发模式热重载
+                    </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       开发环境下监听插件文件变化并自动重载
                     </div>
@@ -61,7 +65,9 @@
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100">插件错误处理</div>
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      插件错误处理
+                    </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       插件加载失败时显示详细错误信息
                     </div>
@@ -80,7 +86,9 @@
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100">验证插件签名</div>
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      验证插件签名
+                    </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       只加载经过数字签名验证的插件
                     </div>
@@ -90,7 +98,9 @@
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100">沙箱模式</div>
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      沙箱模式
+                    </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       在受限环境中运行插件，提高安全性
                     </div>
@@ -136,25 +146,33 @@
               <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {{ pluginStats.total }}
               </div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">总插件数</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                总插件数
+              </div>
             </div>
             <div class="text-center">
               <div class="text-2xl font-bold text-green-600 dark:text-green-400">
                 {{ pluginStats.active }}
               </div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">已启用</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                已启用
+              </div>
             </div>
             <div class="text-center">
               <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                 {{ pluginStats.inactive }}
               </div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">已禁用</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                已禁用
+              </div>
             </div>
             <div class="text-center">
               <div class="text-2xl font-bold text-red-600 dark:text-red-400">
                 {{ pluginStats.errors }}
               </div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">错误插件</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                错误插件
+              </div>
             </div>
           </div>
         </AccordionContent>

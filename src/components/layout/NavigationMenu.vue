@@ -69,28 +69,28 @@ const baseMenuItems: MenuItem[] = [
   {
     label: '应用',
     icon: 'pi pi-th-large',
-    route: '/applications'
+    route: '/applications',
   },
   {
     label: '插件',
     icon: 'pi pi-puzzle-piece',
-    route: '/plugins'
+    route: '/plugins',
   },
   {
     label: '插件商城',
     icon: 'pi pi-shopping-cart',
-    route: '/plugin-store'
+    route: '/plugin-store',
   },
   {
     label: '设置',
     icon: 'pi pi-cog',
-    route: '/settings'
+    route: '/settings',
   },
   {
     label: '关于',
     icon: 'pi pi-info-circle',
-    route: '/about'
-  }
+    route: '/about',
+  },
 ]
 
 // 根据路由动态生成菜单项
@@ -108,14 +108,14 @@ const currentMenuItems = computed(() => {
           {
             label: '网格视图',
             icon: 'pi pi-th-large',
-            command: () => switchLayout('grid')
+            command: () => switchLayout('grid'),
           },
           {
             label: '列表视图',
             icon: 'pi pi-list',
-            command: () => switchLayout('list')
-          }
-        ]
+            command: () => switchLayout('list'),
+          },
+        ],
       },
       {
         label: '图标大小',
@@ -124,20 +124,20 @@ const currentMenuItems = computed(() => {
           {
             label: '小',
             icon: 'pi pi-circle',
-            command: () => setIconSize('small')
+            command: () => setIconSize('small'),
           },
           {
             label: '中',
             icon: 'pi pi-circle',
-            command: () => setIconSize('medium')
+            command: () => setIconSize('medium'),
           },
           {
             label: '大',
             icon: 'pi pi-circle',
-            command: () => setIconSize('large')
-          }
-        ]
-      }
+            command: () => setIconSize('large'),
+          },
+        ],
+      },
     ]
   }
   

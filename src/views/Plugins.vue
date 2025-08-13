@@ -2,60 +2,58 @@
 <template>
   <div class="plugins-page flex flex-col h-screen">
     <Container class="max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden">
-
-
       <!-- 工具栏 -->
       <Toolbar class="mb-6">
         <template #start>
           <div class="flex gap-2">
             <Button
+              v-tooltip="'刷新插件列表'"
               icon="pi pi-refresh"
               text
-              v-tooltip="'刷新插件列表'"
               @click="refreshPlugins"
             />
             <Button
+              v-tooltip="'安装插件'"
               icon="pi pi-plus"
               severity="success"
               text
-              v-tooltip="'安装插件'"
               @click="showInstallModal = true"
             />
             <Button
+              v-tooltip="'插件商城'"
               icon="pi pi-shopping-cart"
               severity="primary"
               text
-              v-tooltip="'插件商城'"
               @click="navigateToPluginStore"
             />
             <Button 
-              icon="pi pi-info-circle" 
+              v-tooltip="'系统信息'" 
+              icon="pi pi-info-circle"
               severity="info"
               text
-              v-tooltip="'系统信息'"
               @click="showSystemInfo = true" 
             />
             <Button
+              v-tooltip="`性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`"
               icon="pi pi-chart-line"
               severity="warning"
               text
-              v-tooltip="`性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`"
               @click="togglePerformanceDetails"
             />
             <Button
               v-if="isDev"
+              v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
               :icon="hotReloadStatus.isReloading ? 'pi pi-spin pi-spinner' : 'pi pi-replay'"
               severity="secondary"
               text
               :disabled="hotReloadStatus.isReloading"
-              v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
               @click="manualReload"
             />
             <Button
+              v-tooltip="'设置'"
               icon="pi pi-cog"
               severity="secondary"
               text
-              v-tooltip="'设置'"
               @click="navigateToSettings"
             />
           </div>
@@ -96,105 +94,150 @@
             }
           }"
         >
-        <template #empty>
-          <div class="text-center py-8">
-            <i class="pi pi-box text-4xl text-gray-400 mb-4"></i>
-            <p class="text-gray-500">暂无插件</p>
-            <Button 
-              label="安装第一个插件" 
-              severity="secondary" 
-              @click="showInstallModal = true"
-              class="mt-3"
-            />
-          </div>
-        </template>
-
-        <template #loading>
-          <div class="text-center py-8">
-            <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" />
-            <p class="text-gray-500 mt-4">加载插件列表...</p>
-          </div>
-        </template>
-
-        <Column field="name" header="插件名称" sortable class="min-w-0">
-          <template #body="{ data }">
-            <div class="flex items-center gap-3">
-              <Avatar 
-                :label="data.name.charAt(0).toUpperCase()" 
-                shape="circle" 
-                size="normal"
-                :style="{ backgroundColor: getPluginColor(data.id), color: 'white' }"
+          <template #empty>
+            <div class="text-center py-8">
+              <i class="pi pi-box text-4xl text-gray-400 mb-4" />
+              <p class="text-gray-500">
+                暂无插件 (数据数量: {{ filteredPlugins.length }})
+              </p>
+              <p class="text-xs text-gray-400 mt-2">
+                原始数据: {{ plugins.length }} 项
+              </p>
+              <Button 
+                label="安装第一个插件" 
+                severity="secondary" 
+                class="mt-3"
+                @click="showInstallModal = true"
               />
-              <div class="min-w-0 flex-1">
-                <div class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ data.name }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ data.description }}</div>
+            </div>
+          </template>
+
+          <template #loading>
+            <div class="text-center py-8">
+              <ProgressSpinner
+                style="width: 50px; height: 50px"
+                stroke-width="8"
+              />
+              <p class="text-gray-500 mt-4">
+                加载插件列表...
+              </p>
+            </div>
+          </template>
+
+          <Column
+            field="name"
+            header="插件名称"
+            sortable
+            class="min-w-0"
+          >
+            <template #body="{ data }">
+              <div class="flex items-center gap-3">
+                <Avatar 
+                  :label="data.name.charAt(0).toUpperCase()" 
+                  shape="circle" 
+                  size="normal"
+                  :style="{ backgroundColor: getPluginColor(data.id), color: 'white' }"
+                />
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {{ data.name }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {{ data.description }}
+                  </div>
+                </div>
               </div>
-            </div>
-          </template>
-        </Column>
+            </template>
+          </Column>
 
-        <Column field="version" header="版本" sortable style="width: 120px">
-          <template #body="{ data }">
-            <Tag :value="data.version" severity="info" rounded />
-          </template>
-        </Column>
-
-        <Column field="author" header="作者" sortable style="width: 150px">
-          <template #body="{ data }">
-            <span class="text-gray-700 dark:text-gray-300">{{ data.author }}</span>
-          </template>
-        </Column>
-
-        <Column field="state" header="状态" sortable style="width: 120px">
-          <template #body="{ data }">
-            <Tag 
-              :value="getStatusText(data.state)" 
-              :severity="getStatusSeverity(data.state)"
-              rounded
-            />
-          </template>
-        </Column>
-
-        <Column field="enabled" header="启用" style="width: 80px">
-          <template #body="{ data }">
-            <ToggleSwitch 
-              :modelValue="data.state === 'active'"
-              @update:modelValue="togglePlugin(data)"
-              :disabled="isLoading"
-            />
-          </template>
-        </Column>
-
-        <Column header="操作" style="width: 150px">
-          <template #body="{ data }">
-            <div class="flex gap-1">
-              <Button
-                icon="pi pi-cog"
-                size="small"
-                severity="secondary"
-                text
-                v-tooltip="'配置'"
-                @click="configurePlugin(data)"
-              />
-              <Button
-                icon="pi pi-eye"
-                size="small"
+          <Column
+            field="version"
+            header="版本"
+            sortable
+            style="width: 120px"
+          >
+            <template #body="{ data }">
+              <Tag
+                :value="data.version"
                 severity="info"
-                text
-                v-tooltip="'详情'"
-                @click="viewPluginDetails(data)"
+                rounded
               />
-              <Button
-                icon="pi pi-trash"
-                size="small"
-                severity="danger"
-                text
-                v-tooltip="'移除'"
-                @click="removePlugin(data)"
+            </template>
+          </Column>
+
+          <Column
+            field="author"
+            header="作者"
+            sortable
+            style="width: 150px"
+          >
+            <template #body="{ data }">
+              <span class="text-gray-700 dark:text-gray-300">{{ data.author }}</span>
+            </template>
+          </Column>
+
+          <Column
+            field="state"
+            header="状态"
+            sortable
+            style="width: 120px"
+          >
+            <template #body="{ data }">
+              <Tag 
+                :value="getStatusText(data.state)" 
+                :severity="getStatusSeverity(data.state)"
+                rounded
               />
-            </div>
-          </template>
-        </Column>
+            </template>
+          </Column>
+
+          <Column
+            field="enabled"
+            header="启用"
+            style="width: 80px"
+          >
+            <template #body="{ data }">
+              <ToggleSwitch 
+                :model-value="data.state === 'active'"
+                :disabled="isLoading"
+                @update:model-value="togglePlugin(data)"
+              />
+            </template>
+          </Column>
+
+          <Column
+            header="操作"
+            style="width: 150px"
+          >
+            <template #body="{ data }">
+              <div class="flex gap-1">
+                <Button
+                  v-tooltip="'配置'"
+                  icon="pi pi-cog"
+                  size="small"
+                  severity="secondary"
+                  text
+                  @click="configurePlugin(data)"
+                />
+                <Button
+                  v-tooltip="'详情'"
+                  icon="pi pi-eye"
+                  size="small"
+                  severity="info"
+                  text
+                  @click="viewPluginDetails(data)"
+                />
+                <Button
+                  v-tooltip="'移除'"
+                  icon="pi pi-trash"
+                  size="small"
+                  severity="danger"
+                  text
+                  @click="removePlugin(data)"
+                />
+              </div>
+            </template>
+          </Column>
         </DataTable>
       </div>
 
@@ -227,8 +270,8 @@
             />
             <Button 
               label="安装" 
-              @click="installPlugin" 
-              :disabled="!installPath.trim()"
+              :disabled="!installPath.trim()" 
+              @click="installPlugin"
             />
           </div>
         </template>
