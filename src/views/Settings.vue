@@ -64,11 +64,7 @@
 import Container from '@/components/layout/Container.vue'
 import { GeneralSettings, ShortcutSettings, StartupSettings, AdvancedSettings, PluginSettings } from '@/components/settings'
 import { onMounted, ref } from 'vue'
-import Tabs from 'primevue/tabs'
-import TabList from 'primevue/tablist'
-import Tab from 'primevue/tab'
-import TabPanels from 'primevue/tabpanels'
-import TabPanel from 'primevue/tabpanel'
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@/components/common'
 
 // Tab 状态
 const activeTab = ref('general')

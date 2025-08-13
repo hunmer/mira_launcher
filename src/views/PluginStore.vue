@@ -370,7 +370,7 @@
               v-model="submitForm.description"
               placeholder="描述插件功能"
               class="w-full"
-              rows="3"
+              :rows="3"
             />
           </div>
           <div>
@@ -402,23 +402,25 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import Button from 'primevue/button'
+import {
+  Button,
+  DataTable,
+  Column,
+  Toolbar,
+  Tag,
+  Input as InputText,
+  IconField,
+  InputIcon,
+  Dialog,
+  Avatar,
+  ProgressSpinner,
+  Rating,
+  Dropdown,
+  MultiSelect,
+  Slider,
+  Textarea,
+} from '@/components/common'
 import Container from '@/components/layout/Container.vue'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Toolbar from 'primevue/toolbar'
-import Tag from 'primevue/tag'
-import InputText from 'primevue/inputtext'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
-import Dialog from 'primevue/dialog'
-import Avatar from 'primevue/avatar'
-import ProgressSpinner from 'primevue/progressspinner'
-import Rating from 'primevue/rating'
-import Dropdown from 'primevue/dropdown'
-import MultiSelect from 'primevue/multiselect'
-import Slider from 'primevue/slider'
-import Textarea from 'primevue/textarea'
 import { usePluginStore } from '@/stores/plugin'
 import { useToast } from 'primevue/usetoast'
 
@@ -704,8 +706,8 @@ const getPluginColor = (pluginId: string): string => {
   return colors[Math.abs(hash) % colors.length] || '#3B82F6'
 }
 
-const getCategorySeverity = (category: string): string => {
-  const severityMap: Record<string, string> = {
+const getCategorySeverity = (category: string): 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast' => {
+  const severityMap: Record<string, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'> = {
     'productivity': 'success',
     'development': 'info',
     'entertainment': 'warn',
@@ -944,11 +946,95 @@ onMounted(() => {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .dark :deep(.p-toolbar) {
   background: #1e293b;
   border-color: #374151;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-toolbar .p-button) {
+  color: #d1d5db;
+}
+
+.dark :deep(.p-toolbar .p-button:hover) {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.dark :deep(.p-toolbar .p-inputtext) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-toolbar .p-inputtext:focus) {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.dark :deep(.p-toolbar .p-dropdown) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-toolbar .p-dropdown:hover) {
+  border-color: #6b7280;
+}
+
+.dark :deep(.p-toolbar .p-dropdown .p-dropdown-label) {
+  color: #f9fafb;
+}
+
+.dark :deep(.p-tag) {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.dark :deep(.p-dialog) {
+  background: #1e293b;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-dialog .p-dialog-header) {
+  background: #1e293b;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-dialog .p-dialog-content) {
+  background: #1e293b;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-dialog .p-inputtext) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-dialog .p-multiselect) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-dialog .p-slider) {
+  background: #4b5563;
+}
+
+.dark :deep(.p-dialog .p-slider .p-slider-handle) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.dark :deep(.p-dialog .p-textarea) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
 }
 
 .space-y-4 > * + * {

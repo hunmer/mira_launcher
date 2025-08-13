@@ -165,14 +165,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import Accordion from 'primevue/accordion'
-import AccordionPanel from 'primevue/accordionpanel'
-import AccordionHeader from 'primevue/accordionheader'
-import AccordionContent from 'primevue/accordioncontent'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import ToggleSwitch from 'primevue/toggleswitch'
-import Divider from 'primevue/divider'
+import { 
+  Accordion, 
+  AccordionPanel, 
+  AccordionHeader, 
+  AccordionContent, 
+  Button, 
+  Input as InputText, 
+  ToggleSwitch, 
+  Divider,
+} from '@/components/common'
 import { usePluginStore } from '@/stores/plugin'
 import { useToast } from 'primevue/usetoast'
 

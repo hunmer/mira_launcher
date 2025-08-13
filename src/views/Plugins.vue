@@ -21,6 +21,13 @@
               v-tooltip="'安装插件'"
               @click="showInstallModal = true"
             />
+            <Button
+              icon="pi pi-shopping-cart"
+              severity="primary"
+              text
+              v-tooltip="'插件商城'"
+              @click="navigateToPluginStore"
+            />
             <Button 
               icon="pi pi-info-circle" 
               severity="info"
@@ -270,20 +277,22 @@
 </template>
 
 <script setup lang="ts">
-import Button from 'primevue/button'
+import {
+  Button,
+  DataTable,
+  Column,
+  Toolbar,
+  Tag,
+  ToggleSwitch,
+  Input as InputText,
+  IconField,
+  InputIcon,
+  Dialog,
+  Avatar,
+  ProgressSpinner,
+} from '@/components/common'
 import Card from '@/components/common/Card.vue'
 import Container from '@/components/layout/Container.vue'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Toolbar from 'primevue/toolbar'
-import Tag from 'primevue/tag'
-import ToggleSwitch from 'primevue/toggleswitch'
-import InputText from 'primevue/inputtext'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
-import Dialog from 'primevue/dialog'
-import Avatar from 'primevue/avatar'
-import ProgressSpinner from 'primevue/progressspinner'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGridStore } from '@/stores/grid'
@@ -395,8 +404,8 @@ const getStatusText = (state: PluginState): string => {
   return statusMap[state] || '未知'
 }
 
-const getStatusSeverity = (state: PluginState): string => {
-  const severityMap: Partial<Record<PluginState, string>> = {
+const getStatusSeverity = (state: PluginState): 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast' => {
+  const severityMap: Partial<Record<PluginState, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'>> = {
     'registered': 'info',
     'loaded': 'warn',
     'loading': 'info',
@@ -484,6 +493,11 @@ const togglePerformanceDetails = () => {
 // 导航到设置页面
 const navigateToSettings = () => {
   router.push('/settings')
+}
+
+// 导航到插件商城
+const navigateToPluginStore = () => {
+  router.push('/plugin-store')
 }
 
 // 切换插件状态
@@ -724,11 +738,33 @@ if (typeof window !== 'undefined') {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .dark :deep(.p-toolbar) {
   background: #1e293b;
   border-color: #374151;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-toolbar .p-button) {
+  color: #d1d5db;
+}
+
+.dark :deep(.p-toolbar .p-button:hover) {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.dark :deep(.p-toolbar .p-inputtext) {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark :deep(.p-toolbar .p-inputtext:focus) {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
 }
 
 :deep(.p-tag) {

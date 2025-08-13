@@ -11,7 +11,7 @@ export { default as NotificationContainer } from './NotificationContainer.vue'
 export { default as Badge } from './Badge.vue'
 
 // 标签组件
-export { default as Tag } from './Tag.vue'
+export { default as UITag } from './Tag.vue'
 
 // 空状态组件
 export { default as Empty } from './Empty.vue'

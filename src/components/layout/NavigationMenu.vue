@@ -77,6 +77,11 @@ const baseMenuItems: MenuItem[] = [
     route: '/plugins'
   },
   {
+    label: '插件商城',
+    icon: 'pi pi-shopping-cart',
+    route: '/plugin-store'
+  },
+  {
     label: '设置',
     icon: 'pi pi-cog',
     route: '/settings'

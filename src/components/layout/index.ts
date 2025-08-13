@@ -20,4 +20,4 @@ export { default as MainContent } from './MainContent.vue'
 export { default as Container } from './Container.vue'
 
 // 分隔符组件
-export { default as Divider } from './Divider.vue'
+export { default as LayoutDivider } from './Divider.vue'
