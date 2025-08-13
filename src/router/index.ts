@@ -7,6 +7,7 @@ const Settings = () => import('@/views/Settings.vue')
 const Applications = () => import('@/views/Applications.vue')
 const Plugins = () => import('@/views/Plugins.vue')
 const About = () => import('@/views/About.vue')
+const UITest = () => import('@/views/UITest.vue')
 
 // 路由配置
 const routes: RouteRecordRaw[] = [
@@ -61,6 +62,17 @@ const routes: RouteRecordRaw[] = [
         meta: {
             title: '關於',
             icon: 'info',
+            transition: 'fade',
+            requiresAuth: false,
+        },
+    },
+    {
+        path: '/ui-test',
+        name: 'UITest',
+        component: UITest,
+        meta: {
+            title: 'UI 测试',
+            icon: 'test-tube',
             transition: 'fade',
             requiresAuth: false,
         },

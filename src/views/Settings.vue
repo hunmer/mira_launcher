@@ -42,13 +42,9 @@
                   系统启动时自动运行 Mira Launcher
                 </p>
               </div>
-              <input
-                v-model="autoStart"
-                type="checkbox"
-                class="toggle"
-              >
+              <input v-model="autoStart" type="checkbox" class="toggle">
             </div>
-            
+
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">
@@ -58,11 +54,7 @@
                   关闭窗口时最小化到系统托盘
                 </p>
               </div>
-              <input
-                v-model="minimizeToTray"
-                type="checkbox"
-                class="toggle"
-              >
+              <input v-model="minimizeToTray" type="checkbox" class="toggle">
             </div>
           </div>
         </Card>
@@ -79,12 +71,7 @@
                   快速显示/隐藏启动器窗口
                 </p>
               </div>
-              <Input 
-                v-model="globalHotkey" 
-                placeholder="Ctrl+Space"
-                readonly
-                class="w-32"
-              />
+              <Input v-model="globalHotkey" placeholder="Ctrl+Space" readonly class="w-32" />
             </div>
           </div>
         </Card>
@@ -93,23 +80,14 @@
       <Divider class="my-6" />
 
       <div class="flex justify-between">
-        <Button
-          variant="outline"
-          @click="$router.back()"
-        >
+        <Button variant="outline" @click="$router.back()">
           返回
         </Button>
         <div class="space-x-2">
-          <Button
-            variant="outline"
-            @click="resetSettings"
-          >
+          <Button variant="outline" @click="resetSettings">
             重置设置
           </Button>
-          <Button
-            type="primary"
-            @click="saveSettings"
-          >
+          <Button type="primary" @click="saveSettings">
             保存设置
           </Button>
         </div>
@@ -119,8 +97,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import Button from '@/components/common/Button.vue'
+import Card from '@/components/common/Card.vue'
+import Input from '@/components/common/Input.vue'
+import Container from '@/components/layout/Container.vue'
+import Divider from '@/components/layout/Divider.vue'
 import { useThemeStore } from '@/stores/theme'
+import { computed, onMounted, ref } from 'vue'
 
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.currentTheme === 'dark')

@@ -1,42 +1,24 @@
 <template>
   <div class="flex items-center space-x-1 no-drag">
-    <button 
-      class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600"
-      title="最小化"
-      @click="handleMinimize"
-    >
-      <MinimizeIcon
-        :size="12"
-        class="text-gray-600 dark:text-gray-400"
-      />
+    <button class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="最小化"
+      @click="handleMinimize">
+      <MinimizeIcon :size="14" class="text-gray-700 dark:text-gray-300" />
     </button>
-    <button 
-      class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600"
-      title="最大化"
-      @click="handleMaximize"
-    >
-      <MaximizeIcon
-        :size="12"
-        class="text-gray-600 dark:text-gray-400"
-      />
+    <button class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="最大化"
+      @click="handleMaximize">
+      <MaximizeIcon :size="14" class="text-gray-700 dark:text-gray-300" />
     </button>
-    <button 
-      class="window-control-btn hover:bg-red-500 hover:text-white"
-      title="關閉"
-      @click="handleClose"
-    >
-      <CloseIcon
-        :size="12"
-        class="text-gray-600 dark:text-gray-400"
-      />
+    <button class="window-control-btn hover:bg-red-500 hover:text-white transition-colors" title="關閉"
+      @click="handleClose">
+      <CloseIcon :size="14" class="text-gray-700 dark:text-gray-300" />
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import MinimizeIcon from '@/components/icons/MinimizeIcon.vue'
-import MaximizeIcon from '@/components/icons/MaximizeIcon.vue'
 import CloseIcon from '@/components/icons/CloseIcon.vue'
+import MaximizeIcon from '@/components/icons/MaximizeIcon.vue'
+import MinimizeIcon from '@/components/icons/MinimizeIcon.vue'
 
 interface Emits {
   (e: 'minimize'): void
@@ -85,12 +67,23 @@ const handleClose = async () => {
 
 <style scoped>
 .window-control-btn {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.25rem;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.window-control-btn:hover {
+  transform: scale(1.05);
+}
+
+.window-control-btn:active {
+  transform: scale(0.95);
 }
 </style>

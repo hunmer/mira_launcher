@@ -1,21 +1,25 @@
 <template>
   <NConfigProvider :theme-overrides="currentThemeOverrides">
-    <MainLayout 
-      @window-minimize="handleWindowEvent"
-      @window-maximize="handleWindowEvent"
-      @window-close="handleWindowEvent"
-    />
+    <NNotificationProvider>
+      <NMessageProvider>
+        <MainLayout @window-minimize="handleWindowEvent" @window-maximize="handleWindowEvent"
+          @window-close="handleWindowEvent" />
+      </NMessageProvider>
+    </NNotificationProvider>
   </NConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
+import { computed, onMounted, onUnmounted } from 'vue'
+
+// Naive UI 组件
+import { NConfigProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 
 // Naive UI 主题配置
-import { naiveThemeOverrides, naiveThemeDarkOverrides } from '@/config/naive-theme'
+import { naiveThemeDarkOverrides, naiveThemeOverrides } from '@/config/naive-theme'
 
 // 布局组件导入
 import MainLayout from '@/components/layout/MainLayout.vue'
@@ -43,19 +47,19 @@ const handleKeydown = (event: KeyboardEvent) => {
     event.preventDefault()
     // 窗口关闭事件会由 WindowControls 组件处理
   }
-  
+
   // Ctrl/Cmd + M: 最小化視窗
   if ((event.ctrlKey || event.metaKey) && event.key === 'm') {
     event.preventDefault()
     // 窗口最小化事件会由 WindowControls 组件处理
   }
-  
+
   // F11: 全螢幕切換
   if (event.key === 'F11') {
     event.preventDefault()
     // 窗口最大化事件会由 WindowControls 组件处理
   }
-  
+
   // Ctrl/Cmd + T: 切換主題
   if ((event.ctrlKey || event.metaKey) && event.key === 't') {
     event.preventDefault()
@@ -67,13 +71,13 @@ const handleKeydown = (event: KeyboardEvent) => {
 onMounted(async () => {
   // 初始化主題
   themeStore.initTheme()
-  
+
   // 註冊鍵盤事件
   window.addEventListener('keydown', handleKeydown)
-  
+
   // 監聽主題變化
   themeStore.applyTheme()
-  
+
   console.log('🎉 Mira Launcher 初始化完成')
 })
 

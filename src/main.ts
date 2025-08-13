@@ -1,23 +1,17 @@
-import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import router from './router'
+import { createApp } from 'vue'
 import App from './App.vue'
-
-// Naive UI
-import { NConfigProvider } from 'naive-ui'
+import router from './router'
 
 // 插件导入
 import { registerGlobalComponents, setupComponentDevtools } from './plugins/components'
-import { setupPerformanceMonitor, monitorMemoryUsage } from './plugins/performance'
+import { monitorMemoryUsage, setupPerformanceMonitor } from './plugins/performance'
 
 // 導入樣式
 import './styles/main.css'
 
 // 創建 Vue 應用實例
 const app = createApp(App)
-
-// 註冊 Naive UI 組件
-app.component('NConfigProvider', NConfigProvider)
 
 // 注册全局组件
 registerGlobalComponents(app)

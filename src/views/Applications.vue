@@ -15,23 +15,14 @@
           <Button @click="scanApplications">
             扫描应用
           </Button>
-          <Button
-            type="primary"
-            @click="addCustomApp"
-          >
+          <Button type="primary" @click="addCustomApp">
             添加应用
           </Button>
         </div>
         <div class="flex space-x-2">
-          <Input
-            v-model="searchQuery"
-            placeholder="搜索应用..."
-            class="w-64"
-          />
-          <select
-            v-model="sortBy"
-            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          >
+          <Input v-model="searchQuery" placeholder="搜索应用..." class="w-64" />
+          <select v-model="sortBy"
+            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
             <option value="name">
               按名称排序
             </option>
@@ -45,30 +36,12 @@
         </div>
       </div>
 
-      <GridContainer
-        :items="gridItems"
-        :draggable="true"
-        @drag-update="handleDragUpdate"
-      >
-        <GridItem
-          v-for="app in filteredApps"
-          :key="app.id"
-          @click="launchApp(app)"
-          @contextmenu="showContextMenu(app, $event)"
-        >
+      <GridContainer :items="gridItems" :draggable="true" @drag-update="handleDragUpdate">
+        <GridItem v-for="app in filteredApps" :key="app.id" @click="launchApp(app)"
+          @contextmenu="showContextMenu(app, $event)">
           <template #icon>
-            <img
-              v-if="app.icon"
-              :src="app.icon"
-              :alt="app.name"
-              class="w-12 h-12 object-contain"
-            >
-            <AppIcon
-              v-else
-              name="monitor"
-              :size="48"
-              class="text-gray-400"
-            />
+            <img v-if="app.icon" :src="app.icon" :alt="app.name" class="w-12 h-12 object-contain">
+            <AppIcon v-else name="monitor" :size="48" class="text-gray-400" />
           </template>
           <template #label>
             {{ app.name }}
@@ -77,49 +50,29 @@
       </GridContainer>
 
       <!-- ContextMenu组件 -->
-      <ContextMenu
-        v-model:show="contextMenu.show"
-        :x="contextMenu.x"
-        :y="contextMenu.y"
-        :items="contextMenuItems"
-        @select="handleContextMenuSelect"
-      />
+      <ContextMenu v-model:show="contextMenu.show" :x="contextMenu.x" :y="contextMenu.y" :items="contextMenuItems"
+        @select="handleContextMenuSelect" />
 
       <!-- 添加应用模态框 -->
-      <Modal
-        v-model:show="showAddModal"
-        title="添加应用"
-        @positive-click="saveCustomApp"
-        @negative-click="showAddModal = false"
-      >
+      <Modal v-model:show="showAddModal" title="添加应用" @positive-click="saveCustomApp"
+        @negative-click="showAddModal = false">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-1">应用名称</label>
-            <Input
-              v-model="newApp.name"
-              placeholder="输入应用名称"
-            />
+            <Input v-model="newApp.name" placeholder="输入应用名称" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">执行路径</label>
-            <Input
-              v-model="newApp.path"
-              placeholder="选择或输入可执行文件路径"
-            />
+            <Input v-model="newApp.path" placeholder="选择或输入可执行文件路径" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">图标路径（可选）</label>
-            <Input
-              v-model="newApp.icon"
-              placeholder="选择图标文件"
-            />
+            <Input v-model="newApp.icon" placeholder="选择图标文件" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">分类</label>
-            <select
-              v-model="newApp.category"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
+            <select v-model="newApp.category"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
               <option value="productivity">
                 生产力
               </option>
@@ -144,9 +97,14 @@
 </template>
 
 <script setup lang="ts">
+import Button from '@/components/common/Button.vue'
 import type { MenuItem } from '@/components/common/ContextMenu.vue'
 import ContextMenu from '@/components/common/ContextMenu.vue'
+import Input from '@/components/common/Input.vue'
+import Modal from '@/components/common/Modal.vue'
 import { GridContainer, GridItem } from '@/components/grid'
+import AppIcon from '@/components/icons/AppIcon.vue'
+import Container from '@/components/layout/Container.vue'
 import { useGridStore } from '@/stores/grid'
 import { computed, onMounted, reactive, ref } from 'vue'
 
@@ -221,19 +179,19 @@ const filteredApps = computed(() => {
 
   // 排序
   switch (sortBy.value) {
-  case 'name':
-    apps.sort((a, b) => a.name.localeCompare(b.name))
-    break
-  case 'recent':
-    apps.sort((a, b) => {
-      const aTime = a.lastUsed?.getTime() || 0
-      const bTime = b.lastUsed?.getTime() || 0
-      return bTime - aTime
-    })
-    break
-  case 'category':
-    apps.sort((a, b) => a.category.localeCompare(b.category))
-    break
+    case 'name':
+      apps.sort((a, b) => a.name.localeCompare(b.name))
+      break
+    case 'recent':
+      apps.sort((a, b) => {
+        const aTime = a.lastUsed?.getTime() || 0
+        const bTime = b.lastUsed?.getTime() || 0
+        return bTime - aTime
+      })
+      break
+    case 'category':
+      apps.sort((a, b) => a.category.localeCompare(b.category))
+      break
   }
 
   return apps

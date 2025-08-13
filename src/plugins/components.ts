@@ -1,9 +1,9 @@
-import type { App } from 'vue'
 import * as CommonComponents from '@/components/common'
+import * as GridComponents from '@/components/grid'
+import * as IconComponents from '@/components/icons'
 import * as LayoutComponents from '@/components/layout'
 import * as UIComponents from '@/components/ui'
-import * as IconComponents from '@/components/icons'
-import * as GridComponents from '@/components/grid'
+import type { App } from 'vue'
 
 /**
  * 全局组件注册插件
@@ -19,14 +19,30 @@ export function registerGlobalComponents(app: App) {
     ...GridComponents,
   }
 
-  // 注册所有组件为全局组件
+  // 注册所有组件为全局组件，过滤掉非组件的导出
   Object.entries(allComponents).forEach(([name, component]) => {
-    if (component && typeof component === 'object' && 'name' in component) {
-      app.component(name, component)
+    // 检查是否是 Vue 组件（排除函数等其他导出）
+    if (component &&
+      typeof component === 'object' &&
+      !name.startsWith('use') && // 排除 composables
+      !name.endsWith('Props') && // 排除类型定义
+      !name.endsWith('Options')) { // 排除选项类型
+      try {
+        app.component(name, component as any)
+      } catch (error) {
+        console.warn(`[Components Plugin] Failed to register component ${name}:`, error)
+      }
     }
   })
 
-  console.log(`[Components Plugin] Registered ${Object.keys(allComponents).length} global components`)
+  const registeredComponents = Object.keys(allComponents).filter(name =>
+    !name.startsWith('use') &&
+    !name.endsWith('Props') &&
+    !name.endsWith('Options')
+  )
+
+  console.log(`[Components Plugin] Registered ${registeredComponents.length} global components`)
+  console.log('[Components Plugin] Components:', registeredComponents)
 }
 
 /**

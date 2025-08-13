@@ -1,23 +1,16 @@
 <template>
   <main class="main-content">
     <RouterView v-slot="{ Component, route }">
-      <Transition
-        :name="transitionName"
-        mode="out-in"
-        appear
-      >
-        <component
-          :is="Component"
-          :key="route.fullPath"
-        />
+      <Transition :name="transitionName" mode="out-in" appear>
+        <component :is="Component" :key="route.fullPath" />
       </Transition>
     </RouterView>
   </main>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 interface Props {
   transition?: string
@@ -37,8 +30,9 @@ const transitionName = computed(() => {
 
 <style scoped>
 .main-content {
-  height: calc(100vh - 2rem);
-  overflow: hidden;
+  height: calc(100vh - 3rem);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* 路由过渡动画 */
