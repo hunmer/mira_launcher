@@ -38,7 +38,7 @@ export function registerGlobalComponents(app: App) {
   const registeredComponents = Object.keys(allComponents).filter(name =>
     !name.startsWith('use') &&
     !name.endsWith('Props') &&
-    !name.endsWith('Options')
+    !name.endsWith('Options'),
   )
 
   console.log(`[Components Plugin] Registered ${registeredComponents.length} global components`)

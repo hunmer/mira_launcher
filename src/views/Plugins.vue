@@ -15,25 +15,43 @@
           <Button @click="refreshPlugins">
             刷新
           </Button>
-          <Button type="primary" @click="showInstallModal = true">
+          <Button
+            type="primary"
+            @click="showInstallModal = true"
+          >
             安装插件
           </Button>
         </div>
-        <Input v-model="searchQuery" placeholder="搜索插件..." class="w-64" />
+        <Input
+          v-model="searchQuery"
+          placeholder="搜索插件..."
+          class="w-64"
+        />
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card v-for="plugin in filteredPlugins" :key="plugin.id" :title="plugin.name" :description="plugin.description"
-          class="plugin-card">
+        <Card
+          v-for="plugin in filteredPlugins"
+          :key="plugin.id"
+          :title="plugin.name"
+          :description="plugin.description"
+          class="plugin-card"
+        >
           <template #extra>
             <div class="flex items-center space-x-2">
-              <span :class="[
-                'px-2 py-1 text-xs rounded-full',
-                plugin.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-              ]">
+              <span
+                :class="[
+                  'px-2 py-1 text-xs rounded-full',
+                  plugin.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                ]"
+              >
                 {{ plugin.enabled ? '已启用' : '已禁用' }}
               </span>
-              <Button size="small" :type="plugin.enabled ? 'default' : 'primary'" @click="togglePlugin(plugin)">
+              <Button
+                size="small"
+                :type="plugin.enabled ? 'default' : 'primary'"
+                @click="togglePlugin(plugin)"
+              >
                 {{ plugin.enabled ? '禁用' : '启用' }}
               </Button>
             </div>
@@ -49,10 +67,18 @@
               <span>{{ plugin.author }}</span>
             </div>
             <div class="flex justify-end space-x-2 mt-4">
-              <Button size="small" variant="outline" @click="configurePlugin(plugin)">
+              <Button
+                size="small"
+                variant="outline"
+                @click="configurePlugin(plugin)"
+              >
                 配置
               </Button>
-              <Button size="small" variant="outline" @click="removePlugin(plugin)">
+              <Button
+                size="small"
+                variant="outline"
+                @click="removePlugin(plugin)"
+              >
                 移除
               </Button>
             </div>
@@ -61,12 +87,19 @@
       </div>
 
       <!-- 安装插件模态框 -->
-      <Modal v-model:show="showInstallModal" title="安装插件" @positive-click="installPlugin"
-        @negative-click="showInstallModal = false">
+      <Modal
+        v-model:show="showInstallModal"
+        title="安装插件"
+        @positive-click="installPlugin"
+        @negative-click="showInstallModal = false"
+      >
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-1">插件包路径或URL</label>
-            <Input v-model="installPath" placeholder="输入插件包路径或下载链接" />
+            <Input
+              v-model="installPath"
+              placeholder="输入插件包路径或下载链接"
+            />
           </div>
           <div class="text-sm text-gray-500">
             支持 .zip 文件或 GitHub 仓库链接

@@ -1,5 +1,11 @@
 <template>
-    <BaseIcon :icon-component="FileText" :size="size" :color="color" :class="class" v-bind="$attrs" />
+  <BaseIcon
+    :icon-component="FileText"
+    :size="size"
+    :color="color"
+    :class="class"
+    v-bind="$attrs"
+  />
 </template>
 
 <script setup lang="ts">
@@ -13,8 +19,8 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-    size: 16,
-    color: 'currentColor',
-    class: '',
+  size: 16,
+  color: 'currentColor',
+  class: '',
 })
 </script>

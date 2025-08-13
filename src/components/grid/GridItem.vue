@@ -1,9 +1,5 @@
 <template>
-  <div
-    :class="gridItemClass"
-    @click="handleClick"
-    @contextmenu.prevent="handleContextMenu"
-  >
+  <div :class="gridItemClass" @click="handleClick" @contextmenu.prevent="handleContextMenu">
     <slot>
       <!-- 默认内容结构 -->
       <div class="grid-item-content">
@@ -26,17 +22,19 @@
 import { computed } from 'vue'
 
 export interface GridItemProps {
-    size?: '1x1' | '1x2' | '2x1' | '2x2'
-    selected?: boolean
-    disabled?: boolean
-    hoverable?: boolean
-    draggable?: boolean
-    class?: string
+  size?: '1x1' | '1x2' | '2x1' | '2x2'
+  selected?: boolean
+  disabled?: boolean
+  hoverable?: boolean
+  draggable?: boolean
+  class?: string
+  iconSize?: number
+  maxIconSize?: number
 }
 
 interface Emits {
-    (e: 'click', event: MouseEvent): void
-    (e: 'contextmenu', event: MouseEvent): void
+  (e: 'click', event: MouseEvent): void
+  (e: 'contextmenu', event: MouseEvent): void
 }
 
 const props = withDefaults(defineProps<GridItemProps>(), {
@@ -45,9 +43,22 @@ const props = withDefaults(defineProps<GridItemProps>(), {
   disabled: false,
   hoverable: true,
   draggable: false,
+  iconSize: 48,
+  maxIconSize: 200,
 })
 
 const emit = defineEmits<Emits>()
+
+// 计算图标尺寸样式
+const iconSizeStyle = computed(() => {
+  const size = Math.min(props.iconSize, props.maxIconSize)
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    maxWidth: `${props.maxIconSize}px`,
+    maxHeight: `${props.maxIconSize}px`,
+  }
+})
 
 // 样式类计算
 const gridItemClass = computed(() => {
@@ -101,108 +112,122 @@ const handleContextMenu = (event: MouseEvent) => {
     emit('contextmenu', event)
   }
 }
+
+// 暴露图标尺寸样式给父组件使用
+defineExpose({
+  iconSizeStyle,
+})
 </script>
 
 <style scoped>
 .grid-item-base {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    border-radius: 8px;
-    transition: all 0.2s ease-in-out;
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    position: relative;
-    min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  min-height: 120px;
+  min-width: 120px;
 }
 
 .dark .grid-item-base {
-    background-color: #374151;
-    border-color: #4b5563;
+  background-color: rgba(42, 50, 61, 0.5);
+  border-color: rgba(75, 85, 99, 0.5);
 }
 
 /* 悬浮效果 */
 .grid-item-hoverable:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: #f3f4f6;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .dark .grid-item-hoverable:hover {
-    background-color: #4b5563;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background-color: rgba(75, 85, 99, 0.7);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* 选中状态 */
 .grid-item-selected {
-    background-color: #dbeafe;
-    border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
 }
 
 .dark .grid-item-selected {
-    background-color: #1e3a8a;
-    border-color: #60a5fa;
+  background-color: rgba(30, 58, 138, 0.5);
+  border-color: #60a5fa;
 }
 
 /* 禁用状态 */
 .grid-item-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.4;
+  cursor: not-allowed;
+  backdrop-filter: grayscale(1);
 }
 
 .grid-item-disabled:hover {
-    transform: none;
-    box-shadow: none;
+  transform: none;
+  box-shadow: none;
 }
 
 /* 内容布局 */
 .grid-item-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 0.5rem;
 }
 
 .grid-item-icon {
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.grid-item-icon img,
+.grid-item-icon svg {
+  transition: transform 0.2s ease-in-out;
+  object-fit: contain;
 }
 
 .grid-item-label {
-    font-size: 0.875rem;
-    text-align: center;
-    color: #374151;
-    font-weight: 500;
-    line-height: 1.2;
-    word-break: break-word;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #d1d5db;
+  font-weight: 500;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .dark .grid-item-label {
-    color: #d1d5db;
+  color: #e5e7eb;
 }
 
 /* 不同尺寸的特殊样式 */
 .row-span-2 {
-    min-height: 160px;
+  min-height: 210px;
 }
 
 .col-span-2 .grid-item-content {
-    flex-direction: row;
-    gap: 0.75rem;
+  flex-direction: row;
+  gap: 1rem;
 }
 
 .col-span-2 .grid-item-icon {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .col-span-2 .grid-item-label {
-    text-align: left;
-    flex: 1;
+  text-align: left;
+  flex: 1;
 }
 </style>

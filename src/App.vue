@@ -2,8 +2,11 @@
   <NConfigProvider :theme-overrides="currentThemeOverrides">
     <NNotificationProvider>
       <NMessageProvider>
-        <MainLayout @window-minimize="handleWindowEvent" @window-maximize="handleWindowEvent"
-          @window-close="handleWindowEvent" />
+        <MainLayout
+          @window-minimize="handleWindowEvent"
+          @window-maximize="handleWindowEvent"
+          @window-close="handleWindowEvent"
+        />
       </NMessageProvider>
     </NNotificationProvider>
   </NConfigProvider>

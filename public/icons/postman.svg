@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="8" width="48" height="48" rx="8" fill="#ff6c37"/>
+  <text x="32" y="38" text-anchor="middle" fill="white" font-family="Arial" font-size="10" font-weight="bold">Postman</text>
+  <circle cx="24" cy="20" r="3" fill="white"/>
+  <polygon points="32,16 38,20 38,28 32,32 26,28 26,20" fill="white"/>
+  <circle cx="40" cy="20" r="3" fill="white"/>
+</svg>

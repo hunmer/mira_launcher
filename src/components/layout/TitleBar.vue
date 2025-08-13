@@ -1,12 +1,16 @@
 <template>
   <div
-    class="drag-region h-12 bg-gradient-to-r from-white/95 to-gray-50/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-lg">
+    class="drag-region h-12 bg-gradient-to-r from-white/95 to-gray-50/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-lg select-none">
     <div class="flex items-center justify-between h-full px-6">
       <!-- 應用標題 -->
-      <AppTitle />
+      <div class="no-drag">
+        <AppTitle />
+      </div>
 
       <!-- 視窗控制按鈕 -->
-      <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
+      <div class="no-drag">
+        <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
+      </div>
     </div>
   </div>
 </template>

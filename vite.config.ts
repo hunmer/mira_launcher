@@ -48,6 +48,17 @@ export default defineConfig({
     },
   },
 
+  // Development configuration
+  define: {
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+  },
+
+  // CSS configuration
+  css: {
+    devSourcemap: true,
+  },
+
   // Environment variables
   envPrefix: ['VITE_', 'TAURI_'],
 

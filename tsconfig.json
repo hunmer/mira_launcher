@@ -31,6 +31,9 @@
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "useDefineForClassFields": true,
+        "sourceMap": true,
+        "inlineSourceMap": false,
+        "inlineSources": false,
         "baseUrl": ".",
         "paths": {
             "@/*": [

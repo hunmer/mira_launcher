@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center space-x-3 no-drag">
-    <AppIcon :size="18" class="text-primary-600 dark:text-primary-400" />
+    <AppIcon
+      :size="18"
+      class="text-primary-600 dark:text-primary-400"
+    />
     <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">
       {{ appName }}
     </span>

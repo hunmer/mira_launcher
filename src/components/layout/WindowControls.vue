@@ -1,25 +1,18 @@
 <template>
-  <div class="flex items-center space-x-1 no-drag">
-    <button class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="最小化"
-      @click="handleMinimize">
-      <MinimizeIcon :size="14" class="text-gray-700 dark:text-gray-300" />
-    </button>
-    <button class="window-control-btn hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="最大化"
-      @click="handleMaximize">
-      <MaximizeIcon :size="14" class="text-gray-700 dark:text-gray-300" />
-    </button>
-    <button class="window-control-btn hover:bg-red-500 hover:text-white transition-colors" title="關閉"
-      @click="handleClose">
-      <CloseIcon :size="14" class="text-gray-700 dark:text-gray-300" />
-    </button>
+  <div class="flex items-center space-x-2 no-drag">
+    <div
+      class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer transition-colors duration-200 shadow-sm border border-red-600/20"
+      title="关闭" @click="handleClose" />
+    <div
+      class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 cursor-pointer transition-colors duration-200 shadow-sm border border-yellow-600/20"
+      title="最小化" @click="handleMinimize" />
+    <div
+      class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 cursor-pointer transition-colors duration-200 shadow-sm border border-green-600/20"
+      title="最大化" @click="handleMaximize" />
   </div>
 </template>
 
 <script setup lang="ts">
-import CloseIcon from '@/components/icons/CloseIcon.vue'
-import MaximizeIcon from '@/components/icons/MaximizeIcon.vue'
-import MinimizeIcon from '@/components/icons/MinimizeIcon.vue'
-
 interface Emits {
   (e: 'minimize'): void
   (e: 'maximize'): void
@@ -66,24 +59,5 @@ const handleClose = async () => {
 </script>
 
 <style scoped>
-.window-control-btn {
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease-in-out;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.window-control-btn:hover {
-  transform: scale(1.05);
-}
-
-.window-control-btn:active {
-  transform: scale(0.95);
-}
+/* No specific styles needed here anymore as TailwindCSS is used directly */
 </style>

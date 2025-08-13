@@ -25,12 +25,26 @@
         background-color: theme('colors.gray.50');
         color: theme('colors.gray.900');
         transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        user-select: none;
+        /* 防止全局文字选中 */
+        overflow: hidden;
+        /* 防止窗口滚动 */
     }
 
     /* 深色模式 */
     .dark body {
         background-color: theme('colors.gray.900');
         color: theme('colors.gray.100');
+    }
+
+    /* Tauri 窗口拖拽区域样式 */
+    .drag-region {
+        -webkit-app-region: drag;
+        user-select: none;
+    }
+
+    .no-drag {
+        -webkit-app-region: no-drag;
     }
 
     /* 滾動條樣式 */

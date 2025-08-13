@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="containerRef"
-    :class="gridContainerClass"
-  >
+  <div ref="containerRef" :class="gridContainerClass">
     <slot />
   </div>
 </template>
@@ -13,21 +10,24 @@ import type { GridItem } from '@/types/components'
 import { computed, ref, toRef } from 'vue'
 
 export interface GridContainerProps {
-    columns?: number | 'auto'
-    gap?: number | 'sm' | 'md' | 'lg' | 'xl'
-    responsive?: boolean
-    autoRows?: boolean
-    class?: string
-    items?: GridItem[]
-    draggable?: boolean
-    dragOptions?: UseDraggableOptions
+  columns?: number | 'auto'
+  gap?: number | 'sm' | 'md' | 'lg' | 'xl'
+  responsive?: boolean
+  autoRows?: boolean
+  class?: string
+  items?: GridItem[]
+  draggable?: boolean
+  dragOptions?: UseDraggableOptions
+  iconSize?: number
+  minColumns?: number
+  maxIconSize?: number
 }
 
 interface Emits {
-    (e: 'dragStart', event: any): void
-    (e: 'dragMove', event: any): void
-    (e: 'dragEnd', event: any): void
-    (e: 'dragUpdate', event: any): void
+  (e: 'dragStart', event: any): void
+  (e: 'dragMove', event: any): void
+  (e: 'dragEnd', event: any): void
+  (e: 'dragUpdate', event: any): void
 }
 
 const props = withDefaults(defineProps<GridContainerProps>(), {
@@ -37,6 +37,9 @@ const props = withDefaults(defineProps<GridContainerProps>(), {
   autoRows: true,
   items: () => [],
   draggable: false,
+  iconSize: 48,
+  minColumns: 4,
+  maxIconSize: 200,
 })
 
 const emit = defineEmits<Emits>()
@@ -84,13 +87,12 @@ const gridContainerClass = computed(() => {
 
   // 列数配置
   if (props.responsive && props.columns === 'auto') {
-    // 响应式默认配置：xs:1列，sm:2列，md:4列，lg:6列，xl:8列
+    // 响应式配置：确保最少4列，根据窗口大小调整
     classes.push(
-      'grid-cols-1',
-      'sm:grid-cols-2',
-      'md:grid-cols-4',
-      'lg:grid-cols-6',
-      'xl:grid-cols-8',
+      `grid-cols-${props.minColumns}`, // 最小4列
+      'md:grid-cols-6',
+      'lg:grid-cols-8',
+      'xl:grid-cols-10',
     )
   } else if (typeof props.columns === 'number') {
     // 固定列数
@@ -143,15 +145,15 @@ const gridContainerClass = computed(() => {
 
 <style scoped>
 .grid-container-base {
-    width: 100%;
-    position: relative;
+  width: 100%;
+  position: relative;
 }
 
 /* 确保网格项目正确对齐 */
 .grid-container-base>* {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>
