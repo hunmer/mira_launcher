@@ -1,0 +1,53 @@
+{
+    "name": "mira-launcher",
+    "version": "1.0.0",
+    "description": "輕量化應用啟動器 - A lightweight application launcher with plugin system",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vue-tsc && vite build",
+        "preview": "vite preview",
+        "tauri": "tauri",
+        "tauri:dev": "tauri dev",
+        "tauri:build": "tauri build",
+        "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+        "format": "prettier --write src/",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@floating-ui/vue": "^1.0.2",
+        "@tauri-apps/api": "^1.5.0",
+        "@vueuse/core": "^10.7.0",
+        "lucide-vue-next": "^0.294.0",
+        "naive-ui": "^2.42.0",
+        "pinia": "^2.1.7",
+        "sortablejs": "^1.15.0",
+        "vue": "^3.4.0",
+        "vue-router": "^4.5.1",
+        "vuedraggable": "^4.1.0"
+    },
+    "devDependencies": {
+        "@tauri-apps/cli": "^1.5.0",
+        "@types/node": "^20.10.0",
+        "@types/sortablejs": "^1.15.7",
+        "@vitejs/plugin-vue": "^5.0.0",
+        "@vue/eslint-config-typescript": "^12.0.0",
+        "@vue/tsconfig": "^0.5.0",
+        "autoprefixer": "^10.4.16",
+        "eslint": "^8.56.0",
+        "eslint-plugin-vue": "^9.19.0",
+        "husky": "^8.0.3",
+        "lint-staged": "^15.2.0",
+        "postcss": "^8.4.32",
+        "prettier": "^3.1.1",
+        "tailwindcss": "^3.4.0",
+        "typescript": "^5.3.0",
+        "vite": "^5.0.0",
+        "vitest": "^1.1.0",
+        "vue-tsc": "^1.8.25"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "pnpm": ">=8.0.0"
+    }
+}

@@ -1,0 +1,55 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
+import { fileURLToPath, URL } from 'node:url'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+    plugins: [vue()],
+
+    // Path aliases
+    resolve: {
+        alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            '@/components': fileURLToPath(new URL('./src/components', import.meta.url)),
+            '@/plugins': fileURLToPath(new URL('./src/plugins', import.meta.url)),
+            '@/stores': fileURLToPath(new URL('./src/stores', import.meta.url)),
+            '@/types': fileURLToPath(new URL('./src/types', import.meta.url)),
+            '@/utils': fileURLToPath(new URL('./src/utils', import.meta.url)),
+            '@/composables': fileURLToPath(new URL('./src/composables', import.meta.url)),
+            '@/assets': fileURLToPath(new URL('./src/assets', import.meta.url))
+        }
+    },
+
+    // Build optimization
+    build: {
+        target: 'es2020',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vue: ['vue'],
+                    pinia: ['pinia'],
+                    vueuse: ['@vueuse/core'],
+                    ui: ['@floating-ui/vue', 'lucide-vue-next']
+                }
+            }
+        },
+        minify: 'esbuild',
+        sourcemap: false
+    },
+
+    // Development server configuration
+    server: {
+        port: 1420,
+        strictPort: true,
+        watch: {
+            // 3. tell vite to ignore watching `src-tauri`
+            ignored: ['**/src-tauri/**']
+        }
+    },
+
+    // Environment variables
+    envPrefix: ['VITE_', 'TAURI_'],
+
+    clearScreen: false
+})

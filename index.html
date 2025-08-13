@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mira Launcher</title>
+    <meta name="description" content="輕量化應用啟動器 - 快速啟動和管理應用程式" />
+    <meta name="keywords" content="應用啟動器, 桌面工具, 快速啟動, 應用管理" />
+    <meta name="author" content="Mira Launcher Team" />
+
+    <!-- 針對不同平台的圖標 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- 主題顏色 -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+
+    <!-- 預載入字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+
+    <!-- 防止 FOUC (Flash of Unstyled Content) -->
+    <style>
+        html {
+            visibility: hidden;
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 應用根節點 -->
+    <div id="app"></div>
+
+    <!-- 載入指示器 -->
+    <div id="loading" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: 'Inter', sans-serif;
+    ">
+        <div style="text-align: center;">
+            <div style="
+          width: 40px;
+          height: 40px;
+          border: 3px solid #e5e7eb;
+          border-top: 3px solid #3b82f6;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 16px;
+        "></div>
+            <div style="color: #6b7280; font-size: 14px;">正在載入 Mira Launcher...</div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <!-- 主要腳本 -->
+    <script type="module" src="/src/main-test.ts"></script>
+
+    <!-- 在應用載入後隱藏載入指示器 -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // 顯示 HTML 內容
+            document.documentElement.style.visibility = 'visible';
+            document.documentElement.style.opacity = '1';
+
+            // 當 Vue 應用掛載後隱藏載入指示器
+            const checkApp = () => {
+                const app = document.getElementById('app');
+                if (app && app.children.length > 0) {
+                    const loading = document.getElementById('loading');
+                    if (loading) {
+                        loading.style.opacity = '0';
+                        setTimeout(() => {
+                            loading.remove();
+                        }, 300);
+                    }
+                } else {
+                    setTimeout(checkApp, 50);
+                }
+            };
+
+            setTimeout(checkApp, 100);
+        });
+    </script>
+</body>
+
+</html>
