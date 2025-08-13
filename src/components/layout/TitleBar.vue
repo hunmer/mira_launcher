@@ -1,13 +1,30 @@
 <template>
-  <div data-tauri-drag-region class="title-bar">
-    <!-- 應用標題 -->
+  <div
+    data-tauri-drag-region
+    class="title-bar"
+  >
+    <!-- 应用标题 -->
     <div class="no-drag title-section">
       <AppTitle />
     </div>
 
-    <!-- 視窗控制按鈕 -->
+    <!-- 导航菜单 - 靠近标题 -->
+    <div class="no-drag menu-section">
+      <NavigationMenu />
+    </div>
+
+    <!-- 功能按钮 - 靠近窗口控制按钮 -->
+    <div class="no-drag actions-section">
+      <ActionButtons />
+    </div>
+
+    <!-- 窗口控制按钮 -->
     <div class="no-drag controls-section">
-      <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
+      <WindowControls
+        @minimize="handleMinimize"
+        @maximize="handleMaximize"
+        @close="handleClose"
+      />
     </div>
   </div>
 </template>
@@ -15,6 +32,8 @@
 <script setup lang="ts">
 import AppTitle from './AppTitle.vue'
 import WindowControls from './WindowControls.vue'
+import NavigationMenu from './NavigationMenu.vue'
+import ActionButtons from './ActionButtons.vue'
 
 interface Emits {
   (e: 'minimize'): void
@@ -64,11 +83,25 @@ const handleClose = () => {
 }
 
 .title-section {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   min-width: 0;
-  /* 防止flex项目溢出 */
+}
+
+.menu-section {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.actions-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 1rem;
 }
 
 .controls-section {

@@ -21,7 +21,7 @@
       <div class="space-y-4 mb-8">
         <div class="flex justify-center space-x-4">
           <Button
-            type="primary"
+            severity="primary"
             @click="$router.push('/')"
           >
             返回首页

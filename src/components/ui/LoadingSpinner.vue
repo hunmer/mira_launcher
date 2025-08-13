@@ -1,24 +1,28 @@
 <template>
-  <NSpin
-    :size="spinSize"
-    :show="show"
+  <div
+    v-if="show"
     :class="spinnerClass"
   >
-    <template
+    <ProgressSpinner
+      :style="{ width: spinSize + 'px', height: spinSize + 'px' }"
+      stroke-width="4"
+      animation-duration="1s"
+    />
+    <div
       v-if="description || $slots['description']"
-      #description
+      class="ml-2 text-sm text-gray-600"
     >
       <slot name="description">
         {{ description }}
       </slot>
-    </template>
+    </div>
     <slot />
-  </NSpin>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NSpin } from 'naive-ui'
+import ProgressSpinner from 'primevue/progressspinner'
 
 interface Props {
   size?: 'small' | 'medium' | 'large' | number
@@ -31,6 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   show: true,
   description: '',
+  class: '',
 })
 
 // 尺寸映射

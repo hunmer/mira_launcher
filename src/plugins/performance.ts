@@ -21,9 +21,6 @@ export function setupPerformanceMonitor(app: App) {
       },
     })
 
-    // 路由切换性能监控
-    const startTimes = new Map<string, number>()
-
     // 监听路由变化
     window.addEventListener('beforeunload', () => {
       console.log(`[Performance] Total components rendered: ${renderCount}`)
@@ -38,7 +35,7 @@ export function setupPerformanceMonitor(app: App) {
  */
 export function monitorMemoryUsage() {
   if (import.meta.env.DEV && 'memory' in performance) {
-    const memory = (performance as any).memory
+    const memory = (performance as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory
 
     console.log('[Memory Usage]', {
       used: `${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB`,

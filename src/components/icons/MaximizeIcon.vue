@@ -1,10 +1,12 @@
 <template>
   <BaseIcon 
     :icon-component="Square" 
-    :size="size"
-    :color="color"
-    :class="iconClass"
-    v-bind="$attrs"
+    v-bind="{
+      ...(size !== undefined && { size }),
+      ...(color !== undefined && { color }),
+      ...(iconClass !== undefined && { class: iconClass }),
+      ...$attrs
+    }"
   />
 </template>
 
@@ -22,6 +24,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 12,
   color: 'currentColor',
+  class: '',
 })
 
 // 样式类
@@ -32,3 +35,14 @@ const iconClass = computed(() => {
   ].filter(Boolean).join(' ')
 })
 </script>
+
+<style scoped>
+/* 图标样式 */
+:deep(.lucide) {
+  transition: all 0.2s ease-in-out;
+}
+
+:deep(.lucide:hover) {
+  transform: scale(1.1);
+}
+</style>

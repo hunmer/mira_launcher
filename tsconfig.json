@@ -8,8 +8,8 @@
             "DOM",
             "DOM.Iterable"
         ],
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": true,
+        "moduleResolution": "node",
+        "allowImportingTsExtensions": false,
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,

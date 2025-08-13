@@ -1,24 +1,29 @@
 <template>
-  <NCard
-    :title="title"
-    :hoverable="hoverable"
-    :closable="closable"
+  <Card
     :class="cardClass"
     v-bind="$attrs"
-    @close="handleClose"
   >
     <template
-      v-if="$slots['header']"
-      #header
+      v-if="title || $slots['header']"
+      #title
     >
-      <slot name="header" />
-    </template>
-    
-    <template
-      v-if="$slots['header-extra']"
-      #header-extra
-    >
-      <slot name="header-extra" />
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <span v-if="title">{{ title }}</span>
+          <slot name="header" />
+        </div>
+        <div class="flex items-center space-x-2">
+          <slot name="header-extra" />
+          <Button
+            v-if="closable"
+            text
+            severity="secondary"
+            size="small"
+            icon="pi pi-times"
+            @click="handleClose"
+          />
+        </div>
+      </div>
     </template>
     
     <slot />
@@ -29,19 +34,13 @@
     >
       <slot name="footer" />
     </template>
-    
-    <template
-      v-if="$slots['action']"
-      #action
-    >
-      <slot name="action" />
-    </template>
-  </NCard>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NCard } from 'naive-ui'
+import Card from 'primevue/card'
+import Button from 'primevue/button'
 
 interface Props {
   title?: string
@@ -54,6 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: '',
   hoverable: false,
   closable: false,
+  class: '',
 })
 
 const emit = defineEmits<Emits>()
@@ -66,7 +66,7 @@ interface Emits {
 const cardClass = computed(() => {
   return [
     'transition-all duration-200',
-    props.hoverable && 'hover:shadow-lg',
+    props.hoverable && 'hover:shadow-lg cursor-pointer',
     props.class,
   ].filter(Boolean).join(' ')
 })

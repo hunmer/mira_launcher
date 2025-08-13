@@ -1,6 +1,9 @@
 <template>
   <div class="app-title-container">
-    <AppIcon :size="18" class="text-primary-600 dark:text-primary-400" />
+    <AppIcon
+      :size="18"
+      class="text-primary-600 dark:text-primary-400"
+    />
     <span class="app-title-text">
       {{ appName }}
     </span>
@@ -8,15 +11,15 @@
 </template>
 
 <script setup lang="ts">
-import AppIcon from '@/components/icons/AppIcon.vue';
-import { useAppStore } from '@/stores/app';
-import { storeToRefs } from 'pinia';
+import AppIcon from '@/components/icons/AppIcon.vue'
+import { useAppStore } from '@/stores/app'
+import { storeToRefs } from 'pinia'
 
 interface Props {
   showIcon?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showIcon: true,
 })
 

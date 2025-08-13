@@ -28,7 +28,7 @@ export default defineConfig({
         manualChunks: {
           vue: ['vue'],
           pinia: ['pinia'],
-          'naive-ui': ['naive-ui'],
+          primevue: ['primevue'],
           vueuse: ['@vueuse/core'],
           ui: ['@floating-ui/vue', 'lucide-vue-next'],
         },

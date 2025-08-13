@@ -2,7 +2,7 @@
 
 ## 概述
 
-Mira Launcher 使用基于 `lucide-vue-next` 和 `Naive UI NIcon` 的统一图标组件系统。所有图标组件都继承自 `BaseIcon` 组件，提供一致的 API 和样式。
+Mira Launcher 使用基于 `lucide-vue-next` 的统一图标组件系统。所有图标组件都继承自 `BaseIcon` 组件，提供一致的 API 和样式。
 
 ## 基础用法
 

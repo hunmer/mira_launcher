@@ -1,24 +1,36 @@
 <template>
   <div class="window-controls">
     <!-- 最小化按钮 -->
-    <button class="control-button" title="最小化" @click="handleMinimize">
+    <button
+      class="control-button"
+      title="最小化"
+      @click="handleMinimize"
+    >
       <MinimizeIcon class="control-icon" />
     </button>
 
     <!-- 最大化按钮 -->
-    <button class="control-button" title="最大化" @click="handleMaximize">
+    <button
+      class="control-button"
+      title="最大化"
+      @click="handleMaximize"
+    >
       <MaximizeIcon class="control-icon" />
     </button>
 
     <!-- 关闭按钮 -->
-    <button class="control-button close-button" title="关闭" @click="handleClose">
+    <button
+      class="control-button close-button"
+      title="关闭"
+      @click="handleClose"
+    >
       <CloseIcon class="control-icon" />
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CloseIcon, MaximizeIcon, MinimizeIcon } from '@/components/icons';
+import { CloseIcon, MaximizeIcon, MinimizeIcon } from '@/components/icons'
 
 interface Emits {
   (e: 'minimize'): void

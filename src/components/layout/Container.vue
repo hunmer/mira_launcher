@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   fluid: false,
   maxWidth: 'full',
   padding: 'md',
+  class: '',
 })
 
 // 样式类计算

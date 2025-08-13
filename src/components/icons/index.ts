@@ -22,3 +22,8 @@ export { default as SettingsIcon } from './SettingsIcon.vue'
 export { default as MoonIcon } from './MoonIcon.vue'
 export { default as SunIcon } from './SunIcon.vue'
 
+// 设置页面图标
+export { default as GeneralIcon } from './GeneralIcon.vue'
+export { default as KeyboardIcon } from './KeyboardIcon.vue'
+export { default as StartupIcon } from './StartupIcon.vue'
+

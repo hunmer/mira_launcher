@@ -74,6 +74,7 @@
     <!-- 页面右键菜单 -->
     <ContextMenu
       v-if="contextMenuVisible"
+      :show="contextMenuVisible"
       :x="contextMenuPosition.x"
       :y="contextMenuPosition.y"
       :items="contextMenuItems"

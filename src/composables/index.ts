@@ -9,6 +9,10 @@ export type { DraggableState, UseDraggableOptions } from './useDraggable'
 export { useSearch } from './useSearch'
 export type { UseSearchOptions } from './useSearch'
 
+// 应用程序布局管理
+export { useApplicationLayout } from './useApplicationLayout'
+export type { LayoutMode, IconSize } from './useApplicationLayout'
+
 // 注意：其他 composables 待实现
 // export { useTouch } from './useTouch'
 // export { useKeyboard } from './useKeyboard'

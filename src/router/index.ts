@@ -156,12 +156,14 @@ export type { RouteRecordRaw }
 export const getCurrentRoute = () => router.currentRoute
 
 // 程式化導航的工具函數
-export const navigateTo = (to: string | { name: string; params?: any; query?: any }) => {
+import type { RouteLocationRaw } from 'vue-router'
+
+export const navigateTo = (to: RouteLocationRaw) => {
   return router.push(to)
 }
 
 // 替換當前路由的工具函數
-export const replaceTo = (to: string | { name: string; params?: any; query?: any }) => {
+export const replaceTo = (to: RouteLocationRaw) => {
   return router.replace(to)
 }
 

@@ -1,0 +1,179 @@
+<template>
+  <div class="space-y-6">
+    <Accordion 
+      :value="['0', '1']" 
+      multiple
+    >
+      <AccordionPanel value="0">
+        <AccordionHeader>快捷键设置</AccordionHeader>
+        <AccordionContent>
+          <div class="space-y-4 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  全局唤醒快捷键
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  快速显示/隐藏启动器窗口
+                </p>
+              </div>
+              <Input
+                v-model="globalHotkey"
+                placeholder="Ctrl+Space"
+                readonly
+                class="w-32"
+              />
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  搜索快捷键
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  启动搜索功能的快捷键
+                </p>
+              </div>
+              <Input
+                v-model="searchHotkey"
+                placeholder="Ctrl+F"
+                readonly
+                class="w-32"
+              />
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  设置页面快捷键
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  打开设置页面的快捷键
+                </p>
+              </div>
+              <Input
+                v-model="settingsHotkey"
+                placeholder="Ctrl+,"
+                readonly
+                class="w-32"
+              />
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionPanel>
+
+      <AccordionPanel value="1">
+        <AccordionHeader>鼠标设置</AccordionHeader>
+        <AccordionContent>
+          <div class="space-y-4 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  双击启动应用
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  双击应用图标启动应用程序
+                </p>
+              </div>
+              <input
+                v-model="doubleClickToLaunch"
+                type="checkbox"
+                class="toggle"
+                @change="saveDoubleClickToLaunch"
+              >
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">
+                  右键菜单
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  启用应用图标的右键上下文菜单
+                </p>
+              </div>
+              <input
+                v-model="enableContextMenu"
+                type="checkbox"
+                class="toggle"
+                @change="saveEnableContextMenu"
+              >
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionPanel>
+    </Accordion>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import Input from '@/components/common/Input.vue'
+import Accordion from 'primevue/accordion'
+import AccordionPanel from 'primevue/accordionpanel'
+import AccordionHeader from 'primevue/accordionheader'
+import AccordionContent from 'primevue/accordioncontent'
+
+// 快捷键设置
+const globalHotkey = ref('Ctrl+Space')
+const searchHotkey = ref('Ctrl+F')
+const settingsHotkey = ref('Ctrl+,')
+
+// 鼠标设置
+const doubleClickToLaunch = ref(true)
+const enableContextMenu = ref(true)
+
+const saveDoubleClickToLaunch = () => {
+  console.log('保存双击启动设置:', doubleClickToLaunch.value)
+}
+
+const saveEnableContextMenu = () => {
+  console.log('保存右键菜单设置:', enableContextMenu.value)
+}
+
+// 监听快捷键变化，实时保存
+watch(globalHotkey, (newValue) => {
+  console.log('保存全局快捷键设置:', newValue)
+})
+
+watch(searchHotkey, (newValue) => {
+  console.log('保存搜索快捷键设置:', newValue)
+})
+
+watch(settingsHotkey, (newValue) => {
+  console.log('保存设置快捷键设置:', newValue)
+})
+</script>
+
+<style scoped>
+.toggle {
+  appearance: none;
+  width: 48px;
+  height: 24px;
+  background-color: #e5e7eb;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toggle:checked {
+  background-color: #3b82f6;
+}
+
+.toggle::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle:checked::before {
+  transform: translateX(24px);
+}
+</style>

@@ -1,27 +1,15 @@
 <template>
-  <NTooltip
-    :trigger="trigger"
-    :placement="placement"
-    :delay="delay"
-    :disabled="disabled"
+  <div
+    v-tooltip.top="tooltipOptions"
     :class="tooltipClass"
     v-bind="$attrs"
   >
-    <template #trigger>
-      <slot />
-    </template>
-    
-    <template #default>
-      <slot name="content">
-        {{ content }}
-      </slot>
-    </template>
-  </NTooltip>
+    <slot />
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NTooltip } from 'naive-ui'
 
 interface Props {
   content?: string
@@ -38,6 +26,18 @@ const props = withDefaults(defineProps<Props>(), {
   placement: 'top',
   delay: 100,
   disabled: false,
+  class: '',
+})
+
+// Tooltip 配置
+const tooltipOptions = computed(() => {
+  if (props.disabled) return null
+  
+  return {
+    value: props.content,
+    placement: props.placement,
+    delay: props.delay,
+  }
 })
 
 // 样式类

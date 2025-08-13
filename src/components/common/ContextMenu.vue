@@ -1,23 +1,41 @@
 <template>
-    <Teleport to="body">
-        <Transition name="context-menu">
-            <div v-if="show" :style="{ top: y + 'px', left: x + 'px' }" class="context-menu" @click.stop>
-                <template v-for="(item, index) in items" :key="index">
-                    <div v-if="item.separator" class="context-menu-separator"></div>
-                    <div v-else :class="[
-                        'context-menu-item',
-                        { 'context-menu-item-danger': item.danger }
-                    ]" @click="handleItemClick(item)">
-                        <span v-if="item.icon" class="context-menu-icon">
-                            <!-- 这里可以根据需要添加图标组件 -->
-                            {{ item.icon }}
-                        </span>
-                        <span class="context-menu-label">{{ item.label }}</span>
-                    </div>
-                </template>
-            </div>
-        </Transition>
-    </Teleport>
+  <Teleport to="body">
+    <Transition name="context-menu">
+      <div
+        v-if="show"
+        :style="{ top: y + 'px', left: x + 'px' }"
+        class="context-menu"
+        @click.stop
+      >
+        <template
+          v-for="(item, index) in items"
+          :key="index"
+        >
+          <div
+            v-if="item.separator"
+            class="context-menu-separator"
+          />
+          <div
+            v-else
+            :class="[
+              'context-menu-item',
+              { 'context-menu-item-danger': item.danger }
+            ]"
+            @click="handleItemClick(item)"
+          >
+            <span
+              v-if="item.icon"
+              class="context-menu-icon"
+            >
+              <!-- 这里可以根据需要添加图标组件 -->
+              {{ item.icon }}
+            </span>
+            <span class="context-menu-label">{{ item.label }}</span>
+          </div>
+        </template>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -45,8 +63,8 @@ defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const handleItemClick = (item: MenuItem) => {
-    emit('select', item)
-    emit('update:show', false)
+  emit('select', item)
+  emit('update:show', false)
 }
 </script>
 

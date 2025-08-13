@@ -1,0 +1,4 @@
+export { default as GeneralSettings } from './GeneralSettings.vue'
+export { default as ShortcutSettings } from './ShortcutSettings.vue'
+export { default as StartupSettings } from './StartupSettings.vue'
+export { default as AdvancedSettings } from './AdvancedSettings.vue'

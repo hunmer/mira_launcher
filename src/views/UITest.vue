@@ -2,7 +2,7 @@
   <Container class="max-w-4xl mx-auto p-6">
     <div class="space-y-6">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Naive UI 测试页面
+        PrimeVue 测试页面
       </h1>
 
       <!-- 基础组件测试 -->
@@ -14,24 +14,24 @@
               按钮组件
             </h3>
             <div class="space-x-2">
-              <NButton type="primary">
+              <PrimeButton severity="primary">
                 主要按钮
-              </NButton>
-              <NButton type="default">
+              </PrimeButton>
+              <PrimeButton>
                 默认按钮
-              </NButton>
-              <NButton type="info">
+              </PrimeButton>
+              <PrimeButton severity="info">
                 信息按钮
-              </NButton>
-              <NButton type="success">
+              </PrimeButton>
+              <PrimeButton severity="success">
                 成功按钮
-              </NButton>
-              <NButton type="warning">
+              </PrimeButton>
+              <PrimeButton severity="warn">
                 警告按钮
-              </NButton>
-              <NButton type="error">
+              </PrimeButton>
+              <PrimeButton severity="danger">
                 错误按钮
-              </NButton>
+              </PrimeButton>
             </div>
           </div>
 
@@ -41,12 +41,12 @@
               输入框组件
             </h3>
             <div class="space-y-2">
-              <NInput
-                v-model:value="inputValue"
+              <InputText
+                v-model="inputValue"
                 placeholder="请输入内容"
               />
-              <NInput
-                v-model:value="inputValue"
+              <InputText
+                v-model="inputValue"
                 placeholder="禁用状态"
                 disabled
               />
@@ -58,22 +58,24 @@
             <h3 class="text-lg font-medium mb-2">
               卡片组件
             </h3>
-            <NCard
-              title="测试卡片"
-              hoverable
-            >
-              这是一个 Naive UI 卡片组件的内容区域。
-              <template #header-extra>
-                <NTag type="success">
-                  成功
-                </NTag>
+            <PrimeCard>
+              <template #title>
+                <div class="flex items-center justify-between">
+                  <span>测试卡片</span>
+                  <Tag severity="success">
+                    成功
+                  </Tag>
+                </div>
               </template>
-              <template #action>
-                <NButton size="small">
+              <template #content>
+                这是一个 PrimeVue 卡片组件的内容区域。
+              </template>
+              <template #footer>
+                <PrimeButton size="small">
                   操作
-                </NButton>
+                </PrimeButton>
               </template>
-            </NCard>
+            </PrimeCard>
           </div>
 
           <!-- 其他组件 -->
@@ -82,13 +84,13 @@
               其他组件
             </h3>
             <div class="space-y-2">
-              <NSwitch v-model:value="switchValue" />
-              <NTag type="info">
+              <InputSwitch v-model="switchValue" />
+              <Tag severity="info">
                 信息标签
-              </NTag>
-              <NBadge :value="5">
-                <NButton>徽章按钮</NButton>
-              </NBadge>
+              </Tag>
+              <Badge :value="5">
+                <PrimeButton>徽章按钮</PrimeButton>
+              </Badge>
             </div>
           </div>
         </div>
@@ -98,9 +100,9 @@
       <Card title="主题测试">
         <div class="space-y-4">
           <p>当前主题: {{ currentTheme }}</p>
-          <NButton @click="toggleTheme">
+          <PrimeButton @click="toggleTheme">
             切换主题
-          </NButton>
+          </PrimeButton>
         </div>
       </Card>
     </div>
@@ -114,15 +116,13 @@ import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 
-// Naive UI 组件
-import {
-  NBadge,
-  NButton,
-  NCard,
-  NInput,
-  NSwitch,
-  NTag,
-} from 'naive-ui'
+// PrimeVue 组件
+import Badge from 'primevue/badge'
+import PrimeButton from 'primevue/button'
+import PrimeCard from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import InputSwitch from 'primevue/inputswitch'
+import Tag from 'primevue/tag'
 
 // Store
 const themeStore = useThemeStore()

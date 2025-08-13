@@ -1,5 +1,9 @@
 <template>
-  <div :class="gridItemClass" @click="handleClick" @contextmenu.prevent="handleContextMenu">
+  <div
+    :class="gridItemClass"
+    @click="handleClick"
+    @contextmenu.prevent="handleContextMenu"
+  >
     <slot>
       <!-- 默认内容结构 -->
       <div class="grid-item-content">
@@ -43,6 +47,7 @@ const props = withDefaults(defineProps<GridItemProps>(), {
   disabled: false,
   hoverable: true,
   draggable: false,
+  class: '',
   iconSize: 48,
   maxIconSize: 200,
 })

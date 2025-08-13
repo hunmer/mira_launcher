@@ -1,20 +1,18 @@
 <template>
-  <NIcon 
-    :size="size" 
-    :color="color" 
+  <span 
+    :style="iconStyle"
     :class="iconClass"
     v-bind="$attrs"
   >
     <component :is="iconComponent" />
-  </NIcon>
+  </span>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NIcon } from 'naive-ui'
+import { computed, type Component } from 'vue'
 
 interface Props {
-  iconComponent: any  // lucide-vue-next 图标组件
+  iconComponent: Component  // lucide-vue-next 图标组件
   size?: string | number
   color?: string
   class?: string
@@ -23,6 +21,17 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 16,
   color: 'currentColor',
+  class: '',
+})
+
+// 图标样式
+const iconStyle = computed(() => {
+  return {
+    fontSize: typeof props.size === 'number' ? `${props.size}px` : props.size,
+    color: props.color,
+    width: typeof props.size === 'number' ? `${props.size}px` : props.size,
+    height: typeof props.size === 'number' ? `${props.size}px` : props.size,
+  }
 })
 
 // 样式类

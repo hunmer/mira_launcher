@@ -1,41 +1,23 @@
 <template>
-  <NConfigProvider :theme-overrides="currentThemeOverrides">
-    <NNotificationProvider>
-      <NMessageProvider>
-        <MainLayout
-          @window-minimize="handleWindowEvent"
-          @window-maximize="handleWindowEvent"
-          @window-close="handleWindowEvent"
-        />
-      </NMessageProvider>
-    </NNotificationProvider>
-  </NConfigProvider>
+  <NotificationContainer>
+    <MainLayout
+      @window-minimize="handleWindowEvent"
+      @window-maximize="handleWindowEvent"
+      @window-close="handleWindowEvent"
+    />
+  </NotificationContainer>
 </template>
 
 <script setup lang="ts">
-import { useAppStore } from '@/stores/app'
 import { useThemeStore } from '@/stores/theme'
-import { storeToRefs } from 'pinia'
-import { computed, onMounted, onUnmounted } from 'vue'
-
-// Naive UI 组件
-import { NConfigProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
-
-// Naive UI 主题配置
-import { naiveThemeDarkOverrides, naiveThemeOverrides } from '@/config/naive-theme'
+import { onMounted, onUnmounted } from 'vue'
 
 // 布局组件导入
 import MainLayout from '@/components/layout/MainLayout.vue'
+import NotificationContainer from '@/components/ui/NotificationContainer.vue'
 
 // Store
-const appStore = useAppStore()
 const themeStore = useThemeStore()
-const { currentTheme } = storeToRefs(themeStore)
-
-// Naive UI 主题配置
-const currentThemeOverrides = computed(() => {
-  return currentTheme.value === 'dark' ? naiveThemeDarkOverrides : naiveThemeOverrides
-})
 
 // 窗口事件处理
 const handleWindowEvent = () => {

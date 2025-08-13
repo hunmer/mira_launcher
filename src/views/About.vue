@@ -30,7 +30,7 @@
               <li>• Vue 3 (Composition API)</li>
               <li>• TypeScript</li>
               <li>• Tailwind CSS</li>
-              <li>• Naive UI</li>
+              <li>• PrimeVue</li>
               <li>• Pinia</li>
               <li>• Vue Router</li>
             </ul>
@@ -88,7 +88,7 @@
 
       <div class="flex justify-center space-x-4">
         <Button
-          type="primary"
+          class="btn-primary"
           @click="checkUpdate"
         >
           检查更新

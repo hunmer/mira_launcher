@@ -10,7 +10,7 @@ Mira Launcher 是一个基于 Tauri + Vue 3 + TypeScript 构建的轻量级桌�
 - **Vue 3**: 渐进式 JavaScript 框架，使用 Composition API
 - **TypeScript**: 提供类型安全和更好的开发体验
 - **Tailwind CSS**: 实用优先的 CSS 框架
-- **Naive UI**: 现代化的 Vue 3 组件库
+- **PrimeVue**: 现代化的 Vue 3 组件库
 - **Pinia**: Vue 的状态管理库
 - **Vue Router**: 官方路由管理器
 - **Vite**: 现代化的前端构建工具

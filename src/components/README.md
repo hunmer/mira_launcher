@@ -2,13 +2,13 @@
 
 ## 概述
 
-Mira Launcher 的核心 UI 组件库基于 Naive UI 构建，提供了一系列经过封装和定制的组件，确保设计一致性和易用性。
+Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列经过封装和定制的组件，确保设计一致性和易用性。
 
 ## 通用组件 (Common)
 
 ### Button 组件
 
-基于 Naive UI NButton 的按钮组件包装。
+基于 PrimeVue Button 的按钮组件包装。
 
 ```vue
 <template>
@@ -47,7 +47,7 @@ Mira Launcher 的核心 UI 组件库基于 Naive UI 构建，提供了一系列�
 
 ### Input 组件
 
-基于 Naive UI NInput 的输入框组件包装。
+基于 PrimeVue InputText 的输入框组件包装。
 
 ```vue
 <template>
@@ -84,7 +84,7 @@ Mira Launcher 的核心 UI 组件库基于 Naive UI 构建，提供了一系列�
 
 ### Modal 组件
 
-基于 Naive UI NModal 的模态框组件包装。
+基于 PrimeVue Dialog 的模态框组件包装。
 
 ```vue
 <template>
@@ -120,7 +120,7 @@ Mira Launcher 的核心 UI 组件库基于 Naive UI 构建，提供了一系列�
 
 ### Card 组件
 
-基于 Naive UI NCard 的卡片组件包装。
+基于 PrimeVue Card 的卡片组件包装。
 
 ```vue
 <template>
@@ -152,7 +152,7 @@ Mira Launcher 的核心 UI 组件库基于 Naive UI 构建，提供了一系列�
 
 ### Tooltip 组件
 
-基于 Naive UI NTooltip 的工具提示组件包装。
+基于 PrimeVue Tooltip 指令的工具提示组件包装。
 
 ```vue
 <template>

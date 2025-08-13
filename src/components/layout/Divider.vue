@@ -31,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   orientation: 'horizontal',
   size: 'normal',
   variant: 'solid',
+  class: '',
 })
 
 // 样式类计算

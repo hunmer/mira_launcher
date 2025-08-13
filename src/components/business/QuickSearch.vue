@@ -134,6 +134,7 @@
 
               <div class="result-content flex-1 min-w-0">
                 <div class="result-title text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <!-- eslint-disable-next-line vue/no-v-html -->
                   <span v-html="getHighlightedText(result.name)" />
                 </div>
                 <div class="result-description text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
@@ -263,6 +264,7 @@
 <script setup lang="ts">
 import SearchIcon from '@/components/icons/SearchIcon.vue'
 import { useSearch } from '@/composables/useSearch'
+import type { SearchResult } from '@/utils/search'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 // Props
@@ -279,7 +281,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
     'update:modelValue': [value: boolean]
-    'result-select': [result: any]
+    'result-select': [result: SearchResult]
 }>()
 
 // 搜索功能
@@ -293,13 +295,11 @@ const {
   recentSearches,
   hasResults,
   hasQuery,
-  selectedResult,
   show,
   hide,
   selectResult,
   handleKeyDown,
   getHighlightedText,
-  clearHistory,
   removeFromHistory,
   useHistorySearch,
 } = useSearch({
@@ -326,18 +326,6 @@ const historyItemClass = (index: number) => {
   const hoverClass = 'hover:bg-gray-50 dark:hover:bg-gray-700'
 
   return `${baseClass} ${index === selectedIndex.value ? activeClass : hoverClass}`
-}
-
-// 获取结果图标组件
-const getResultIcon = (type?: string) => {
-  switch (type) {
-  case 'app':
-    return 'svg' // 将使用内联SVG
-  case 'page':
-    return 'svg' // 将使用内联SVG
-  default:
-    return 'svg' // 将使用内联SVG
-  }
 }
 
 // 获取类型标签
@@ -376,7 +364,7 @@ watch(visible, (newValue) => {
 })
 
 // 监听搜索范围变化
-watch(searchScope, (newScope) => {
+watch(searchScope, (_newScope) => {
   // 重新搜索
   if (searchQuery.value.trim()) {
     // 这里可以触发重新搜索

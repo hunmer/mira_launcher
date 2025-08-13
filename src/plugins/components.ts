@@ -3,7 +3,7 @@ import * as GridComponents from '@/components/grid'
 import * as IconComponents from '@/components/icons'
 import * as LayoutComponents from '@/components/layout'
 import * as UIComponents from '@/components/ui'
-import type { App } from 'vue'
+import type { App, Component } from 'vue'
 
 /**
  * 全局组件注册插件
@@ -28,7 +28,7 @@ export function registerGlobalComponents(app: App) {
       !name.endsWith('Props') && // 排除类型定义
       !name.endsWith('Options')) { // 排除选项类型
       try {
-        app.component(name, component as any)
+        app.component(name, component as Component)
       } catch (error) {
         console.warn(`[Components Plugin] Failed to register component ${name}:`, error)
       }

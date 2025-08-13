@@ -1,5 +1,8 @@
 <template>
-  <div ref="containerRef" :class="gridContainerClass">
+  <div
+    ref="containerRef"
+    :class="gridContainerClass"
+  >
     <slot />
   </div>
 </template>
@@ -24,10 +27,10 @@ export interface GridContainerProps {
 }
 
 interface Emits {
-  (e: 'dragStart', event: any): void
-  (e: 'dragMove', event: any): void
-  (e: 'dragEnd', event: any): void
-  (e: 'dragUpdate', event: any): void
+  (e: 'dragStart', event: unknown): void
+  (e: 'dragMove', event: unknown): void
+  (e: 'dragEnd', event: unknown): void
+  (e: 'dragUpdate', event: unknown): void
 }
 
 const props = withDefaults(defineProps<GridContainerProps>(), {
@@ -35,6 +38,8 @@ const props = withDefaults(defineProps<GridContainerProps>(), {
   gap: 'md',
   responsive: true,
   autoRows: true,
+  class: '',
+  dragOptions: () => ({}),
   items: () => [],
   draggable: false,
   iconSize: 48,

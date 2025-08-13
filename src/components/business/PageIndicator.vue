@@ -8,8 +8,8 @@
         v-for="(page, index) in pages"
         :key="page.id"
         :class="pageButtonClass(index)"
-        @click="$emit('page-select', index)"
-        @contextmenu.prevent="$emit('page-context-menu', { page, index, event: $event })"
+        @click="$emit('pageSelect', index)"
+        @contextmenu.prevent="$emit('pageContextMenu', { page, index, event: $event })"
       >
         <span
           v-if="page.icon"
@@ -19,7 +19,7 @@
         <button
           v-if="pages.length > 1"
           class="page-close ml-1 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
-          @click.stop="$emit('page-remove', page.id)"
+          @click.stop="$emit('pageRemove', page.id)"
         >
           ×
         </button>
@@ -33,7 +33,7 @@
         v-if="pages.length < maxPages"
         class="page-action-btn"
         :title="`添加页面 (${pages.length}/${maxPages})`"
-        @click="$emit('page-add')"
+        @click="$emit('pageAdd')"
       >
         <svg
           class="w-4 h-4"
@@ -55,7 +55,7 @@
         class="page-action-btn"
         :disabled="!canNavigatePrevious"
         title="上一页 (←)"
-        @click="$emit('page-previous')"
+        @click="$emit('pagePrevious')"
       >
         <svg
           class="w-4 h-4"
@@ -76,7 +76,7 @@
         class="page-action-btn"
         :disabled="!canNavigateNext"
         title="下一页 (→)"
-        @click="$emit('page-next')"
+        @click="$emit('pageNext')"
       >
         <svg
           class="w-4 h-4"
@@ -97,7 +97,7 @@
       <button
         class="page-action-btn"
         title="页面菜单"
-        @click="$emit('page-menu', $event)"
+        @click="$emit('pageMenu', $event)"
       >
         <svg
           class="w-4 h-4"
@@ -131,13 +131,13 @@ const props = defineProps<{
 
 // Emits
 defineEmits<{
-    'page-select': [index: number]
-    'page-add': []
-    'page-remove': [pageId: string]
-    'page-previous': []
-    'page-next': []
-    'page-menu': [event: MouseEvent]
-    'page-context-menu': [data: { page: Page; index: number; event: MouseEvent }]
+    'pageSelect': [index: number]
+    'pageAdd': []
+    'pageRemove': [pageId: string]
+    'pagePrevious': []
+    'pageNext': []
+    'pageMenu': [event: MouseEvent]
+    'pageContextMenu': [data: { page: Page; index: number; event: MouseEvent }]
 }>()
 
 // 计算页面按钮样式

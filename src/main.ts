@@ -1,7 +1,15 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import PrimeVue from 'primevue/config'
+import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
+import Tooltip from 'primevue/tooltip'
+import { MiraPreset } from './config/primevue-theme'
 import App from './App.vue'
 import router from './router'
+
+// PrimeVue 样式
+import 'primeicons/primeicons.css'
 
 // 插件导入
 import { registerGlobalComponents, setupComponentDevtools } from './plugins/components'
@@ -12,6 +20,27 @@ import './styles/main.css'
 
 // 創建 Vue 應用實例
 const app = createApp(App)
+
+// 配置 PrimeVue
+app.use(PrimeVue, {
+  theme: {
+    preset: MiraPreset,
+    options: {
+      darkModeSelector: '.dark',
+      cssLayer: {
+        name: 'primevue',
+        order: 'tailwind-base, primevue, tailwind-utilities',
+      },
+    },
+  },
+})
+
+// 添加 PrimeVue 服务
+app.use(ToastService)
+app.use(ConfirmationService)
+
+// 添加 PrimeVue 指令
+app.directive('tooltip', Tooltip)
 
 // 注册全局组件
 registerGlobalComponents(app)

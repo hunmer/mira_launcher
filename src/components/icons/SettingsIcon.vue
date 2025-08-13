@@ -1,10 +1,12 @@
 <template>
   <BaseIcon 
     :icon-component="Settings" 
-    :size="size"
-    :color="color"
-    :class="iconClass"
-    v-bind="$attrs"
+    v-bind="{
+      ...(size !== undefined && { size }),
+      ...(color !== undefined && { color }),
+      ...(iconClass !== undefined && { class: iconClass }),
+      ...$attrs
+    }"
   />
 </template>
 
@@ -22,6 +24,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 16,
   color: 'currentColor',
+  class: '',
 })
 
 // 样式类

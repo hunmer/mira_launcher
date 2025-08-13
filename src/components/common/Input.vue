@@ -1,37 +1,42 @@
 <template>
-  <NInput
-    v-model:value="inputValue"
-    :type="type"
-    :placeholder="placeholder"
-    :disabled="disabled"
-    :readonly="readonly"
-    :clearable="clearable"
-    :size="size"
-    :class="inputClass"
-    v-bind="$attrs"
+  <InputText
+    v-if="type !== 'textarea'"
+    v-model="inputValue"
+    v-bind="{
+      ...$attrs,
+      ...(type !== undefined && { type: type as 'text' | 'password' }),
+      ...(placeholder !== undefined && { placeholder }),
+      ...(disabled !== undefined && { disabled }),
+      ...(readonly !== undefined && { readonly }),
+      ...(primeVueSize !== undefined && { size: primeVueSize }),
+      class: inputClass
+    }"
     @input="handleInput"
     @change="handleChange"
     @focus="handleFocus"
     @blur="handleBlur"
-  >
-    <template
-      v-if="$slots['prefix']"
-      #prefix
-    >
-      <slot name="prefix" />
-    </template>
-    <template
-      v-if="$slots['suffix']"
-      #suffix
-    >
-      <slot name="suffix" />
-    </template>
-  </NInput>
+  />
+  <Textarea
+    v-else
+    v-model="inputValue"
+    v-bind="{
+      ...$attrs,
+      ...(placeholder !== undefined && { placeholder }),
+      ...(disabled !== undefined && { disabled }),
+      ...(readonly !== undefined && { readonly }),
+      class: inputClass
+    }"
+    @input="handleInput"
+    @change="handleChange"
+    @focus="handleFocus"
+    @blur="handleBlur"
+  />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NInput } from 'naive-ui'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
 import type { InputProps } from '@/types/components'
 
 interface Props extends Omit<InputProps, 'type'> {
@@ -73,21 +78,34 @@ watch(inputValue, (newValue) => {
   emit('update:value', newValue)
 })
 
+// 转换尺寸到 PrimeVue 的格式
+const primeVueSize = computed(() => {
+  const sizeMap = {
+    small: 'small',
+    medium: undefined,
+    large: 'large',
+  }
+  return sizeMap[props.size]
+})
+
 // 样式类
 const inputClass = computed(() => {
   return [
     'transition-all duration-200',
+    props.clearable && 'clearable',
     props.class,
   ].filter(Boolean).join(' ')
 })
 
 // 事件处理
-const handleInput = (value: string) => {
-  emit('input', value)
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('input', target.value)
 }
 
-const handleChange = (value: string) => {
-  emit('change', value)
+const handleChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('change', target.value)
 }
 
 const handleFocus = (event: FocusEvent) => {

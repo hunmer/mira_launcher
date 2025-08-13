@@ -1,19 +1,25 @@
 <template>
   <div class="app-layout min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    <!-- 標題欄 - 固定在顶部 -->
-    <TitleBar class="fixed top-0 left-0 right-0 z-40" @minimize="handleWindowMinimize" @maximize="handleWindowMaximize"
-      @close="handleWindowClose" />
+    <!-- 標題欄 - 固定在顶部，包含菜单栏 -->
+    <TitleBar
+      class="fixed top-0 left-0 right-0 z-40"
+      @minimize="handleWindowMinimize"
+      @maximize="handleWindowMaximize"
+      @close="handleWindowClose"
+    />
 
     <!-- 主要內容區域 - 留出標題欄空間 -->
     <div class="pt-12">
-      <MainContent :transition="contentTransition" />
+      <MainContent v-bind="{ ...(contentTransition !== undefined && { transition: contentTransition }) }" />
     </div>
 
     <!-- 全局加載指示器 -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="isLoading"
-          class="loading-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+        <div
+          v-if="isLoading"
+          class="loading-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+        >
           <div class="loading-content bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
             <div class="flex items-center space-x-3">
               <LoadingSpinner class="text-primary-600" />
@@ -43,17 +49,17 @@ interface Props {
   contentTransition?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+interface Emits {
+  (e: 'windowMinimize'): void
+  (e: 'windowMaximize'): void
+  (e: 'windowClose'): void
+}
+
+withDefaults(defineProps<Props>(), {
   contentTransition: 'fade',
 })
 
 const emit = defineEmits<Emits>()
-
-interface Emits {
-  (e: 'window-minimize'): void
-  (e: 'window-maximize'): void
-  (e: 'window-close'): void
-}
 
 // Store
 const appStore = useAppStore()
@@ -61,15 +67,15 @@ const { isLoading } = storeToRefs(appStore)
 
 // 窗口事件处理
 const handleWindowMinimize = () => {
-  emit('window-minimize')
+  emit('windowMinimize')
 }
 
 const handleWindowMaximize = () => {
-  emit('window-maximize')
+  emit('windowMaximize')
 }
 
 const handleWindowClose = () => {
-  emit('window-close')
+  emit('windowClose')
 }
 </script>
 
