@@ -8,18 +8,15 @@ export { default as BaseIcon } from './BaseIcon.vue'
 export { default as AppIcon } from './AppIcon.vue'
 
 // 窗口控制图标
-export { default as MinimizeIcon } from './MinimizeIcon.vue'
-export { default as MaximizeIcon } from './MaximizeIcon.vue'
 export { default as CloseIcon } from './CloseIcon.vue'
+export { default as MaximizeIcon } from './MaximizeIcon.vue'
+export { default as MinimizeIcon } from './MinimizeIcon.vue'
 
 // 功能图标
-export { default as SettingsIcon } from './SettingsIcon.vue'
 export { default as SearchIcon } from './SearchIcon.vue'
-export { default as AddIcon } from './AddIcon.vue'
-export { default as EditIcon } from './EditIcon.vue'
-export { default as DeleteIcon } from './DeleteIcon.vue'
-export { default as RefreshIcon } from './RefreshIcon.vue'
+export { default as SettingsIcon } from './SettingsIcon.vue'
 
 // 主题切换图标
-export { default as SunIcon } from './SunIcon.vue'
 export { default as MoonIcon } from './MoonIcon.vue'
+export { default as SunIcon } from './SunIcon.vue'
+

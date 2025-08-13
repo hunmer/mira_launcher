@@ -12,12 +12,123 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true,
+        "execute": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "run-app",
+            "cmd": "cmd",
+            "args": [
+              "/C",
+              "start",
+              {
+                "validator": "\\S+"
+              }
+            ]
+          },
+          {
+            "name": "run-exe",
+            "cmd": "cmd",
+            "args": [
+              "/C",
+              {
+                "validator": "\\S+"
+              }
+            ]
+          },
+          {
+            "name": "powershell",
+            "cmd": "powershell",
+            "args": [
+              "-Command",
+              {
+                "validator": "\\S+"
+              }
+            ]
+          }
+        ]
+      },
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "exists": true,
+        "scope": [
+          "$APPDATA",
+          "$LOCALAPPDATA",
+          "$DESKTOP",
+          "$DOCUMENT",
+          "$DOWNLOAD",
+          "$HOME",
+          "$PICTURE",
+          "$PUBLIC",
+          "$VIDEO",
+          "$AUDIO",
+          "$CACHE",
+          "$CONFIG",
+          "$DATA",
+          "$LOG",
+          "$RUNTIME",
+          "$TEMP"
+        ]
+      },
+      "path": {
+        "all": true
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true,
+        "setTitle": true,
+        "setSize": true,
+        "setPosition": true,
+        "setFocus": true,
+        "setIcon": true,
+        "setDecorations": true,
+        "setAlwaysOnTop": true,
+        "setSkipTaskbar": true,
+        "center": true
+      },
+      "globalShortcut": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      },
+      "notification": {
+        "all": true
+      },
+      "dialog": {
+        "all": false,
+        "open": true,
+        "save": true,
+        "message": true,
+        "ask": true,
+        "confirm": true
+      }
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+      "category": "Utility",
+      "copyright": "Copyright © 2025 Mira Launcher Team",
+      "shortDescription": "輕量化應用啟動器",
+      "longDescription": "一個功能強大且輕量化的應用啟動器，支援快速啟動應用程式、插件系統和自訂快捷鍵",
       "deb": {
         "depends": []
       },
@@ -29,8 +140,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
-      "longDescription": "",
+      "identifier": "com.miralauncher.app",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -39,12 +149,14 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "language": "zh-TW"
+        }
       }
     },
     "security": {
@@ -55,11 +167,25 @@
     },
     "windows": [
       {
-        "fullscreen": false,
-        "height": 600,
+        "label": "main",
+        "title": "Mira Launcher",
+        "width": 900,
+        "height": 650,
+        "minWidth": 800,
+        "minHeight": 600,
         "resizable": true,
-        "title": "mira-launcher",
-        "width": 800
+        "maximizable": true,
+        "minimizable": true,
+        "closable": true,
+        "decorations": false,
+        "alwaysOnTop": false,
+        "fullscreen": false,
+        "transparent": false,
+        "visible": true,
+        "center": true,
+        "skipTaskbar": false,
+        "fileDropEnabled": true,
+        "url": "index.html"
       }
     ]
   }

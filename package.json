@@ -5,14 +5,24 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "dev:tauri": "tauri dev",
         "build": "vue-tsc && vite build",
+        "build:tauri": "tauri build",
         "preview": "vite preview",
         "tauri": "tauri",
         "tauri:dev": "tauri dev",
         "tauri:build": "tauri build",
+        "tauri:dev:debug": "tauri dev --debug",
+        "tauri:build:debug": "tauri build --debug",
+        "app:start": "tauri dev",
+        "app:build": "tauri build --bundles msi",
+        "app:build:portable": "tauri build --bundles nsis",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
         "format": "prettier --write src/",
-        "test": "vitest"
+        "test": "vitest",
+        "type-check": "vue-tsc --noEmit",
+        "clean": "rimraf dist && rimraf node_modules/.vite",
+        "clean:tauri": "rimraf src-tauri/target"
     },
     "dependencies": {
         "@floating-ui/vue": "^1.0.2",

@@ -19,8 +19,5 @@ export { default as MainContent } from './MainContent.vue'
 // 容器组件
 export { default as Container } from './Container.vue'
 
-// 侧边栏组件
-export { default as Sidebar } from './Sidebar.vue'
-
 // 分隔符组件
 export { default as Divider } from './Divider.vue'
