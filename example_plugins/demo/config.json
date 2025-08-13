@@ -1,0 +1,86 @@
+{
+  "name": "demo-plugin-config",
+  "version": "1.0.0",
+  "settings": {
+    "theme": {
+      "defaultMode": "auto",
+      "customColors": {
+        "primary": "#3B82F6",
+        "secondary": "#10B981",
+        "accent": "#F59E0B"
+      }
+    },
+    "notifications": {
+      "enabled": true,
+      "duration": 3000,
+      "position": "top-right"
+    },
+    "shortcuts": {
+      "enabled": true,
+      "customizable": true
+    },
+    "storage": {
+      "autoSave": true,
+      "compressionEnabled": false,
+      "maxSize": "10MB"
+    },
+    "components": {
+      "defaultGridSize": "medium",
+      "animationsEnabled": true,
+      "autoLayout": false
+    }
+  },
+  "features": {
+    "gridComponents": true,
+    "customPages": true,
+    "themeSupport": true,
+    "storageAPI": true,
+    "notificationAPI": true,
+    "shortcutAPI": true,
+    "menuAPI": true
+  },
+  "permissions": {
+    "storage": {
+      "read": true,
+      "write": true,
+      "delete": true
+    },
+    "notifications": {
+      "show": true,
+      "actions": true
+    },
+    "ui": {
+      "menu": true,
+      "pages": true,
+      "theme": true
+    },
+    "system": {
+      "shortcuts": true,
+      "clipboard": false,
+      "filesystem": false
+    }
+  },
+  "compatibility": {
+    "mira": {
+      "minimum": "1.0.0",
+      "maximum": "2.0.0"
+    },
+    "node": {
+      "minimum": "16.0.0"
+    },
+    "vue": {
+      "minimum": "3.0.0"
+    }
+  },
+  "development": {
+    "hotReload": true,
+    "debugging": true,
+    "performanceMonitoring": true,
+    "errorReporting": true
+  },
+  "localization": {
+    "defaultLanguage": "zh-CN",
+    "supportedLanguages": ["zh-CN", "en-US"],
+    "fallbackLanguage": "en-US"
+  }
+}

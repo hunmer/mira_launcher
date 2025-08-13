@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="32" cy="32" r="30" fill="url(#gradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- 星形图标 -->
+  <path d="M32 8L36.472 24.944H54.128L40.828 35.056L45.3 52L32 41.888L18.7 52L23.172 35.056L9.872 24.944H27.528L32 8Z" 
+        fill="#ffffff" stroke="#3B82F6" stroke-width="1"/>
+  
+  <!-- 内部装饰 -->
+  <circle cx="32" cy="32" r="4" fill="#F59E0B"/>
+  
+  <!-- 渐变定义 -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1D4ED8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

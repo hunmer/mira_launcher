@@ -5,7 +5,12 @@
       multiple
     >
       <AccordionPanel value="0">
-        <AccordionHeader>外观设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-palette text-purple-600 dark:text-purple-400" />
+            <span>外观设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -26,7 +31,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="1">
-        <AccordionHeader>语言设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-globe text-blue-600 dark:text-blue-400" />
+            <span>语言设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -56,7 +66,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="2">
-        <AccordionHeader>应用设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-window-maximize text-indigo-600 dark:text-indigo-400" />
+            <span>应用设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">

@@ -5,7 +5,12 @@
       multiple
     >
       <AccordionPanel value="0">
-        <AccordionHeader>系统设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-cog text-gray-600 dark:text-gray-400" />
+            <span>系统设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -63,7 +68,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="1">
-        <AccordionHeader>重置与备份</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-shield text-orange-600 dark:text-orange-400" />
+            <span>重置与备份</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">

@@ -1,0 +1,411 @@
+/* Demo Plugin 全局样式 */
+
+/* CSS变量定义 - 支持主题切换 */
+:root {
+  --demo-primary: #3B82F6;
+  --demo-secondary: #10B981;
+  --demo-accent: #F59E0B;
+  --demo-background: #FFFFFF;
+  --demo-surface: #F9FAFB;
+  --demo-text: #111827;
+  --demo-border: #E5E7EB;
+  --demo-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色主题 */
+.dark {
+  --demo-primary: #60A5FA;
+  --demo-secondary: #34D399;
+  --demo-accent: #FBBF24;
+  --demo-background: #1F2937;
+  --demo-surface: #374151;
+  --demo-text: #F9FAFB;
+  --demo-border: #4B5563;
+  --demo-shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* 插件组件基础样式 */
+.demo-plugin-component {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--demo-text);
+}
+
+/* 卡片样式 */
+.demo-card {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px var(--demo-shadow);
+  transition: all 0.3s ease;
+}
+
+.demo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--demo-shadow);
+}
+
+/* 按钮样式 */
+.demo-button {
+  background: var(--demo-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.demo-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.demo-button:active {
+  transform: translateY(0);
+}
+
+.demo-button.secondary {
+  background: var(--demo-secondary);
+}
+
+.demo-button.accent {
+  background: var(--demo-accent);
+}
+
+.demo-button.outline {
+  background: transparent;
+  color: var(--demo-primary);
+  border: 1px solid var(--demo-primary);
+}
+
+.demo-button.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.demo-button.large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* 输入框样式 */
+.demo-input {
+  background: var(--demo-background);
+  border: 1px solid var(--demo-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: var(--demo-text);
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+.demo-input:focus {
+  outline: none;
+  border-color: var(--demo-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 标签样式 */
+.demo-badge {
+  background: var(--demo-primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.demo-badge.secondary {
+  background: var(--demo-secondary);
+}
+
+.demo-badge.accent {
+  background: var(--demo-accent);
+}
+
+.demo-badge.outline {
+  background: transparent;
+  color: var(--demo-primary);
+  border: 1px solid var(--demo-primary);
+}
+
+/* 网格布局 */
+.demo-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.demo-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.demo-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.demo-grid.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* 响应式网格 */
+@media (max-width: 768px) {
+  .demo-grid.cols-2,
+  .demo-grid.cols-3,
+  .demo-grid.cols-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .demo-grid.cols-3,
+  .demo-grid.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 动画效果 */
+.demo-fade-enter-active,
+.demo-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.demo-fade-enter-from,
+.demo-fade-leave-to {
+  opacity: 0;
+}
+
+.demo-slide-enter-active,
+.demo-slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.demo-slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.demo-slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* 工具类 */
+.demo-text-primary {
+  color: var(--demo-primary);
+}
+
+.demo-text-secondary {
+  color: var(--demo-secondary);
+}
+
+.demo-text-accent {
+  color: var(--demo-accent);
+}
+
+.demo-bg-primary {
+  background-color: var(--demo-primary);
+}
+
+.demo-bg-secondary {
+  background-color: var(--demo-secondary);
+}
+
+.demo-bg-surface {
+  background-color: var(--demo-surface);
+}
+
+.demo-border-primary {
+  border-color: var(--demo-primary);
+}
+
+.demo-shadow {
+  box-shadow: 0 1px 3px var(--demo-shadow);
+}
+
+.demo-shadow-lg {
+  box-shadow: 0 4px 12px var(--demo-shadow);
+}
+
+/* 状态指示器 */
+.demo-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.demo-status.online {
+  background-color: #10B981;
+}
+
+.demo-status.offline {
+  background-color: #EF4444;
+}
+
+.demo-status.warning {
+  background-color: #F59E0B;
+}
+
+/* 加载动画 */
+.demo-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--demo-border);
+  border-top: 2px solid var(--demo-primary);
+  border-radius: 50%;
+  animation: demo-spin 1s linear infinite;
+}
+
+@keyframes demo-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 脉冲动画 */
+.demo-pulse {
+  animation: demo-pulse 2s infinite;
+}
+
+@keyframes demo-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 弹跳动画 */
+.demo-bounce {
+  animation: demo-bounce 1s infinite;
+}
+
+@keyframes demo-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-10px);
+  }
+  70% {
+    transform: translateY(-5px);
+  }
+  90% {
+    transform: translateY(-2px);
+  }
+}
+
+/* 提示框样式 */
+.demo-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  position: absolute;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 模态框样式 */
+.demo-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.demo-modal {
+  background: var(--demo-surface);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px var(--demo-shadow);
+}
+
+/* 滚动条样式 */
+.demo-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.demo-scrollbar::-webkit-scrollbar-track {
+  background: var(--demo-border);
+  border-radius: 3px;
+}
+
+.demo-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--demo-primary);
+  border-radius: 3px;
+}
+
+.demo-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--demo-accent);
+}
+
+/* 打印样式 */
+@media print {
+  .demo-plugin-component {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .demo-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+  
+  .demo-button {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .demo-plugin-component {
+    --demo-border: #000000;
+    --demo-text: #000000;
+    --demo-background: #ffffff;
+  }
+  
+  .demo-button {
+    border: 2px solid #000000;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .demo-card,
+  .demo-button,
+  .demo-input,
+  .demo-fade-enter-active,
+  .demo-fade-leave-active,
+  .demo-slide-enter-active,
+  .demo-slide-leave-active {
+    transition: none;
+  }
+  
+  .demo-spinner,
+  .demo-pulse,
+  .demo-bounce {
+    animation: none;
+  }
+}

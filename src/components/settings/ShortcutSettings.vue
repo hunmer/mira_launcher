@@ -5,7 +5,12 @@
       multiple
     >
       <AccordionPanel value="0">
-        <AccordionHeader>快捷键设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-key text-yellow-600 dark:text-yellow-400" />
+            <span>快捷键设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -63,7 +68,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="1">
-        <AccordionHeader>鼠标设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-mouse text-teal-600 dark:text-teal-400" />
+            <span>鼠标设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">

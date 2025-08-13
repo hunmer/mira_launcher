@@ -6,6 +6,7 @@ const Home = () => import('@/views/Home.vue')
 const Settings = () => import('@/views/Settings.vue')
 const Applications = () => import('@/views/Applications.vue')
 const Plugins = () => import('@/views/Plugins.vue')
+const PluginStore = () => import('@/views/PluginStore.vue')
 const About = () => import('@/views/About.vue')
 const UITest = () => import('@/views/UITest.vue')
 
@@ -40,6 +41,17 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '插件管理',
       icon: 'extension',
+      transition: 'slide',
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/plugin-store',
+    name: 'PluginStore',
+    component: PluginStore,
+    meta: {
+      title: '插件商城',
+      icon: 'shopping-cart',
       transition: 'slide',
       requiresAuth: false,
     },

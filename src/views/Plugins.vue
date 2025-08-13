@@ -44,6 +44,13 @@
               v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
               @click="manualReload"
             />
+            <Button
+              icon="pi pi-cog"
+              severity="secondary"
+              text
+              v-tooltip="'设置'"
+              @click="navigateToSettings"
+            />
           </div>
         </template>
         <template #end>
@@ -278,6 +285,7 @@ import Dialog from 'primevue/dialog'
 import Avatar from 'primevue/avatar'
 import ProgressSpinner from 'primevue/progressspinner'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGridStore } from '@/stores/grid'
 import { usePageStore } from '@/stores/page'
 import { useThemeStore } from '@/stores/theme'
@@ -289,6 +297,9 @@ const searchQuery = ref('')
 const showInstallModal = ref(false)
 const showSystemInfo = ref(false)
 const installPath = ref('')
+
+// 路由
+const router = useRouter()
 
 // 开发环境检测
 const isDev = ref(import.meta.env.DEV)
@@ -468,6 +479,11 @@ const manualReload = async () => {
 const showPerformanceDetails = ref(false)
 const togglePerformanceDetails = () => {
   showPerformanceDetails.value = !showPerformanceDetails.value
+}
+
+// 导航到设置页面
+const navigateToSettings = () => {
+  router.push('/settings')
 }
 
 // 切换插件状态

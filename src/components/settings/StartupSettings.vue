@@ -5,7 +5,12 @@
       multiple
     >
       <AccordionPanel value="0">
-        <AccordionHeader>启动设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-power-off text-green-600 dark:text-green-400" />
+            <span>启动设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -63,7 +68,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="1">
-        <AccordionHeader>性能设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-bolt text-orange-600 dark:text-orange-400" />
+            <span>性能设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -104,7 +114,12 @@
       </AccordionPanel>
 
       <AccordionPanel value="2">
-        <AccordionHeader>更新设置</AccordionHeader>
+        <AccordionHeader>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-download text-blue-600 dark:text-blue-400" />
+            <span>更新设置</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">

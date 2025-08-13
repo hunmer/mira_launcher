@@ -41,6 +41,13 @@
             </div>
           </TabPanel>
 
+          <!-- 插件设置 -->
+          <TabPanel value="plugins">
+            <div class="pt-6">
+              <PluginSettings />
+            </div>
+          </TabPanel>
+
           <!-- 高级设置 -->
           <TabPanel value="advanced">
             <div class="pt-6">
@@ -55,7 +62,7 @@
 
 <script setup lang="ts">
 import Container from '@/components/layout/Container.vue'
-import { GeneralSettings, ShortcutSettings, StartupSettings, AdvancedSettings } from '@/components/settings'
+import { GeneralSettings, ShortcutSettings, StartupSettings, AdvancedSettings, PluginSettings } from '@/components/settings'
 import { onMounted, ref } from 'vue'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
@@ -82,6 +89,11 @@ const tabs = ref([
     value: 'startup',
     label: '启动设置',
     icon: 'pi pi-power-off',
+  },
+  {
+    value: 'plugins',
+    label: '插件设置',
+    icon: 'pi pi-puzzle-piece',
   },
   {
     value: 'advanced',
