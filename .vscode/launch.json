@@ -1,0 +1,112 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🔧 Debug Vue/TS Code",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:1420",
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "*",
+                "/src/*": "${webRoot}/*",
+                "vite:///src/*": "${webRoot}/*",
+                "webpack:///./src/*": "${webRoot}/*"
+            },
+            "preLaunchTask": "start-dev-server",
+            "skipFiles": [
+                "**/node_modules/**",
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "smartStep": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/src/**",
+                "!**/node_modules/**"
+            ],
+            "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-data",
+            "timeout": 20000,
+            "runtimeArgs": [
+                "--disable-web-security",
+                "--disable-features=VizDisplayCompositor",
+                "--no-first-run",
+                "--disable-background-timer-throttling"
+            ]
+        },
+        {
+            "name": "🔧 Debug Vue/TS Code (No PreLaunch)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:1420",
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "*",
+                "/src/*": "${webRoot}/*",
+                "vite:///src/*": "${webRoot}/*",
+                "webpack:///./src/*": "${webRoot}/*"
+            },
+            "skipFiles": [
+                "**/node_modules/**",
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "smartStep": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/src/**",
+                "!**/node_modules/**"
+            ],
+            "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-data",
+            "timeout": 10000,
+            "runtimeArgs": [
+                "--disable-web-security",
+                "--disable-features=VizDisplayCompositor",
+                "--no-first-run"
+            ]
+        },
+        {
+            "name": "🚀 Debug Tauri App + Frontend",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:1420",
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "*",
+                "/src/*": "${webRoot}/*",
+                "vite:///src/*": "${webRoot}/*",
+                "webpack:///./src/*": "${webRoot}/*"
+            },
+            "preLaunchTask": "tauri:dev",
+            "skipFiles": [
+                "**/node_modules/**",
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "D:\\Chrome\\App\\chrome.exe",
+            "sourceMaps": true,
+            "smartStep": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/src/**",
+                "!**/node_modules/**"
+            ],
+            "userDataDir": false,
+            "runtimeArgs": [
+                "--disable-web-security",
+                "--disable-features=VizDisplayCompositor"
+            ]
+        },
+        {
+            "name": "Attach to Chrome",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "*",
+                "/src/*": "${webRoot}/*",
+                "vite:///src/*": "${webRoot}/*",
+                "webpack:///./src/*": "${webRoot}/*"
+            },
+            "sourceMaps": true,
+            "smartStep": true
+        }
+    ]
+}
