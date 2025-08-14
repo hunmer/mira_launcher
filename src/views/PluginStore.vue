@@ -36,28 +36,8 @@
             />
           </div>
         </template>
-        <template #center>
-          <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <span>共 {{ totalPlugins }} 个插件</span>
-            <span>已安装: {{ installedCount }} 个</span>
-            <Tag 
-              :value="storeStatus"
-              :severity="storeStatus === '在线' ? 'success' : 'warning'"
-              rounded
-              size="small"
-            />
-          </div>
-        </template>
         <template #end>
           <div class="flex gap-2">
-            <Dropdown
-              v-model="sortBy"
-              :options="sortOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="排序方式"
-              class="w-40"
-            />
             <IconField icon-position="left">
               <InputIcon>
                 <i class="pi pi-search" />
@@ -85,19 +65,10 @@
           data-key="id"
           class="plugin-table"
           striped-rows
-          table-style="min-width: 50rem"
+          table-style="min-width: 80rem"
+          :scrollable="true"
+          scroll-height="flex"
         >
-          <template #header>
-            <div class="flex justify-between items-center">
-              <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                插件商城 ({{ filteredStorePlugins.length }} 个插件)
-              </h2>
-              <div class="text-sm text-gray-500">
-                数据状态: {{ filteredStorePlugins.length > 0 ? '有数据' : '无数据' }}
-              </div>
-            </div>
-          </template>
-
           <template #empty>
             <div class="text-center py-8">
               <i class="pi pi-shopping-cart text-4xl text-gray-400 mb-4" />
@@ -121,9 +92,10 @@
 
           <Column 
             field="name" 
-            header="插件信息" 
+            header="插件" 
             sortable 
-            class="min-w-0"
+            style="width: 280px"
+            frozen
           >
             <template #body="{ data }">
               <div class="flex items-center gap-3">
@@ -152,41 +124,8 @@
                       rounded
                     />
                   </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400 truncate mb-1">
+                  <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {{ data.description }}
-                  </div>
-                  <div class="flex items-center gap-2 mb-1">
-                    <Rating 
-                      :model-value="data.rating" 
-                      readonly 
-                      :stars="5"
-                      size="small"
-                    />
-                    <span class="text-xs text-gray-500">
-                      ({{ data.downloads.toLocaleString() }} 下载)
-                    </span>
-                  </div>
-                  <div
-                    v-if="data.features"
-                    class="flex flex-wrap gap-1 mt-1"
-                  >
-                    <Tag
-                      v-for="(feature, index) in data.features.slice(0, 2)"
-                      :key="index"
-                      :value="feature"
-                      severity="info"
-                      size="small"
-                      rounded
-                      class="text-xs"
-                    />
-                    <Tag
-                      v-if="data.features.length > 2"
-                      :value="`+${data.features.length - 2}更多`"
-                      severity="secondary"
-                      size="small"
-                      rounded
-                      class="text-xs"
-                    />
                   </div>
                 </div>
               </div>
@@ -197,7 +136,7 @@
             field="version" 
             header="版本" 
             sortable 
-            style="width: 120px"
+            style="width: 100px"
           >
             <template #body="{ data }">
               <Tag 
@@ -212,7 +151,7 @@
             field="author" 
             header="作者" 
             sortable 
-            style="width: 150px"
+            style="width: 120px"
           >
             <template #body="{ data }">
               <div class="flex items-center gap-2">
@@ -222,7 +161,7 @@
                   size="small" 
                   shape="circle"
                 />
-                <span class="text-gray-700 dark:text-gray-300 text-sm">
+                <span class="text-gray-700 dark:text-gray-300 text-sm truncate">
                   {{ data.author.name }}
                 </span>
               </div>
@@ -233,7 +172,7 @@
             field="category" 
             header="分类" 
             sortable 
-            style="width: 120px"
+            style="width: 100px"
           >
             <template #body="{ data }">
               <Tag 
@@ -245,10 +184,44 @@
           </Column>
 
           <Column 
+            field="rating" 
+            header="评分" 
+            sortable 
+            style="width: 120px"
+          >
+            <template #body="{ data }">
+              <div class="flex items-center gap-1">
+                <Rating 
+                  :model-value="data.rating" 
+                  readonly 
+                  :stars="5"
+                  size="small"
+                />
+                <span class="text-xs text-gray-500">
+                  {{ data.rating }}
+                </span>
+              </div>
+            </template>
+          </Column>
+
+          <Column 
+            field="downloads" 
+            header="下载量" 
+            sortable 
+            style="width: 100px"
+          >
+            <template #body="{ data }">
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                {{ data.downloads.toLocaleString() }}
+              </span>
+            </template>
+          </Column>
+
+          <Column 
             field="size" 
             header="大小" 
             sortable 
-            style="width: 100px"
+            style="width: 80px"
           >
             <template #body="{ data }">
               <span class="text-sm text-gray-600 dark:text-gray-400">
@@ -258,8 +231,54 @@
           </Column>
 
           <Column 
-            header="操作" 
+            field="lastUpdate" 
+            header="更新时间" 
+            sortable 
+            style="width: 100px"
+          >
+            <template #body="{ data }">
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                {{ data.lastUpdate }}
+              </span>
+            </template>
+          </Column>
+
+          <Column 
+            field="features" 
+            header="特性" 
             style="width: 200px"
+          >
+            <template #body="{ data }">
+              <div
+                v-if="data.features"
+                class="flex flex-wrap gap-1"
+              >
+                <Tag
+                  v-for="(feature, index) in data.features.slice(0, 2)"
+                  :key="index"
+                  :value="feature"
+                  severity="info"
+                  size="small"
+                  rounded
+                  class="text-xs"
+                />
+                <Tag
+                  v-if="data.features.length > 2"
+                  :value="`+${data.features.length - 2}更多`"
+                  severity="secondary"
+                  size="small"
+                  rounded
+                  class="text-xs"
+                />
+              </div>
+            </template>
+          </Column>
+
+          <Column 
+            header="操作" 
+            style="width: 180px"
+            frozen
+            align-frozen="right"
           >
             <template #body="{ data }">
               <div class="flex gap-1">
@@ -401,7 +420,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import {
   Button,
   DataTable,
@@ -415,7 +434,6 @@ import {
   Avatar,
   ProgressSpinner,
   Rating,
-  Dropdown,
   MultiSelect,
   Slider,
   Textarea,
@@ -447,15 +465,6 @@ const submitForm = ref({
   packagePath: '',
 })
 
-// 排序选项
-const sortOptions = ref([
-  { label: '热门度', value: 'popularity' },
-  { label: '评分', value: 'rating' },
-  { label: '下载量', value: 'downloads' },
-  { label: '更新时间', value: 'updated' },
-  { label: '名称', value: 'name' },
-])
-
 // 分类选项
 const categories = ref([
   { label: '生产力', value: 'productivity' },
@@ -466,232 +475,80 @@ const categories = ref([
   { label: '设计', value: 'design' },
 ])
 
-// 模拟商城插件数据
-const storePlugins = ref([
-  {
-    id: 'demo-plugin',
-    name: '插件示例',
-    description: '展示 Mira Launcher 插件系统各项能力的综合示例，包含网格组件、页面系统、主题切换、存储管理等完整功能演示',
-    version: '1.0.0',
-    author: { name: 'Mira Team', avatar: '' },
-    category: 'development',
-    rating: 5.0,
-    downloads: 25680,
-    size: 512000,
-    verified: true,
-    icon: '',
-    featured: true,
-    tags: ['示例', '教程', '开发', 'API演示'],
-    lastUpdate: '2025-08-14',
-    compatibility: ['mira >= 1.0.0'],
-    features: [
-      '🎛️ 交互式网格组件',
-      '📱 专属演示页面',
-      '🎨 自定义主题系统',
-      '💾 数据存储演示',
-      '📢 通知系统集成',
-      '⌨️ 快捷键支持',
-      '📊 实时统计监控',
-      '🔧 完整 API 演示',
-    ],
-  },
-  {
-    id: 'store-plugin-1',
-    name: 'Quick Notes',
-    description: '快速记录笔记和想法的轻量级工具',
-    version: '1.2.0',
-    author: { name: 'NotesDev', avatar: '' },
-    category: 'productivity',
-    rating: 4.5,
-    downloads: 15420,
-    size: 2048000,
-    verified: true,
-    icon: '',
-    lastUpdate: '2025-08-10',
-    features: [
-      '📝 快速笔记创建',
-      '🔍 全文搜索',
-      '📂 分类管理',
-      '☁️ 云端同步',
-    ],
-  },
-  {
-    id: 'store-plugin-2',
-    name: 'Code Formatter',
-    description: '强大的代码格式化和美化工具',
-    version: '2.1.0',
-    author: { name: 'CodeTools Inc', avatar: '' },
-    category: 'development',
-    rating: 4.8,
-    downloads: 8932,
-    size: 1536000,
-    verified: false,
-    icon: '',
-    lastUpdate: '2025-08-08',
-    features: [
-      '🎨 多语言支持',
-      '⚙️ 自定义规则',
-      '🔧 实时格式化',
-      '📋 批量处理',
-    ],
-  },
-  {
-    id: 'weather-widget',
-    name: '天气小组件',
-    description: '精美的天气显示组件，支持多城市和详细预报',
-    version: '1.5.2',
-    author: { name: 'WeatherApp', avatar: '' },
-    category: 'productivity',
-    rating: 4.3,
-    downloads: 12560,
-    size: 1024000,
-    verified: true,
-    icon: '',
-    lastUpdate: '2025-08-12',
-    features: [
-      '🌤️ 实时天气',
-      '🌍 多城市支持',
-      '📈 7天预报',
-      '🎨 自定义主题',
-    ],
-  },
-  {
-    id: 'system-monitor',
-    name: '系统监控',
-    description: '实时监控系统性能和资源使用情况',
-    version: '2.0.1',
-    author: { name: 'SysTools', avatar: '' },
-    category: 'system',
-    rating: 4.6,
-    downloads: 7834,
-    size: 896000,
-    verified: true,
-    icon: '',
-    lastUpdate: '2025-08-09',
-    features: [
-      '📊 性能监控',
-      '💾 内存使用',
-      '🔥 CPU温度',
-      '📱 移动端适配',
-    ],
-  },
-  {
-    id: 'music-player',
-    name: '音乐播放器',
-    description: '简洁优雅的本地音乐播放器组件',
-    version: '1.8.0',
-    author: { name: 'MusicLab', avatar: '' },
-    category: 'entertainment',
-    rating: 4.7,
-    downloads: 18790,
-    size: 3072000,
-    verified: false,
-    icon: '',
-    lastUpdate: '2025-08-11',
-    features: [
-      '🎵 本地播放',
-      '🎼 播放列表',
-      '🔊 音效增强',
-      '📻 在线电台',
-    ],
-  },
-  {
-    id: 'task-manager',
-    name: '任务管理器',
-    description: '强大的个人任务和项目管理工具',
-    version: '3.2.1',
-    author: { name: 'ProductivityHub', avatar: '' },
-    category: 'productivity',
-    rating: 4.9,
-    downloads: 22150,
-    size: 2560000,
-    verified: true,
-    icon: '',
-    lastUpdate: '2025-08-13',
-    features: [
-      '✅ 任务管理',
-      '📅 日程安排',
-      '👥 团队协作',
-      '📈 进度追踪',
-    ],
-  },
-  {
-    id: 'color-picker',
-    name: '取色器工具',
-    description: '专业的颜色选择和管理工具',
-    version: '1.4.3',
-    author: { name: 'DesignTools', avatar: '' },
-    category: 'design',
-    rating: 4.4,
-    downloads: 5432,
-    size: 768000,
-    verified: false,
-    icon: '',
-    lastUpdate: '2025-08-07',
-    features: [
-      '🎨 精确取色',
-      '📋 调色板',
-      '🔄 格式转换',
-      '💾 颜色历史',
-    ],
-  },
-])
+// API 基础URL
+const API_BASE = 'http://localhost:3001/api'
+
+// 服务器数据
+const storePlugins = ref([])
+const pagination = ref({
+  currentPage: 1,
+  totalPages: 1,
+  totalItems: 0,
+  itemsPerPage: 20,
+})
 
 // 收藏列表
 const favorites = ref(new Set())
 
 // 计算属性
-const totalPlugins = computed(() => storePlugins.value.length)
-const installedCount = computed(() => 
-  storePlugins.value.filter(p => isInstalled(p.id)).length,
-)
-const storeStatus = computed(() => '在线')
-
 const filteredStorePlugins = computed(() => {
-  let filtered = storePlugins.value
-
-  // 搜索过滤
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(plugin =>
-      plugin.name.toLowerCase().includes(query) ||
-      plugin.description.toLowerCase().includes(query) ||
-      plugin.author.name.toLowerCase().includes(query),
-    )
-  }
-
-  // 分类过滤
-  if (selectedCategories.value.length > 0) {
-    filtered = filtered.filter(plugin =>
-      selectedCategories.value.includes(plugin.category),
-    )
-  }
-
-  // 评分过滤
-  filtered = filtered.filter(plugin => plugin.rating >= minRating.value)
-
-  // 收藏过滤
-  if (showFavorites.value) {
-    filtered = filtered.filter(plugin => favorites.value.has(plugin.id))
-  }
-
-  // 排序
-  filtered.sort((a, b) => {
-    switch (sortBy.value) {
-    case 'rating':
-      return b.rating - a.rating
-    case 'downloads':
-      return b.downloads - a.downloads
-    case 'name':
-      return a.name.localeCompare(b.name)
-    case 'popularity':
-    default:
-      return b.downloads - a.downloads
-    }
-  })
-
-  return filtered
+  return storePlugins.value
 })
+
+// API 调用函数
+const fetchPlugins = async () => {
+  isLoading.value = true
+  try {
+    const params = new URLSearchParams()
+    
+    if (searchQuery.value) {
+      params.append('search', searchQuery.value)
+    }
+    
+    if (selectedCategories.value.length > 0) {
+      selectedCategories.value.forEach(category => {
+        params.append('category', category)
+      })
+    }
+    
+    if (minRating.value > 0) {
+      params.append('minRating', minRating.value.toString())
+    }
+    
+    if (showFavorites.value) {
+      // 客户端筛选收藏
+    }
+    
+    params.append('sort', sortBy.value)
+    params.append('page', '1')
+    params.append('limit', '100')
+    
+    const response = await fetch(`${API_BASE}/plugins?${params.toString()}`)
+    const result = await response.json()
+    
+    if (result.success) {
+      storePlugins.value = result.data
+      pagination.value = result.pagination
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: '获取失败',
+        detail: result.message || '获取插件列表失败',
+        life: 3000,
+      })
+    }
+  } catch (error) {
+    console.error('获取插件列表失败:', error)
+    toast.add({
+      severity: 'error',
+      summary: '网络错误',
+      detail: '无法连接到插件服务器',
+      life: 3000,
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // 工具函数
 const getPluginColor = (pluginId: string): string => {
@@ -736,26 +593,13 @@ const isFavorite = (pluginId: string): boolean => {
 
 // 功能方法
 const refreshStore = async () => {
-  isLoading.value = true
-  try {
-    // 模拟刷新商城数据
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: '商城数据已刷新',
-      life: 3000,
-    })
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '刷新失败',
-      life: 3000,
-    })
-  } finally {
-    isLoading.value = false
-  }
+  await fetchPlugins()
+  toast.add({
+    severity: 'success',
+    summary: '成功',
+    detail: '商城数据已刷新',
+    life: 3000,
+  })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -769,15 +613,30 @@ const installPlugin = async (plugin: any) => {
       life: 3000,
     })
     
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // 下载插件
+    const response = await fetch(`${API_BASE}/plugins/${plugin.id}/download`)
+    if (!response.ok) {
+      throw new Error('下载失败')
+    }
+    
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${plugin.id}-${plugin.version}.zip`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
     
     toast.add({
       severity: 'success',
-      summary: '安装成功',
-      detail: `${plugin.name} 已安装完成`,
+      summary: '下载成功',
+      detail: `${plugin.name} 已下载完成`,
       life: 3000,
     })
   } catch (error) {
+    console.error('安装失败:', error)
     toast.add({
       severity: 'error',
       summary: '安装失败',
@@ -819,12 +678,13 @@ const resetFilters = () => {
   minRating.value = 0
 }
 
-const applyFilters = () => {
+const applyFilters = async () => {
   showFilterModal.value = false
+  await fetchPlugins()
   toast.add({
     severity: 'info',
     summary: '筛选已应用',
-    detail: `找到 ${filteredStorePlugins.value.length} 个插件`,
+    detail: `找到 ${storePlugins.value.length} 个插件`,
     life: 3000,
   })
 }
@@ -863,8 +723,20 @@ const submitPlugin = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   document.title = 'Mira Launcher - 插件商城'
+  await fetchPlugins()
+})
+
+// 搜索防抖
+let searchTimeout: number | null = null
+watch(searchQuery, (_newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(async () => {
+    await fetchPlugins()
+  }, 500)
 })
 </script>
 

@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/',
+    path: '/applications',
     name: 'Applications',
     component: Applications,
     meta: {

@@ -15,15 +15,14 @@
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  全局唤醒快捷键
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  快速显示/隐藏启动器窗口
-                </p>
+                <TooltipInfo content="快速显示/隐藏启动器窗口的全局快捷键">
+                  <h3 class="font-medium text-gray-900 dark:text-white">
+                    全局唤醒快捷键
+                  </h3>
+                </TooltipInfo>
               </div>
               <Input
-                v-model="globalHotkey"
+                v-model="settingsStore.settings.shortcuts.globalHotkey"
                 placeholder="Ctrl+Space"
                 readonly
                 class="w-32"
@@ -32,15 +31,14 @@
 
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  搜索快捷键
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  启动搜索功能的快捷键
-                </p>
+                <TooltipInfo content="启动搜索功能的快捷键">
+                  <h3 class="font-medium text-gray-900 dark:text-white">
+                    搜索快捷键
+                  </h3>
+                </TooltipInfo>
               </div>
               <Input
-                v-model="searchHotkey"
+                v-model="settingsStore.settings.shortcuts.searchHotkey"
                 placeholder="Ctrl+F"
                 readonly
                 class="w-32"
@@ -49,15 +47,14 @@
 
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  设置页面快捷键
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  打开设置页面的快捷键
-                </p>
+                <TooltipInfo content="打开设置页面的快捷键">
+                  <h3 class="font-medium text-gray-900 dark:text-white">
+                    设置页面快捷键
+                  </h3>
+                </TooltipInfo>
               </div>
               <Input
-                v-model="settingsHotkey"
+                v-model="settingsStore.settings.shortcuts.settingsHotkey"
                 placeholder="Ctrl+,"
                 readonly
                 class="w-32"
@@ -117,17 +114,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import Input from '@/components/common/Input.vue'
+import { TooltipInfo } from '@/components/common'
+import { useSettingsStore } from '@/stores/settings'
 import Accordion from 'primevue/accordion'
 import AccordionPanel from 'primevue/accordionpanel'
 import AccordionHeader from 'primevue/accordionheader'
 import AccordionContent from 'primevue/accordioncontent'
 
-// 快捷键设置
-const globalHotkey = ref('Ctrl+Space')
-const searchHotkey = ref('Ctrl+F')
-const settingsHotkey = ref('Ctrl+,')
+const settingsStore = useSettingsStore()
 
 // 鼠标设置
 const doubleClickToLaunch = ref(true)
@@ -141,17 +137,9 @@ const saveEnableContextMenu = () => {
   console.log('保存右键菜单设置:', enableContextMenu.value)
 }
 
-// 监听快捷键变化，实时保存
-watch(globalHotkey, (newValue) => {
-  console.log('保存全局快捷键设置:', newValue)
-})
-
-watch(searchHotkey, (newValue) => {
-  console.log('保存搜索快捷键设置:', newValue)
-})
-
-watch(settingsHotkey, (newValue) => {
-  console.log('保存设置快捷键设置:', newValue)
+// 组件挂载时加载设置
+onMounted(async () => {
+  await settingsStore.loadSettings()
 })
 </script>
 

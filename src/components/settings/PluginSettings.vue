@@ -222,7 +222,6 @@ const pluginStats = computed(() => {
 // 选择插件目录
 const selectPluginDirectory = async () => {
   try {
-    // 在实际应用中，这里应该调用 Tauri 的目录选择 API
     if (typeof window !== 'undefined' && (window as unknown as { __TAURI__?: unknown }).__TAURI__) {
       try {
         // 尝试使用 Tauri API
@@ -247,16 +246,6 @@ const selectPluginDirectory = async () => {
           life: 3000,
         })
       }
-    } else {
-      // 开发环境模拟
-      const mockPath = '/Users/Example/MiraLauncher/plugins'
-      pluginPath.value = mockPath
-      toast.add({
-        severity: 'info',
-        summary: '开发模式',
-        detail: `模拟选择路径: ${mockPath}`,
-        life: 3000,
-      })
     }
   } catch (error) {
     console.error('Failed to select directory:', error)

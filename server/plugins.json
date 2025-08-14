@@ -1,0 +1,262 @@
+[
+  {
+    "id": "demo-plugin",
+    "name": "插件示例",
+    "description": "展示 Mira Launcher 插件系统各项能力的综合示例，包含网格组件、页面系统、主题切换、存储管理等完整功能演示",
+    "version": "1.0.0",
+    "author": {
+      "name": "Mira Team",
+      "avatar": "",
+      "email": "team@mira.com"
+    },
+    "category": "development",
+    "rating": 5,
+    "downloads": 25688,
+    "size": 512000,
+    "verified": true,
+    "icon": "",
+    "featured": true,
+    "tags": [
+      "示例",
+      "教程",
+      "开发",
+      "API演示"
+    ],
+    "lastUpdate": "2025-08-14",
+    "compatibility": [
+      "mira >= 1.0.0"
+    ],
+    "features": [
+      "🎛️ 交互式网格组件",
+      "📱 专属演示页面",
+      "🎨 自定义主题系统",
+      "💾 数据存储演示",
+      "📢 通知系统集成",
+      "⌨️ 快捷键支持",
+      "📊 实时统计监控",
+      "🔧 完整 API 演示"
+    ],
+    "versions": [
+      "1.0.0"
+    ],
+    "createdAt": "2025-08-14T00:00:00.000Z",
+    "updatedAt": "2025-08-14T00:00:00.000Z"
+  },
+  {
+    "id": "quick-notes",
+    "name": "Quick Notes",
+    "description": "快速记录笔记和想法的轻量级工具",
+    "version": "1.2.0",
+    "author": {
+      "name": "NotesDev",
+      "avatar": "",
+      "email": "dev@notes.com"
+    },
+    "category": "productivity",
+    "rating": 4.5,
+    "downloads": 15420,
+    "size": 2048000,
+    "verified": true,
+    "icon": "",
+    "lastUpdate": "2025-08-10",
+    "features": [
+      "📝 快速笔记创建",
+      "🔍 全文搜索",
+      "📂 分类管理",
+      "☁️ 云端同步"
+    ],
+    "versions": [
+      "1.2.0",
+      "1.1.0",
+      "1.0.0"
+    ],
+    "createdAt": "2025-07-01T00:00:00.000Z",
+    "updatedAt": "2025-08-10T00:00:00.000Z"
+  },
+  {
+    "id": "code-formatter",
+    "name": "Code Formatter",
+    "description": "强大的代码格式化和美化工具",
+    "version": "2.1.0",
+    "author": {
+      "name": "CodeTools Inc",
+      "avatar": "",
+      "email": "info@codetools.com"
+    },
+    "category": "development",
+    "rating": 4.8,
+    "downloads": 8932,
+    "size": 1536000,
+    "verified": false,
+    "icon": "",
+    "lastUpdate": "2025-08-08",
+    "features": [
+      "🎨 多语言支持",
+      "⚙️ 自定义规则",
+      "🔧 实时格式化",
+      "📋 批量处理"
+    ],
+    "versions": [
+      "2.1.0",
+      "2.0.0",
+      "1.5.0"
+    ],
+    "createdAt": "2025-06-15T00:00:00.000Z",
+    "updatedAt": "2025-08-08T00:00:00.000Z"
+  },
+  {
+    "id": "weather-widget",
+    "name": "天气小组件",
+    "description": "精美的天气显示组件，支持多城市和详细预报",
+    "version": "1.5.2",
+    "author": {
+      "name": "WeatherApp",
+      "avatar": "",
+      "email": "support@weather.app"
+    },
+    "category": "productivity",
+    "rating": 4.3,
+    "downloads": 12560,
+    "size": 1024000,
+    "verified": true,
+    "icon": "",
+    "lastUpdate": "2025-08-12",
+    "features": [
+      "🌤️ 实时天气",
+      "🌍 多城市支持",
+      "📈 7天预报",
+      "🎨 自定义主题"
+    ],
+    "versions": [
+      "1.5.2",
+      "1.5.0",
+      "1.4.0"
+    ],
+    "createdAt": "2025-05-20T00:00:00.000Z",
+    "updatedAt": "2025-08-12T00:00:00.000Z"
+  },
+  {
+    "id": "system-monitor",
+    "name": "系统监控",
+    "description": "实时监控系统性能和资源使用情况",
+    "version": "2.0.1",
+    "author": {
+      "name": "SysTools",
+      "avatar": "",
+      "email": "contact@systools.dev"
+    },
+    "category": "system",
+    "rating": 4.6,
+    "downloads": 7834,
+    "size": 896000,
+    "verified": true,
+    "icon": "",
+    "lastUpdate": "2025-08-09",
+    "features": [
+      "📊 性能监控",
+      "💾 内存使用",
+      "🔥 CPU温度",
+      "📱 移动端适配"
+    ],
+    "versions": [
+      "2.0.1",
+      "2.0.0",
+      "1.9.0"
+    ],
+    "createdAt": "2025-04-10T00:00:00.000Z",
+    "updatedAt": "2025-08-09T00:00:00.000Z"
+  },
+  {
+    "id": "music-player",
+    "name": "音乐播放器",
+    "description": "简洁优雅的本地音乐播放器组件",
+    "version": "1.8.0",
+    "author": {
+      "name": "MusicLab",
+      "avatar": "",
+      "email": "hello@musiclab.io"
+    },
+    "category": "entertainment",
+    "rating": 4.7,
+    "downloads": 18790,
+    "size": 3072000,
+    "verified": false,
+    "icon": "",
+    "lastUpdate": "2025-08-11",
+    "features": [
+      "🎵 本地播放",
+      "🎼 播放列表",
+      "🔊 音效增强",
+      "📻 在线电台"
+    ],
+    "versions": [
+      "1.8.0",
+      "1.7.5",
+      "1.7.0"
+    ],
+    "createdAt": "2025-03-25T00:00:00.000Z",
+    "updatedAt": "2025-08-11T00:00:00.000Z"
+  },
+  {
+    "id": "task-manager",
+    "name": "任务管理器",
+    "description": "强大的个人任务和项目管理工具",
+    "version": "3.2.1",
+    "author": {
+      "name": "ProductivityHub",
+      "avatar": "",
+      "email": "team@productivityhub.com"
+    },
+    "category": "productivity",
+    "rating": 4.9,
+    "downloads": 22150,
+    "size": 2560000,
+    "verified": true,
+    "icon": "",
+    "lastUpdate": "2025-08-13",
+    "features": [
+      "✅ 任务管理",
+      "📅 日程安排",
+      "👥 团队协作",
+      "📈 进度追踪"
+    ],
+    "versions": [
+      "3.2.1",
+      "3.2.0",
+      "3.1.0"
+    ],
+    "createdAt": "2025-02-10T00:00:00.000Z",
+    "updatedAt": "2025-08-13T00:00:00.000Z"
+  },
+  {
+    "id": "color-picker",
+    "name": "取色器工具",
+    "description": "专业的颜色选择和管理工具",
+    "version": "1.4.3",
+    "author": {
+      "name": "DesignTools",
+      "avatar": "",
+      "email": "support@designtools.net"
+    },
+    "category": "design",
+    "rating": 4.4,
+    "downloads": 5432,
+    "size": 768000,
+    "verified": false,
+    "icon": "",
+    "lastUpdate": "2025-08-07",
+    "features": [
+      "🎨 精确取色",
+      "📋 调色板",
+      "🔄 格式转换",
+      "💾 颜色历史"
+    ],
+    "versions": [
+      "1.4.3",
+      "1.4.0",
+      "1.3.0"
+    ],
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-08-07T00:00:00.000Z"
+  }
+]

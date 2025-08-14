@@ -16,11 +16,14 @@ export { default as Card } from './Card.vue'
 // 工具提示组件 - 包装 PrimeVue Tooltip 指令
 export { default as Tooltip } from './Tooltip.vue'
 
+// 信息工具提示组件 - 带感叹号图标的工具提示
+export { default as TooltipInfo } from './TooltipInfo.vue'
+
 // 右键上下文菜单组件 - 基于 floating-ui 的智能定位菜单
 export { default as ContextMenu } from './ContextMenu.vue'
 
 // 数据表格组件 - 包装 PrimeVue DataTable
-export { default as DataTable } from './DataTable.vue'
+export { DataTable, Column } from './DataTable'
 
 // 工具栏组件 - 包装 PrimeVue Toolbar
 export { default as Toolbar } from './Toolbar.vue'
@@ -39,9 +42,6 @@ export { default as AccordionContent } from './AccordionContent.vue'
 
 // 分割线组件 - 包装 PrimeVue Divider
 export { default as Divider } from './Divider.vue'
-
-// 表格列组件 - 包装 PrimeVue Column
-export { default as Column } from './Column.vue'
 
 // 对话框组件 - 包装 PrimeVue Dialog
 export { default as Dialog } from './Dialog.vue'

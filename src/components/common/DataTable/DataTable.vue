@@ -4,7 +4,17 @@
     v-bind="$attrs"
     :class="computedClass"
   >
-    <slot />
+    <template 
+      v-for="name in Object.keys($slots)" 
+      #[name]="slotProps"
+      :key="name"
+    >
+      <slot 
+        v-if="$slots[name]"
+        :name="name" 
+        v-bind="slotProps || {}" 
+      />
+    </template>
   </DataTable>
 </template>
 

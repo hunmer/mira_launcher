@@ -15,19 +15,18 @@
           <div class="space-y-4 p-4">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  开机自启动
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  系统启动时自动运行 Mira Launcher
-                </p>
+                <TooltipInfo content="系统启动时自动运行 Mira Launcher">
+                  <h3 class="font-medium text-gray-900 dark:text-white">
+                    开机自启动
+                  </h3>
+                </TooltipInfo>
               </div>
               <input
-                v-model="autoStart"
+                v-model="settingsStore.settings.startup.autoStart"
                 type="checkbox"
                 class="toggle"
-                @change="saveAutoStart"
               >
+            </div>
             </div>
 
             <div class="flex items-center justify-between">

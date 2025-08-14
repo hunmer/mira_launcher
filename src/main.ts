@@ -7,6 +7,7 @@ import Tooltip from 'primevue/tooltip'
 import { MiraPreset } from './config/primevue-theme'
 import App from './App.vue'
 import router from './router'
+import { useSettingsStore } from './stores/settings'
 
 // PrimeVue 样式
 import 'primeicons/primeicons.css'
@@ -99,5 +100,15 @@ app.config.warnHandler = (msg, vm, trace) => {
 
 // 掛載應用
 app.mount('#app')
+
+// 初始化设置存储
+const initializeSettings = async () => {
+  const settingsStore = useSettingsStore()
+  await settingsStore.loadSettings()
+  console.log('Settings initialized')
+}
+
+// 在应用挂载后初始化设置
+initializeSettings().catch(console.error)
 
 export default app
