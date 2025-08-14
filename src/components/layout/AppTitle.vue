@@ -1,9 +1,6 @@
 <template>
   <div class="app-title-container">
-    <AppIcon
-      :size="18"
-      class="text-primary-600 dark:text-primary-400"
-    />
+    <AppIcon :size="18" class="text-primary-600 dark:text-primary-400" />
     <span class="app-title-text">
       {{ appName }}
     </span>
@@ -11,9 +8,9 @@
 </template>
 
 <script setup lang="ts">
-import AppIcon from '@/components/icons/AppIcon.vue'
-import { useAppStore } from '@/stores/app'
-import { storeToRefs } from 'pinia'
+import AppIcon from '@/components/icons/AppIcon.vue';
+import { useAppStore } from '@/stores/app';
+import { storeToRefs } from 'pinia';
 
 interface Props {
   showIcon?: boolean
@@ -35,6 +32,8 @@ const { appName } = storeToRefs(appStore)
   gap: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
+  /* 允许整个标题区域被拖拽 */
+  pointer-events: none;
 }
 
 .app-title-text {
@@ -43,6 +42,8 @@ const { appName } = storeToRefs(appStore)
   color: #1f2937;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* 允许整个标题区域被拖拽 */
+  pointer-events: none;
 }
 
 .dark .app-title-text {

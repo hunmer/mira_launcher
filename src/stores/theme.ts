@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 /**
  * 插件主题接口
@@ -55,12 +55,18 @@ export const useThemeStore = defineStore('theme', () => {
 
   // 设置主题模式
   const setThemeMode = (mode: 'light' | 'dark' | 'auto') => {
+    if (themeMode.value === mode) {
+      console.log(`[Theme] Theme mode already set to: ${mode}`)
+      return
+    }
+    console.log(`[Theme] Setting theme mode: ${themeMode.value} -> ${mode}`)
     themeMode.value = mode
-    applyTheme()
+    // 让 watcher 处理应用和保存
   }
 
   // 切换主题
   const toggleTheme = () => {
+    console.log(`[Theme] Toggling theme from: ${themeMode.value}`)
     if (themeMode.value === 'light') {
       setThemeMode('dark')
     } else if (themeMode.value === 'dark') {
@@ -73,12 +79,17 @@ export const useThemeStore = defineStore('theme', () => {
   // 应用主题到 DOM
   const applyTheme = () => {
     const htmlElement = document.documentElement
+    const isDark = currentTheme.value === 'dark'
 
-    if (currentTheme.value === 'dark') {
+    console.log(`[Theme] Applying theme: ${currentTheme.value} (mode: ${themeMode.value}, system: ${systemTheme.value})`)
+
+    if (isDark) {
       htmlElement.classList.add('dark')
     } else {
       htmlElement.classList.remove('dark')
     }
+
+    console.log(`[Theme] DOM classes after apply:`, htmlElement.classList.toString())
 
     // 刷新插件主题
     refreshPluginThemes()
@@ -89,8 +100,10 @@ export const useThemeStore = defineStore('theme', () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
     const updateSystemTheme = (e: MediaQueryListEvent | MediaQueryList) => {
-      systemTheme.value = e.matches ? 'dark' : 'light'
-      applyTheme()
+      const newSystemTheme = e.matches ? 'dark' : 'light'
+      console.log(`[Theme] System theme detected: ${newSystemTheme}`)
+      systemTheme.value = newSystemTheme
+      // 不在这里调用 applyTheme()，让 watcher 处理
     }
 
     // 初始化
@@ -168,7 +181,7 @@ export const useThemeStore = defineStore('theme', () => {
 
     pluginThemes.value.set(themeId, pluginTheme)
     console.log(`[Theme] Registered plugin theme: ${themeId}`)
-    
+
     // 如果主题符合当前模式，自动激活
     if (shouldActivateTheme(pluginTheme)) {
       activatePluginTheme(themeId)
@@ -193,7 +206,7 @@ export const useThemeStore = defineStore('theme', () => {
       }
       console.log(`[Theme] Unregistered all themes for plugin: ${pluginId}`)
     }
-    
+
     saveTheme()
   }
 
@@ -212,10 +225,10 @@ export const useThemeStore = defineStore('theme', () => {
 
     theme.isActive = true
     activePluginThemes.value.add(themeId)
-    
+
     // 应用主题样式
     applyPluginTheme(theme)
-    
+
     console.log(`[Theme] Activated plugin theme: ${themeId}`)
     saveTheme()
     return true
@@ -227,10 +240,10 @@ export const useThemeStore = defineStore('theme', () => {
 
     theme.isActive = false
     activePluginThemes.value.delete(themeId)
-    
+
     // 移除主题样式
     removePluginTheme(theme)
-    
+
     console.log(`[Theme] Deactivated plugin theme: ${themeId}`)
     saveTheme()
     return true
@@ -244,23 +257,23 @@ export const useThemeStore = defineStore('theme', () => {
   const applyPluginTheme = (theme: PluginTheme) => {
     const styleId = `plugin-theme-${theme.id}`
     let styleElement = document.getElementById(styleId) as HTMLStyleElement
-    
+
     if (!styleElement) {
       styleElement = document.createElement('style')
       styleElement.id = styleId
       styleElement.setAttribute('data-plugin-id', theme.pluginId)
-      
+
       if (pluginThemeConfig.value.isolatePluginStyles) {
         // 添加插件样式隔离
         styleElement.setAttribute('data-isolated', 'true')
       }
-      
+
       document.head.appendChild(styleElement)
     }
 
     // 构建CSS内容
     let cssContent = ''
-    
+
     // 添加CSS变量
     if (Object.keys(theme.cssVariables).length > 0) {
       cssContent += ':root {\n'
@@ -272,10 +285,10 @@ export const useThemeStore = defineStore('theme', () => {
 
     // 添加样式规则
     for (const [selector, rules] of Object.entries(theme.styles)) {
-      const prefixedSelector = pluginThemeConfig.value.isolatePluginStyles 
+      const prefixedSelector = pluginThemeConfig.value.isolatePluginStyles
         ? `[data-plugin="${theme.pluginId}"] ${selector}`
         : selector
-      
+
       cssContent += `${prefixedSelector} {\n${rules}\n}\n\n`
     }
 
@@ -285,7 +298,7 @@ export const useThemeStore = defineStore('theme', () => {
   const removePluginTheme = (theme: PluginTheme) => {
     const styleId = `plugin-theme-${theme.id}`
     const styleElement = document.getElementById(styleId)
-    
+
     if (styleElement) {
       styleElement.remove()
     }
@@ -306,24 +319,24 @@ export const useThemeStore = defineStore('theme', () => {
   const updatePluginThemeConfig = (newConfig: Partial<PluginThemeConfig>) => {
     pluginThemeConfig.value = { ...pluginThemeConfig.value, ...newConfig }
     saveTheme()
-    
+
     // 如果禁用了插件主题，停用所有插件主题
     if (!newConfig.allowPluginThemes) {
       for (const themeId of activePluginThemes.value) {
         deactivatePluginTheme(themeId)
       }
     }
-    
+
     console.log('[Theme] Updated plugin theme config:', newConfig)
   }
 
   const getPluginThemes = (pluginId?: string) => {
     const themes = Array.from(pluginThemes.value.values())
-    
+
     if (pluginId) {
       return themes.filter(theme => theme.pluginId === pluginId)
     }
-    
+
     return themes
   }
 
@@ -338,12 +351,31 @@ export const useThemeStore = defineStore('theme', () => {
     refreshPluginThemes()
   })
 
+  // 监听主题模式变化，自动应用和保存
+  watch(themeMode, (newMode) => {
+    console.log(`[Theme] Theme mode changed to: ${newMode}`)
+    nextTick(() => {
+      applyTheme()
+      saveTheme()
+    })
+  }, { immediate: false })
+
+  // 监听系统主题变化
+  watch(systemTheme, (newSystemTheme) => {
+    console.log(`[Theme] System theme changed to: ${newSystemTheme}`)
+    if (themeMode.value === 'auto') {
+      nextTick(() => {
+        applyTheme()
+      })
+    }
+  }, { immediate: false })
+
   return {
     // 基础主题状态
     themeMode,
     systemTheme,
     currentTheme,
-    
+
     // 插件主题状态
     pluginThemeConfig,
     pluginThemes,

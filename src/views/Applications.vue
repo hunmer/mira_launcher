@@ -1,14 +1,25 @@
 <template>
   <div class="applications-page">
-    <!-- 拖拽状态提示 -->
-    <div v-if="isDragging" class="drag-hint">
-      <span class="text-sm text-blue-400">🔄 正在拖拽中...</span>
-    </div>
-
     <!-- 工具栏 -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <h1 class="page-title">应用程序</h1>
+        <!-- 分组切换选择器 -->
+        <FilterSelect v-model="selectedCategory" :options="categoryOptions" option-label="label" option-value="value"
+          placeholder="选择分组" :filter="true" :show-clear="true" class="category-selector" @change="onCategoryChange">
+          <template #value="{ value, placeholder }">
+            <div v-if="value" class="flex items-center gap-3">
+              <i :class="getCategoryIcon(value)" />
+              <span>{{ getCategoryLabel(value) }}</span>
+            </div>
+            <span v-else>{{ placeholder }}</span>
+          </template>
+          <template #option="{ option }">
+            <div class="flex items-center gap-3">
+              <i :class="option.icon" />
+              <span>{{ option.label }}</span>
+            </div>
+          </template>
+        </FilterSelect>
       </div>
 
       <div class="toolbar-right">
@@ -22,24 +33,15 @@
           </button>
         </div>
 
-        <!-- 图标大小控制 -->
-        <div class="size-controls">
-          <button :class="['size-btn', { active: iconSizeMode === 'small' }]" @click="setIconSize('small')" title="小图标">
-            <i class="pi pi-circle text-xs" />
-          </button>
-          <button :class="['size-btn', { active: iconSizeMode === 'medium' }]" @click="setIconSize('medium')"
-            title="中图标">
-            <i class="pi pi-circle text-sm" />
-          </button>
-          <button :class="['size-btn', { active: iconSizeMode === 'large' }]" @click="setIconSize('large')" title="大图标">
-            <i class="pi pi-circle text-base" />
-          </button>
+        <!-- 图标大小控制 - 仅在网格模式下显示 -->
+        <div v-if="layoutMode === 'grid'" class="size-controls">
+          <IconSizeDropdown v-model="gridColumnsStr" :container-width="containerWidth" @change="onGridSizeChange" />
         </div>
       </div>
     </div>
 
     <div class="page-container">
-      <VueDraggable v-model="applications" animation="200" :delay="100" :delay-on-touch-start="true"
+      <VueDraggable v-model="filteredApplications" animation="200" :delay="100" :delay-on-touch-start="true"
         :force-fallback="false" :fallback-tolerance="3" :class="[
           layoutMode === 'grid' ? 'app-grid' : 'app-list'
         ]" :style="layoutMode === 'grid' ? {
@@ -88,6 +90,8 @@
 
 <script setup lang="ts">
 import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
+import FilterSelect from '@/components/common/FilterSelect.vue'
+import IconSizeDropdown from '@/components/common/IconSizeDropdown.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useApplicationLayout } from '@/composables/useApplicationLayout'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -111,10 +115,85 @@ const {
   layoutMode,
   iconSizeMode
 } = useApplicationLayout()
-const iconSize = computed(() => getIconSizePixels())
+const iconSize = computed(() => {
+  // 根据网格列数动态计算图标大小
+  const baseSize = Math.max(40, Math.min(200, (containerWidth.value / gridColumns.value) * 0.6))
+  return Math.floor(baseSize)
+})
 const gridColumns = ref(4) // 默认网格列数
+const gridColumnsStr = ref('4') // 字符串形式的网格列数，用于下拉菜单
+const containerWidth = ref(1200) // 容器宽度
 const isDragging = ref(false) // 拖拽状态
 const sortSaved = ref(false) // 排序保存状态
+
+// 分组选择相关
+const selectedCategory = ref<string>('all')
+const categoryOptions = ref([
+  { label: '全部应用', value: 'all', icon: 'pi pi-th-large' },
+  { label: '开发工具', value: 'development', icon: 'pi pi-code' },
+  { label: '生产力', value: 'productivity', icon: 'pi pi-briefcase' },
+  { label: '设计工具', value: 'design', icon: 'pi pi-palette' },
+  { label: '娱乐', value: 'entertainment', icon: 'pi pi-play' },
+  { label: '实用工具', value: 'utility', icon: 'pi pi-wrench' }
+])
+
+// 过滤后的应用列表
+const filteredApplications = computed(() => {
+  if (selectedCategory.value === 'all') {
+    return applications.value
+  }
+  return applications.value.filter(app => app.category === selectedCategory.value)
+})
+
+// 分组切换处理
+const onCategoryChange = (event: any) => {
+  console.log('分组切换:', event.value)
+  // 可以在这里添加其他逻辑，比如保存用户偏好等
+}
+
+// 获取分组图标
+const getCategoryIcon = (categoryValue: string) => {
+  const category = categoryOptions.value.find(cat => cat.value === categoryValue)
+  return category?.icon || 'pi pi-th-large'
+}
+
+// 获取分组标签
+const getCategoryLabel = (categoryValue: string) => {
+  const category = categoryOptions.value.find(cat => cat.value === categoryValue)
+  return category?.label || '全部应用'
+}
+
+// 网格大小变更处理
+const onGridSizeChange = (newSize: string) => {
+  console.log('网格大小变更:', newSize)
+  gridColumnsStr.value = newSize
+
+  if (newSize === 'auto') {
+    // 自适应模式：根据容器宽度自动计算列数
+    const autoColumns = Math.floor(containerWidth.value / 150)
+    gridColumns.value = Math.max(1, Math.min(autoColumns, 10))
+  } else {
+    // 固定列数模式
+    gridColumns.value = parseInt(newSize)
+  }
+
+  // 保存用户偏好
+  localStorage.setItem('mira-grid-columns', newSize)
+}
+
+// 监听容器大小变化
+const updateContainerWidth = () => {
+  const container = document.querySelector('.page-container')
+  if (container) {
+    containerWidth.value = container.clientWidth
+
+    // 如果是自适应模式，重新计算列数
+    if (gridColumnsStr.value === 'auto') {
+      const autoColumns = Math.floor(containerWidth.value / 150)
+      gridColumns.value = Math.max(1, Math.min(autoColumns, 10))
+    }
+  }
+}
 
 // 应用列表
 const applications = ref<Application[]>([
@@ -334,13 +413,58 @@ const handleClickOutside = () => {
   hideContextMenu()
 }
 
+// Ctrl+滚轮快速调整大小
+const handleWheelResize = (event: WheelEvent) => {
+  // 只在按住 Ctrl 键时响应
+  if (!event.ctrlKey) return
+
+  // 阻止默认的页面缩放行为
+  event.preventDefault()
+
+  // 只在网格模式下生效
+  if (layoutMode.value !== 'grid') return
+
+  const currentColumns = parseInt(gridColumnsStr.value) || 4
+  let newColumns = currentColumns
+
+  // 向上滚动减少列数（增大图标），向下滚动增加列数（减小图标）
+  if (event.deltaY < 0 && currentColumns > 1) {
+    // 向上滚动，减少列数
+    newColumns = currentColumns - 1
+  } else if (event.deltaY > 0 && currentColumns < 10) {
+    // 向下滚动，增加列数
+    newColumns = currentColumns + 1
+  }
+
+  if (newColumns !== currentColumns) {
+    onGridSizeChange(newColumns.toString())
+  }
+}
+
 onMounted(() => {
   document.title = 'Mira Launcher - 应用程序'
 
   // 加载保存的应用排序
   loadApplicationOrder()
 
+  // 加载保存的网格设置
+  const savedGridColumns = localStorage.getItem('mira-grid-columns')
+  if (savedGridColumns) {
+    gridColumnsStr.value = savedGridColumns
+    onGridSizeChange(savedGridColumns)
+  }
+
+  // 初始化容器宽度
+  updateContainerWidth()
+
+  // 监听窗口大小变化
+  window.addEventListener('resize', updateContainerWidth)
+
   document.addEventListener('click', handleClickOutside)
+
+  // 添加滚轮事件监听器用于快速调整大小
+  document.addEventListener('wheel', handleWheelResize, { passive: false })
+
   // 阻止右键菜单的默认行为
   document.addEventListener('contextmenu', e => {
     const target = e.target as HTMLElement
@@ -351,7 +475,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateContainerWidth)
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('wheel', handleWheelResize)
   document.removeEventListener('contextmenu', e => {
     const target = e.target as HTMLElement
     if (!target?.closest?.('.context-menu')) {
@@ -393,6 +519,26 @@ onUnmounted(() => {
 .dark .toolbar {
   background-color: rgba(31, 41, 55, 0.8);
   border-bottom: 1px solid rgb(75 85 99);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.category-selector {
+  min-width: 200px;
+  max-width: 250px;
+  transition: all 0.2s ease;
+}
+
+.category-selector:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .category-selector:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .page-title {
@@ -568,9 +714,13 @@ onUnmounted(() => {
   background-color: rgba(255, 255, 255, 0.6);
   border: 2px solid transparent;
   transition: all 0.2s ease-in-out;
-  cursor: pointer;
+  cursor: grab;
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.app-item:active {
+  cursor: grabbing;
 }
 
 .app-item.grid-layout {
@@ -658,22 +808,26 @@ onUnmounted(() => {
   background-color: rgba(59, 130, 246, 0.2) !important;
   border: 2px dashed rgba(59, 130, 246, 0.6) !important;
   border-radius: 12px;
+  cursor: grabbing !important;
 }
 
 .ghost .app-item {
   background-color: transparent !important;
   border: none !important;
+  cursor: grabbing !important;
 }
 
 .chosen {
   background-color: rgba(59, 130, 246, 0.15) !important;
   border-color: rgba(59, 130, 246, 0.7) !important;
   transform: scale(1.02);
+  cursor: grabbing !important;
 }
 
 .chosen .app-item {
   background-color: rgba(59, 130, 246, 0.2) !important;
   border-color: rgba(59, 130, 246, 0.8) !important;
+  cursor: grabbing !important;
 }
 
 .dragging {
@@ -682,11 +836,13 @@ onUnmounted(() => {
   z-index: 1000;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
   transition: none !important;
+  cursor: grabbing !important;
 }
 
 .dragging .app-item {
   background-color: rgba(55, 65, 81, 0.9) !important;
   border-color: rgba(59, 130, 246, 0.8) !important;
+  cursor: grabbing !important;
 }
 
 /* 应用图标样式优化 */
@@ -748,16 +904,32 @@ onUnmounted(() => {
 /* VueDraggable 样式 */
 .sortable-ghost {
   opacity: 0.3;
+  cursor: grabbing !important;
 }
 
 .sortable-chosen {
   background-color: rgba(59, 130, 246, 0.1);
+  cursor: grabbing !important;
 }
 
 .sortable-drag {
   opacity: 0.8;
   transform: scale(1.05);
   z-index: 1000;
+  cursor: grabbing !important;
+}
+
+/* 全局拖拽样式覆盖 */
+:global(.sortable-ghost) {
+  cursor: grabbing !important;
+}
+
+:global(.sortable-chosen) {
+  cursor: grabbing !important;
+}
+
+:global(.sortable-drag) {
+  cursor: grabbing !important;
 }
 
 /* PrimeVue ContextMenu 深色主题定制 */

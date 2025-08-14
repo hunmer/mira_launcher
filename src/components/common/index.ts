@@ -23,7 +23,7 @@ export { default as TooltipInfo } from './TooltipInfo.vue'
 export { default as ContextMenu } from './ContextMenu.vue'
 
 // 数据表格组件 - 包装 PrimeVue DataTable
-export { DataTable, Column } from './DataTable'
+export { Column, DataTable } from './DataTable'
 
 // 工具栏组件 - 包装 PrimeVue Toolbar
 export { default as Toolbar } from './Toolbar.vue'
@@ -36,9 +36,9 @@ export { default as ToggleSwitch } from './ToggleSwitch.vue'
 
 // 手风琴组件 - 包装 PrimeVue Accordion
 export { default as Accordion } from './Accordion.vue'
-export { default as AccordionPanel } from './AccordionPanel.vue'
-export { default as AccordionHeader } from './AccordionHeader.vue'
 export { default as AccordionContent } from './AccordionContent.vue'
+export { default as AccordionHeader } from './AccordionHeader.vue'
+export { default as AccordionPanel } from './AccordionPanel.vue'
 
 // 分割线组件 - 包装 PrimeVue Divider
 export { default as Divider } from './Divider.vue'
@@ -74,9 +74,15 @@ export { default as Slider } from './Slider.vue'
 export { default as Textarea } from './Textarea.vue'
 
 // 标签页组件 - 包装 PrimeVue Tabs
-export { default as Tabs } from './Tabs.vue'
-export { default as TabList } from './TabList.vue'
 export { default as Tab } from './Tab.vue'
-export { default as TabPanels } from './TabPanels.vue'
+export { default as TabList } from './TabList.vue'
 export { default as TabPanel } from './TabPanel.vue'
+export { default as TabPanels } from './TabPanels.vue'
+export { default as Tabs } from './Tabs.vue'
+
+// 过滤选择组件 - 包装 PrimeVue Select 并带有过滤功能
+export { default as FilterSelect } from './FilterSelect.vue'
+
+// 图标大小下拉菜单组件 - 用于调整网格图标大小和列数
+export { default as IconSizeDropdown } from './IconSizeDropdown.vue'
 

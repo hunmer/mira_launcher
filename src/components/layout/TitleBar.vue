@@ -1,10 +1,7 @@
 <template>
-  <div
-    data-tauri-drag-region
-    class="title-bar"
-  >
+  <div data-tauri-drag-region class="title-bar">
     <!-- 应用标题 -->
-    <div class="no-drag title-section">
+    <div class="title-section">
       <AppTitle />
     </div>
 
@@ -20,20 +17,16 @@
 
     <!-- 窗口控制按钮 -->
     <div class="no-drag controls-section">
-      <WindowControls
-        @minimize="handleMinimize"
-        @maximize="handleMaximize"
-        @close="handleClose"
-      />
+      <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import AppTitle from './AppTitle.vue'
-import WindowControls from './WindowControls.vue'
-import NavigationMenu from './NavigationMenu.vue'
 import ActionButtons from './ActionButtons.vue'
+import AppTitle from './AppTitle.vue'
+import NavigationMenu from './NavigationMenu.vue'
+import WindowControls from './WindowControls.vue'
 
 interface Emits {
   (e: 'minimize'): void
@@ -83,6 +76,7 @@ const handleClose = () => {
 }
 
 .title-section {
+  pointer-events: none;
   flex-shrink: 0;
   display: flex;
   align-items: center;
