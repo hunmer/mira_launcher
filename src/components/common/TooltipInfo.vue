@@ -1,93 +1,60 @@
 <template>
-  <div class="relative inline-flex items-center">
+  <div class="inline-flex items-center">
     <slot />
-    <button
-      class="ml-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-      @mouseenter="showTooltip = true"
-      @mouseleave="showTooltip = false"
-      @focus="showTooltip = true"
-      @blur="showTooltip = false"
-    >
-      <i class="pi pi-info-circle text-sm" />
-    </button>
-    
-    <!-- Tooltip -->
-    <div
-      v-if="showTooltip"
-      class="absolute z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm dark:bg-gray-700 tooltip"
-      :class="tooltipPosition"
-    >
-      {{ content }}
-      <div 
-        class="tooltip-arrow" 
-        :class="arrowPosition"
-      />
-    </div>
+    <i v-tooltip.top="tooltipConfig"
+      class="pi pi-info-circle ml-2 text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:rounded-full"
+      tabindex="0" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 interface Props {
   content: string
   position?: 'top' | 'bottom' | 'left' | 'right'
+  showDelay?: number
+  hideDelay?: number
+  autoHide?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   position: 'top',
+  showDelay: 0,
+  hideDelay: 0,
+  autoHide: true
 })
 
-const showTooltip = ref(false)
-
-const tooltipPosition = computed(() => {
-  switch (props.position) {
-  case 'top':
-    return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2'
-  case 'bottom':
-    return 'top-full left-1/2 transform -translate-x-1/2 mt-2'
-  case 'left':
-    return 'right-full top-1/2 transform -translate-y-1/2 mr-2'
-  case 'right':
-    return 'left-full top-1/2 transform -translate-y-1/2 ml-2'
-  default:
-    return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2'
+const tooltipConfig = computed(() => ({
+  value: props.content,
+  showDelay: props.showDelay,
+  hideDelay: props.hideDelay,
+  autoHide: props.autoHide,
+  pt: {
+    root: {
+      class: 'max-w-xs'
+    },
+    text: {
+      class: 'text-sm font-medium bg-gray-900 dark:bg-gray-700 text-white px-3 py-2 rounded-lg shadow-lg'
+    },
+    arrow: {
+      style: {
+        borderTopColor: 'rgb(17 24 39)' // gray-900
+      }
+    }
   }
-})
-
-const arrowPosition = computed(() => {
-  switch (props.position) {
-  case 'top':
-    return 'top-full left-1/2 transform -translate-x-1/2'
-  case 'bottom':
-    return 'bottom-full left-1/2 transform -translate-x-1/2 rotate-180'
-  case 'left':
-    return 'left-full top-1/2 transform -translate-y-1/2 rotate-90'
-  case 'right':
-    return 'right-full top-1/2 transform -translate-y-1/2 -rotate-90'
-  default:
-    return 'top-full left-1/2 transform -translate-x-1/2'
-  }
-})
+}))
 </script>
 
 <style scoped>
-.tooltip {
-  white-space: nowrap;
-  max-width: 200px;
-  white-space: normal;
+/* 深色模式下的样式 */
+.dark .pi-info-circle {
+  color: rgb(107 114 128);
+  /* text-gray-500 */
 }
 
-.tooltip-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid #1f2937;
-}
-
-.dark .tooltip-arrow {
-  border-top-color: #374151;
+.dark .pi-info-circle:hover {
+  color: rgb(96 165 250);
+  /* text-blue-400 */
 }
 </style>

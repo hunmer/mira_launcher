@@ -420,27 +420,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
 import {
+  Avatar,
   Button,
-  DataTable,
   Column,
-  Toolbar,
-  Tag,
-  Input as InputText,
+  DataTable,
+  Dialog,
   IconField,
   InputIcon,
-  Dialog,
-  Avatar,
+  Input as InputText,
+  MultiSelect,
   ProgressSpinner,
   Rating,
-  MultiSelect,
   Slider,
+  Tag,
   Textarea,
+  Toolbar,
 } from '@/components/common'
 import Container from '@/components/layout/Container.vue'
 import { usePluginStore } from '@/stores/plugin'
 import { useToast } from 'primevue/usetoast'
+import { computed, onMounted, ref, watch } from 'vue'
 
 // Store 和工具
 const pluginStore = usePluginStore()
@@ -476,7 +476,7 @@ const categories = ref([
 ])
 
 // API 基础URL
-const API_BASE = 'http://localhost:3001/api'
+const API_BASE = 'http://localhost:3222/api'
 
 // 服务器数据
 const storePlugins = ref([])

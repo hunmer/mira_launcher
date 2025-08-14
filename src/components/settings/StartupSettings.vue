@@ -1,9 +1,6 @@
 <template>
   <div class="space-y-6">
-    <Accordion 
-      :value="['0', '1', '2']" 
-      multiple
-    >
+    <Accordion :value="['0', '1', '2']" multiple>
       <AccordionPanel value="0">
         <AccordionHeader>
           <div class="flex items-center gap-2">
@@ -21,12 +18,7 @@
                   </h3>
                 </TooltipInfo>
               </div>
-              <input
-                v-model="settingsStore.settings.startup.autoStart"
-                type="checkbox"
-                class="toggle"
-              >
-            </div>
+              <input v-model="settingsStore.settings.startup.autoStart" type="checkbox" class="toggle">
             </div>
 
             <div class="flex items-center justify-between">
@@ -38,29 +30,19 @@
                   关闭窗口时最小化到系统托盘
                 </p>
               </div>
-              <input
-                v-model="minimizeToTray"
-                type="checkbox"
-                class="toggle"
-                @change="saveMinimizeToTray"
-              >
+              <input v-model="settingsStore.settings.startup.startMinimized" type="checkbox" class="toggle">
             </div>
 
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">
-                  启动时隐藏窗口
+                  启动时加载插件
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  应用程序启动时不显示主窗口
+                  应用程序启动时自动加载所有插件
                 </p>
               </div>
-              <input
-                v-model="startHidden"
-                type="checkbox"
-                class="toggle"
-                @change="saveStartHidden"
-              >
+              <input v-model="settingsStore.settings.startup.loadPluginsOnStart" type="checkbox" class="toggle">
             </div>
           </div>
         </AccordionContent>
@@ -84,12 +66,7 @@
                   使用 GPU 加速渲染，提升性能
                 </p>
               </div>
-              <input
-                v-model="hardwareAcceleration"
-                type="checkbox"
-                class="toggle"
-                @change="saveHardwareAcceleration"
-              >
+              <input v-model="hardwareAcceleration" type="checkbox" class="toggle" @change="saveHardwareAcceleration">
             </div>
 
             <div class="flex items-center justify-between">
@@ -101,12 +78,7 @@
                   启动时预先加载应用程序信息，提升响应速度
                 </p>
               </div>
-              <input
-                v-model="preloadApps"
-                type="checkbox"
-                class="toggle"
-                @change="savePreloadApps"
-              >
+              <input v-model="preloadApps" type="checkbox" class="toggle" @change="savePreloadApps">
             </div>
           </div>
         </AccordionContent>
@@ -130,12 +102,7 @@
                   定期检查并提示有可用更新
                 </p>
               </div>
-              <input
-                v-model="autoUpdate"
-                type="checkbox"
-                class="toggle"
-                @change="saveAutoUpdate"
-              >
+              <input v-model="settingsStore.settings.startup.checkUpdates" type="checkbox" class="toggle">
             </div>
           </div>
         </AccordionContent>
@@ -145,37 +112,21 @@
 </template>
 
 <script setup lang="ts">
+import {
+  Accordion,
+  AccordionContent,
+  AccordionHeader,
+  AccordionPanel,
+  TooltipInfo
+} from '@/components/common'
+import { useSettingsStore } from '@/stores/settings'
 import { ref } from 'vue'
-import Accordion from 'primevue/accordion'
-import AccordionPanel from 'primevue/accordionpanel'
-import AccordionHeader from 'primevue/accordionheader'
-import AccordionContent from 'primevue/accordioncontent'
 
-// 启动设置
-const autoStart = ref(false)
-const minimizeToTray = ref(true)
-const startHidden = ref(false)
+const settingsStore = useSettingsStore()
 
-// 性能设置
+// 性能设置 (local state since not in store yet)
 const hardwareAcceleration = ref(true)
 const preloadApps = ref(true)
-
-// 更新设置
-const autoUpdate = ref(true)
-
-const saveAutoStart = () => {
-  console.log('保存开机自启动设置:', autoStart.value)
-  // 这里可以调用 Tauri API 来设置开机自启动
-}
-
-const saveMinimizeToTray = () => {
-  console.log('保存最小化到托盘设置:', minimizeToTray.value)
-  // 这里可以保存到本地存储或调用相关 API
-}
-
-const saveStartHidden = () => {
-  console.log('保存启动时隐藏设置:', startHidden.value)
-}
 
 const saveHardwareAcceleration = () => {
   console.log('保存硬件加速设置:', hardwareAcceleration.value)
@@ -183,10 +134,6 @@ const saveHardwareAcceleration = () => {
 
 const savePreloadApps = () => {
   console.log('保存预加载应用设置:', preloadApps.value)
-}
-
-const saveAutoUpdate = () => {
-  console.log('保存自动更新设置:', autoUpdate.value)
 }
 </script>
 

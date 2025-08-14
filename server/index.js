@@ -1,17 +1,18 @@
-import express from 'express'
+import archiver from 'archiver'
 import cors from 'cors'
+import express from 'express'
+import extractZip from 'extract-zip'
+import { createWriteStream } from 'fs'
+import fs from 'fs/promises'
 import multer from 'multer'
 import path from 'path'
-import fs from 'fs/promises'
-import archiver from 'archiver'
-import extractZip from 'extract-zip'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3222
 
 // 中间件
 app.use(cors())
@@ -69,7 +70,7 @@ const ensurePluginDirectory = async (pluginId, version) => {
 
 const createZipFromDirectory = async (sourceDir, outputPath) => {
   return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(outputPath)
+    const output = createWriteStream(outputPath)
     const archive = archiver('zip', { zlib: { level: 9 } })
 
     output.on('close', () => {
@@ -138,15 +139,15 @@ app.get('/api/plugins', async (req, res) => {
     // 排序
     filteredPlugins.sort((a, b) => {
       switch (sort) {
-      case 'rating':
-        return b.rating - a.rating
-      case 'name':
-        return a.name.localeCompare(b.name)
-      case 'updated':
-        return new Date(b.updatedAt) - new Date(a.updatedAt)
-      case 'downloads':
-      default:
-        return b.downloads - a.downloads
+        case 'rating':
+          return b.rating - a.rating
+        case 'name':
+          return a.name.localeCompare(b.name)
+        case 'updated':
+          return new Date(b.updatedAt) - new Date(a.updatedAt)
+        case 'downloads':
+        default:
+          return b.downloads - a.downloads
       }
     })
 
@@ -247,7 +248,7 @@ app.post('/api/plugins/upload', upload.single('pluginFile'), async (req, res) =>
     // 创建插件目录
     const pluginDir = await ensurePluginDirectory(id, version)
     const extractPath = path.join(pluginDir, 'src')
-    
+
     // 解压插件文件
     await extractZip(req.file.path, { dir: extractPath })
 
@@ -263,7 +264,7 @@ app.post('/api/plugins/upload', upload.single('pluginFile'), async (req, res) =>
       downloads: existingPluginIndex >= 0 ? plugins[existingPluginIndex].downloads : 0,
       rating: existingPluginIndex >= 0 ? plugins[existingPluginIndex].rating : 0,
       lastUpdate: now.split('T')[0],
-      versions: existingPluginIndex >= 0 
+      versions: existingPluginIndex >= 0
         ? [...new Set([...plugins[existingPluginIndex].versions, version])]
         : [version],
       createdAt: existingPluginIndex >= 0 ? plugins[existingPluginIndex].createdAt : now,
@@ -307,7 +308,7 @@ app.delete('/api/plugins/:id', async (req, res) => {
   try {
     const { id } = req.params
     const { version } = req.query
-    
+
     const plugins = await readPluginsData()
     const pluginIndex = plugins.findIndex(p => p.id === id)
 
@@ -322,7 +323,7 @@ app.delete('/api/plugins/:id', async (req, res) => {
       // 删除特定版本
       const plugin = plugins[pluginIndex]
       const versionIndex = plugin.versions.indexOf(version)
-      
+
       if (versionIndex === -1) {
         return res.status(404).json({
           success: false,
@@ -333,7 +334,7 @@ app.delete('/api/plugins/:id', async (req, res) => {
       // 删除版本文件
       const versionDir = path.join(PLUGINS_DIR, id, version)
       const zipPath = path.join(PLUGINS_DIR, id, `${version}.zip`)
-      
+
       try {
         await fs.rm(versionDir, { recursive: true, force: true })
         await fs.unlink(zipPath)
@@ -343,11 +344,11 @@ app.delete('/api/plugins/:id', async (req, res) => {
 
       // 更新版本列表
       plugin.versions.splice(versionIndex, 1)
-      
+
       if (plugin.versions.length === 0) {
         // 如果没有版本了，删除整个插件
         plugins.splice(pluginIndex, 1)
-        
+
         // 删除插件目录
         try {
           await fs.rm(path.join(PLUGINS_DIR, id), { recursive: true, force: true })
@@ -361,7 +362,7 @@ app.delete('/api/plugins/:id', async (req, res) => {
     } else {
       // 删除整个插件
       plugins.splice(pluginIndex, 1)
-      
+
       // 删除插件目录
       try {
         await fs.rm(path.join(PLUGINS_DIR, id), { recursive: true, force: true })
@@ -394,7 +395,7 @@ app.delete('/api/plugins/:id', async (req, res) => {
 app.post('/api/plugins/check-updates', async (req, res) => {
   try {
     const clientPlugins = req.body
-    
+
     if (!Array.isArray(clientPlugins)) {
       return res.status(400).json({
         success: false,
@@ -408,12 +409,12 @@ app.post('/api/plugins/check-updates', async (req, res) => {
     for (const clientPlugin of clientPlugins) {
       const { id, version } = clientPlugin
       const serverPlugin = plugins.find(p => p.id === id)
-      
+
       if (serverPlugin) {
         // 简单版本比较（假设版本格式为 x.y.z）
         const clientVersion = version.split('.').map(Number)
         const serverVersion = serverPlugin.version.split('.').map(Number)
-        
+
         let hasUpdate = false
         for (let i = 0; i < Math.max(clientVersion.length, serverVersion.length); i++) {
           const cv = clientVersion[i] || 0
@@ -425,7 +426,7 @@ app.post('/api/plugins/check-updates', async (req, res) => {
             break
           }
         }
-        
+
         if (hasUpdate) {
           updates.push({
             id,
@@ -466,7 +467,7 @@ app.get('/api/plugins/:id/download', async (req, res) => {
   try {
     const { id } = req.params
     const { version } = req.query
-    
+
     const plugins = await readPluginsData()
     const plugin = plugins.find(p => p.id === id)
 
@@ -478,7 +479,7 @@ app.get('/api/plugins/:id/download', async (req, res) => {
     }
 
     const downloadVersion = version || plugin.version
-    
+
     if (!plugin.versions.includes(downloadVersion)) {
       return res.status(404).json({
         success: false,
@@ -487,14 +488,23 @@ app.get('/api/plugins/:id/download', async (req, res) => {
     }
 
     const zipPath = path.join(PLUGINS_DIR, id, `${downloadVersion}.zip`)
-    
+    const versionDir = path.join(PLUGINS_DIR, id, downloadVersion, 'src')
+
     try {
       await fs.access(zipPath)
     } catch (error) {
-      return res.status(404).json({
-        success: false,
-        message: '插件文件不存在',
-      })
+      // zip文件不存在，检查目录是否存在
+      try {
+        await fs.access(versionDir)
+        // 目录存在，创建zip文件
+        console.log(`创建zip文件: ${zipPath}`)
+        await createZipFromDirectory(versionDir, zipPath)
+      } catch (dirError) {
+        return res.status(404).json({
+          success: false,
+          message: '插件文件和目录都不存在',
+        })
+      }
     }
 
     // 增加下载计数
@@ -525,7 +535,7 @@ app.get('/api/plugins/:id/download', async (req, res) => {
 app.get('/api/status', async (req, res) => {
   try {
     const plugins = await readPluginsData()
-    
+
     res.json({
       success: true,
       data: {

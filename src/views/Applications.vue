@@ -1,65 +1,78 @@
 <template>
   <div class="applications-page">
     <!-- 拖拽状态提示 -->
-    <div
-      v-if="isDragging"
-      class="drag-hint"
-    >
+    <div v-if="isDragging" class="drag-hint">
       <span class="text-sm text-blue-400">🔄 正在拖拽中...</span>
     </div>
 
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h1 class="page-title">应用程序</h1>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- 视图切换 -->
+        <div class="view-controls">
+          <button :class="['view-btn', { active: layoutMode === 'grid' }]" @click="setLayoutMode('grid')" title="网格视图">
+            <i class="pi pi-th-large" />
+          </button>
+          <button :class="['view-btn', { active: layoutMode === 'list' }]" @click="setLayoutMode('list')" title="列表视图">
+            <i class="pi pi-list" />
+          </button>
+        </div>
+
+        <!-- 图标大小控制 -->
+        <div class="size-controls">
+          <button :class="['size-btn', { active: iconSizeMode === 'small' }]" @click="setIconSize('small')" title="小图标">
+            <i class="pi pi-circle text-xs" />
+          </button>
+          <button :class="['size-btn', { active: iconSizeMode === 'medium' }]" @click="setIconSize('medium')"
+            title="中图标">
+            <i class="pi pi-circle text-sm" />
+          </button>
+          <button :class="['size-btn', { active: iconSizeMode === 'large' }]" @click="setIconSize('large')" title="大图标">
+            <i class="pi pi-circle text-base" />
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="page-container">
-      <VueDraggable
-        v-model="applications"
-        animation="200"
-        :delay="100"
-        :delay-on-touch-start="true"
-        :force-fallback="false"
-        :fallback-tolerance="3"
-        class="app-grid"
-        :style="{ 
+      <VueDraggable v-model="applications" animation="200" :delay="100" :delay-on-touch-start="true"
+        :force-fallback="false" :fallback-tolerance="3" :class="[
+          layoutMode === 'grid' ? 'app-grid' : 'app-list'
+        ]" :style="layoutMode === 'grid' ? {
           gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
           gap: '12px'
-        }"
-        item-key="id"
-        ghost-class="ghost"
-        chosen-class="chosen"
-        drag-class="dragging"
-        @start="onDragStart"
-        @end="onDragEnd"
-        @change="onDragChange"
-      >
+        } : {}" item-key="id" ghost-class="ghost" chosen-class="chosen" drag-class="dragging" @start="onDragStart"
+        @end="onDragEnd" @change="onDragChange">
         <template #item="{ element: app }">
-          <div 
-            class="app-item-wrapper"
-          >
-            <div 
-              class="app-item"
-              @click="launchApp(app)"
-              @contextmenu.prevent="showContextMenu(app, $event)"
-            >
+          <div :class="[
+            'app-item-wrapper',
+            layoutMode === 'list' ? 'list-item' : 'grid-item'
+          ]">
+            <div :class="[
+              'app-item',
+              layoutMode === 'list' ? 'list-layout' : 'grid-layout'
+            ]" @click="launchApp(app)" @contextmenu.prevent="showContextMenu(app, $event)">
               <div class="app-icon">
-                <img
-                  v-if="app.icon"
-                  :src="app.icon"
-                  :alt="app.name"
-                  :style="{
-                    width: iconSize + 'px',
-                    height: iconSize + 'px',
-                    maxWidth: '200px',
-                    maxHeight: '200px',
-                  }"
-                  class="object-contain"
-                >
-                <AppIcon
-                  v-else
-                  name="monitor"
-                  :size="iconSize"
-                  class="text-gray-400"
-                />
+                <img v-if="app.icon" :src="app.icon" :alt="app.name" :style="{
+                  width: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
+                  height: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
+                  maxWidth: '200px',
+                  maxHeight: '200px',
+                }" class="object-contain">
+                <AppIcon v-else name="monitor" :size="layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize"
+                  class="text-gray-400" />
               </div>
-              <div class="app-label">
-                {{ app.name }}
+              <div class="app-info">
+                <div class="app-label">
+                  {{ app.name }}
+                </div>
+                <div v-if="layoutMode === 'list'" class="app-path">
+                  {{ app.path }}
+                </div>
               </div>
             </div>
           </div>
@@ -67,22 +80,18 @@
       </VueDraggable>
     </div>
 
-    <!-- PrimeVue ContextMenu组件 -->
-    <ContextMenu
-      ref="contextMenu"
-      :model="contextMenuItems"
-      @hide="hideContextMenu"
-    />
+    <!-- Context Menu -->
+    <ContextMenu :show="contextMenuVisible" :x="contextMenuPosition.x" :y="contextMenuPosition.y"
+      :items="contextMenuItems" @update:show="contextMenuVisible = $event" @select="onContextMenuSelect" />
   </div>
 </template>
 
 <script setup lang="ts">
+import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useApplicationLayout } from '@/composables/useApplicationLayout'
-import ContextMenu from 'primevue/contextmenu'
-import type { MenuItem } from 'primevue/menuitem'
-import VueDraggable from 'vuedraggable'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import VueDraggable from 'vuedraggable'
 
 interface Application {
   id: string
@@ -94,8 +103,14 @@ interface Application {
   pinned?: boolean
 }
 
-// 图标尺寸配置
-const { getIconSizePixels } = useApplicationLayout()
+// 图标尺寸配置和布局
+const {
+  getIconSizePixels,
+  setLayoutMode,
+  setIconSize,
+  layoutMode,
+  iconSizeMode
+} = useApplicationLayout()
 const iconSize = computed(() => getIconSizePixels())
 const gridColumns = ref(4) // 默认网格列数
 const isDragging = ref(false) // 拖拽状态
@@ -165,6 +180,8 @@ const applications = ref<Application[]>([
 
 // 右键菜单
 const contextMenu = ref()
+const contextMenuVisible = ref(false)
+const contextMenuPosition = ref({ x: 0, y: 0 })
 const selectedApp = ref<Application | null>(null)
 
 // 右键菜单项目
@@ -172,30 +189,33 @@ const contextMenuItems = computed((): MenuItem[] => [
   {
     label: '启动应用',
     icon: 'pi pi-play',
-    command: () => {
+    action: () => {
       if (selectedApp.value) launchApp(selectedApp.value)
     },
   },
   {
     label: selectedApp.value?.pinned ? '取消固定' : '固定到快速访问',
     icon: 'pi pi-thumbtack',
-    command: () => {
+    action: () => {
       if (selectedApp.value) pinToQuickAccess(selectedApp.value)
     },
   },
-  { separator: true },
+  {
+    label: '',
+    separator: true
+  },
   {
     label: '编辑',
     icon: 'pi pi-pencil',
-    command: () => {
+    action: () => {
       if (selectedApp.value) editApp(selectedApp.value)
     },
   },
   {
     label: '移除',
     icon: 'pi pi-trash',
-    class: 'text-red-500',
-    command: () => {
+    danger: true,
+    action: () => {
       if (selectedApp.value) removeApp(selectedApp.value)
     },
   },
@@ -217,10 +237,10 @@ const onDragStart = (evt: { oldIndex: number; item: HTMLElement }) => {
 const onDragEnd = (evt: { oldIndex: number; newIndex: number; item: HTMLElement }) => {
   console.log('拖拽结束:', evt)
   isDragging.value = false
-  
+
   // 保存排序到本地存储
   saveApplicationOrder()
-  
+
   // 显示保存成功提示
   sortSaved.value = true
   setTimeout(() => {
@@ -233,7 +253,7 @@ const onDragChange = (evt: { moved?: { element: Application; oldIndex: number; n
   // 实时更新排序
   if (evt.moved) {
     console.log(`元素 "${evt.moved.element.name}" 从位置 ${evt.moved.oldIndex} 移动到 ${evt.moved.newIndex}`)
-    
+
     // 可以在这里添加一些实时视觉反馈
     // 比如临时高亮移动的元素等
   }
@@ -256,14 +276,14 @@ const loadApplicationOrder = () => {
     try {
       const order: Array<{ id: string; order: number }> = JSON.parse(savedOrder)
       const orderedApps = [...applications.value]
-      
+
       // 根据保存的顺序重新排列应用
       orderedApps.sort((a, b) => {
         const orderA = order.find(o => o.id === a.id)?.order ?? 999
         const orderB = order.find(o => o.id === b.id)?.order ?? 999
         return orderA - orderB
       })
-      
+
       applications.value = orderedApps
       console.log('已加载应用排序')
     } catch (error) {
@@ -274,11 +294,18 @@ const loadApplicationOrder = () => {
 
 const showContextMenu = (app: Application, event: MouseEvent) => {
   selectedApp.value = app
-  contextMenu.value.show(event)
+  contextMenuPosition.value = { x: event.clientX, y: event.clientY }
+  contextMenuVisible.value = true
 }
 
 const hideContextMenu = () => {
   selectedApp.value = null
+  contextMenuVisible.value = false
+}
+
+const onContextMenuSelect = (item: MenuItem) => {
+  item.action?.()
+  hideContextMenu()
 }
 
 const pinToQuickAccess = (app: Application) => {
@@ -309,10 +336,10 @@ const handleClickOutside = () => {
 
 onMounted(() => {
   document.title = 'Mira Launcher - 应用程序'
-  
+
   // 加载保存的应用排序
   loadApplicationOrder()
-  
+
   document.addEventListener('click', handleClickOutside)
   // 阻止右键菜单的默认行为
   document.addEventListener('contextmenu', e => {
@@ -340,9 +367,108 @@ onUnmounted(() => {
   flex-direction: column;
   height: calc(100vh - 6rem);
   /* Adjust for title bar height + menubar height */
-  background-color: #111827;
+  background-color: rgb(249 250 251);
+  /* bg-gray-50 */
   user-select: none;
   /* 防止文字选中 */
+}
+
+/* 深色模式 */
+.dark .applications-page {
+  background-color: rgb(17 24 39);
+  /* bg-gray-900 */
+}
+
+/* 工具栏样式 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+.dark .toolbar {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-bottom: 1px solid rgb(75 85 99);
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(17 24 39);
+  margin: 0;
+}
+
+.dark .page-title {
+  color: rgb(243 244 246);
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.view-controls,
+.size-controls {
+  display: flex;
+  background-color: rgb(243 244 246);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  gap: 0.125rem;
+}
+
+.dark .view-controls,
+.dark .size-controls {
+  background-color: rgb(55 65 81);
+}
+
+.view-btn,
+.size-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.view-btn:hover,
+.size-btn:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59 130 246);
+}
+
+.view-btn.active,
+.size-btn.active {
+  background-color: rgb(59 130 246);
+  color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .view-btn,
+.dark .size-btn {
+  color: rgb(156 163 175);
+}
+
+.dark .view-btn:hover,
+.dark .size-btn:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: rgb(129 140 248);
+}
+
+.dark .view-btn.active,
+.dark .size-btn.active {
+  background-color: rgb(99 102 241);
+  color: white;
 }
 
 .settings-bar {
@@ -364,10 +490,25 @@ onUnmounted(() => {
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-10px); }
-  20% { opacity: 1; transform: translateY(0); }
-  80% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 .icon-size-control,
@@ -396,32 +537,67 @@ onUnmounted(() => {
   align-content: start;
 }
 
+.app-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+  gap: 0.5rem;
+}
+
 .app-item-wrapper {
   width: 100%;
+}
+
+.app-item-wrapper.grid-item {
   height: 100%;
   min-height: 120px;
 }
 
+.app-item-wrapper.list-item {
+  height: auto;
+}
+
 .app-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
   border-radius: 12px;
-  background-color: rgba(55, 65, 81, 0.6);
+  background-color: rgba(255, 255, 255, 0.6);
   border: 2px solid transparent;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
-  height: 100%;
-  min-height: 120px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.app-item.grid-layout {
+  flex-direction: column;
+  text-align: center;
+}
+
+.app-item.list-layout {
+  flex-direction: row;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.dark .app-item {
+  background-color: rgba(55, 65, 81, 0.6);
 }
 
 .app-item:hover {
-  background-color: rgba(55, 65, 81, 0.8);
+  background-color: rgba(243, 244, 246, 0.8);
   border-color: rgba(59, 130, 246, 0.5);
   transform: translateY(-2px);
+}
+
+.dark .app-item:hover {
+  background-color: rgba(55, 65, 81, 0.8);
 }
 
 .app-item:active {
@@ -435,16 +611,45 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.app-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
 .app-label {
   font-size: 0.875rem;
   line-height: 1.25;
-  color: #e5e7eb;
+  color: rgb(55 65 81);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
   font-weight: 500;
+}
+
+.app-item.list-layout .app-label {
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.app-path {
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .app-label {
+  color: #e5e7eb;
+}
+
+.dark .app-path {
+  color: rgb(156 163 175);
 }
 
 /* 拖拽状态样式 */

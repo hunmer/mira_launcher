@@ -2,112 +2,43 @@
   <div class="navigation-menu-wrapper">
     <div class="navigation-menu-bar">
       <!-- 主要导航按钮 -->
-      <Button 
-        type="button" 
-        label="应用" 
-        icon="pi pi-th-large"
-        :class="{ 'active': route.path === '/applications' }"
-        @click="navigateToRoute('/applications')"
-      />
-      
+      <Button type="button" label="应用" icon="pi pi-th-large" :class="{ 'active': route.path === '/applications' }"
+        @click="navigateToRoute('/applications')" />
+
       <!-- 插件下拉菜单 -->
       <div class="menu-dropdown">
-        <Button 
-          type="button" 
-          label="插件" 
-          icon="pi pi-puzzle-piece"
-          icon-pos="left"
-          aria-haspopup="true" 
-          aria-controls="plugins_menu"
-          @click="togglePluginsMenu" 
-        />
-        <TieredMenu 
-          id="plugins_menu"
-          ref="pluginsMenu" 
-          :model="pluginMenuItems" 
-          popup 
-        />
+        <Button type="button" aria-haspopup="true" aria-controls="plugins_menu" @click="togglePluginsMenu"
+          class="dropdown-button">
+          <i class="pi pi-puzzle-piece" />
+          <span>插件</span>
+          <i class="pi pi-chevron-down dropdown-arrow" />
+        </Button>
+        <TieredMenu id="plugins_menu" ref="pluginsMenu" :model="pluginMenuItems" popup />
       </div>
-      
+
       <!-- 开发下拉菜单 -->
       <div class="menu-dropdown">
-        <Button 
-          type="button" 
-          label="开发" 
-          icon="pi pi-code"
-          icon-pos="left"
-          aria-haspopup="true" 
-          aria-controls="dev_menu"
-          @click="toggleDevMenu" 
-        />
-        <TieredMenu 
-          id="dev_menu"
-          ref="devMenu" 
-          :model="devMenuItems" 
-          popup 
-        />
+        <Button type="button" aria-haspopup="true" aria-controls="dev_menu" @click="toggleDevMenu"
+          class="dropdown-button">
+          <i class="pi pi-code" />
+          <span>开发</span>
+          <i class="pi pi-chevron-down dropdown-arrow" />
+        </Button>
+        <TieredMenu id="dev_menu" ref="devMenu" :model="devMenuItems" popup />
       </div>
-      
+
       <!-- 设置按钮 -->
-      <Button 
-        type="button" 
-        label="设置" 
-        icon="pi pi-cog"
-        :class="{ 'active': route.path === '/settings' }"
-        @click="navigateToRoute('/settings')"
-      />
-      
-      <!-- 应用页面的额外菜单 -->
-      <template v-if="route.path === '/applications'">
-        <div class="menu-separator" />
-        
-        <!-- 视图下拉菜单 -->
-        <div class="menu-dropdown">
-          <Button 
-            type="button" 
-            label="视图" 
-            icon="pi pi-eye"
-            icon-pos="left"
-            aria-haspopup="true" 
-            aria-controls="view_menu"
-            @click="toggleViewMenu" 
-          />
-          <TieredMenu 
-            id="view_menu"
-            ref="viewMenu" 
-            :model="viewMenuItems" 
-            popup 
-          />
-        </div>
-        
-        <!-- 图标大小下拉菜单 -->
-        <div class="menu-dropdown">
-          <Button 
-            type="button" 
-            label="图标大小" 
-            icon="pi pi-expand"
-            icon-pos="left"
-            aria-haspopup="true" 
-            aria-controls="size_menu"
-            @click="toggleSizeMenu" 
-          />
-          <TieredMenu 
-            id="size_menu"
-            ref="sizeMenu" 
-            :model="sizeMenuItems" 
-            popup 
-          />
-        </div>
-      </template>
+      <Button type="button" label="设置" icon="pi pi-cog" :class="{ 'active': route.path === '/settings' }"
+        @click="navigateToRoute('/settings')" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Button from 'primevue/button'
+import TieredMenu from 'primevue/tieredmenu'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import TieredMenu from 'primevue/tieredmenu'
-import Button from 'primevue/button'
 
 interface MenuItem {
   label: string
@@ -122,8 +53,6 @@ const route = useRoute()
 const router = useRouter()
 const pluginsMenu = ref()
 const devMenu = ref()
-const viewMenu = ref()
-const sizeMenu = ref()
 
 // 路由导航函数
 const navigateToRoute = (routePath: string) => {
@@ -153,39 +82,6 @@ const devMenuItems: MenuItem[] = [
   },
 ]
 
-// 视图菜单项
-const viewMenuItems: MenuItem[] = [
-  {
-    label: '网格视图',
-    icon: 'pi pi-th-large',
-    command: () => switchLayout('grid'),
-  },
-  {
-    label: '列表视图',
-    icon: 'pi pi-list',
-    command: () => switchLayout('list'),
-  },
-]
-
-// 图标大小菜单项
-const sizeMenuItems: MenuItem[] = [
-  {
-    label: '小',
-    icon: 'pi pi-circle',
-    command: () => setIconSize('small'),
-  },
-  {
-    label: '中',
-    icon: 'pi pi-circle',
-    command: () => setIconSize('medium'),
-  },
-  {
-    label: '大',
-    icon: 'pi pi-circle',
-    command: () => setIconSize('large'),
-  },
-]
-
 // 菜单切换函数
 const togglePluginsMenu = (event: Event) => {
   pluginsMenu.value.toggle(event)
@@ -195,65 +91,46 @@ const toggleDevMenu = (event: Event) => {
   devMenu.value.toggle(event)
 }
 
-const toggleViewMenu = (event: Event) => {
-  viewMenu.value.toggle(event)
-}
-
-const toggleSizeMenu = (event: Event) => {
-  sizeMenu.value.toggle(event)
-}
-
-// 布局控制函数
-const switchLayout = (layout: string) => {
-  console.log('Switch layout to:', layout)
-  // 这里集成layout功能
-}
-
-const setIconSize = (size: string) => {
-  console.log('Set icon size to:', size)
-  // 这里集成图标大小功能
-}
-
 // 开发工具函数
 const openDevConsole = async () => {
   console.log('Opening dev console...')
-  
+
   // 检查是否在 Tauri 环境中
   if (window.__TAURI__) {
     try {
       // 首先检查是否为调试模式
       const { invoke } = await import('@tauri-apps/api/tauri')
       const isDebug = await invoke('is_debug_mode')
-      
+
       if (!isDebug) {
         alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
         return
       }
-      
+
       // 在调试模式下，调用 Rust 命令打开开发者工具
       await invoke('open_devtools')
       console.log('开发者工具已打开')
-      
+
     } catch (error) {
       console.error('Failed to open dev tools:', error)
-      
+
       // 提供备用解决方案
       const errorMessage = error?.toString() || '未知错误'
       let fallbackMessage = '无法通过程序打开开发者工具\n\n'
-      
+
       if (navigator.platform.toLowerCase().includes('mac')) {
         fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
       } else {
         fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
       }
-      
+
       fallbackMessage += `\n\n错误信息: ${errorMessage}`
       alert(fallbackMessage)
     }
   } else {
     // 在浏览器环境中的处理
     console.log('Running in browser environment')
-    
+
     if (navigator.platform.toLowerCase().includes('mac')) {
       alert('请按 Cmd+Option+I 或右键选择"检查元素"来打开开发者控制台')
     } else {
@@ -268,6 +145,8 @@ const openDevConsole = async () => {
   position: relative;
   z-index: 9999;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: auto;
 }
 
 .navigation-menu-bar {
@@ -276,6 +155,7 @@ const openDevConsole = async () => {
   gap: 0.5rem;
   padding: 0.5rem;
   background: transparent;
+  min-width: max-content;
 }
 
 .menu-dropdown {
@@ -301,6 +181,23 @@ const openDevConsole = async () => {
   transition: all 0.2s ease;
   box-shadow: none !important;
   white-space: nowrap;
+}
+
+/* 下拉按钮特殊样式 */
+:global(.navigation-menu-wrapper .dropdown-button) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+}
+
+:global(.navigation-menu-wrapper .dropdown-button .dropdown-arrow) {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+:global(.navigation-menu-wrapper .dropdown-button:hover .dropdown-arrow) {
+  opacity: 1;
 }
 
 :global(.navigation-menu-wrapper .p-button:hover) {
