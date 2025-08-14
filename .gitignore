@@ -136,3 +136,5 @@ yarn.lock
 *.p12
 *.pfx
 server/plugins/
+release-key.keystore
+signed-apks/
