@@ -337,7 +337,8 @@ onMounted(() => {
   // 阻止右键菜单的默认行为
   document.addEventListener('contextmenu', e => {
     const target = e.target as HTMLElement
-    if (!target?.closest?.('.context-menu')) {
+    // 只在不是菜单组件和特定可右键元素时阻止默认行为
+    if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
       e.preventDefault()
     }
   })
@@ -349,7 +350,8 @@ onUnmounted(() => {
   document.removeEventListener('wheel', handleWheelResize)
   document.removeEventListener('contextmenu', e => {
     const target = e.target as HTMLElement
-    if (!target?.closest?.('.context-menu')) {
+    // 只在不是菜单组件和特定可右键元素时阻止默认行为
+    if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
       e.preventDefault()
     }
   })

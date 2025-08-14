@@ -11,15 +11,14 @@
         </div>
 
         <!-- 应用网格 -->
-        <VueDraggable v-else :model-value="applications" @update:model-value="$emit('update:applications', $event)"
-            animation="200" :delay="100" :delay-on-touch-start="true" :force-fallback="false" :fallback-tolerance="3"
-            :class="[
+        <VueDraggable v-else v-model="modelApplications" animation="200" :delay="100" :delay-on-touch-start="true"
+            :force-fallback="false" :disabled="false" :group="{ name: 'applications' }" :sort="true" :class="[
                 layoutMode === 'grid' ? 'app-grid' : 'app-list'
             ]" :style="layoutMode === 'grid' ? {
                 gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                 gap: '12px'
             } : {}" item-key="id" ghost-class="ghost" chosen-class="chosen" drag-class="dragging" @start="onDragStart"
-            @end="onDragEnd" @change="onDragChange">
+            @end="onDragEnd" @update="onDragUpdate" @change="onDragChange">
             <template #item="{ element: app }">
                 <div :class="[
                     'app-item-wrapper',
@@ -28,7 +27,9 @@
                     <div :class="[
                         'app-item',
                         layoutMode === 'list' ? 'list-layout' : 'grid-layout'
-                    ]" @click="$emit('launch-app', app)" @contextmenu.prevent="$emit('app-context-menu', app, $event)">
+                    ]" @click.stop="$emit('launch-app', app)"
+                        @contextmenu.prevent.stop="$emit('app-context-menu', app, $event)"
+                        style="cursor: grab; user-select: none;">
                         <div class="app-icon">
                             <img v-if="app.icon" :src="app.icon" :alt="app.name" :style="{
                                 width: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
@@ -96,6 +97,12 @@ const onDragStart = (evt: any) => {
 const onDragEnd = (evt: any) => {
     console.log('拖拽结束:', evt)
     emit('drag-end', evt)
+}
+
+const onDragUpdate = (evt: any) => {
+    // vuedraggable 在同列表内排序会触发 update 事件
+    console.log('拖拽更新:', evt)
+    emit('drag-change', evt)
 }
 
 const onDragChange = (evt: any) => {
@@ -349,6 +356,15 @@ const onDragChange = (evt: any) => {
     background-color: rgba(55, 65, 81, 0.9) !important;
     border-color: rgba(59, 130, 246, 0.8) !important;
     cursor: grabbing !important;
+}
+
+/* 确保拖拽时显示正确的游标 */
+.app-item-wrapper:hover {
+    cursor: grab;
+}
+
+.app-item-wrapper:active {
+    cursor: grabbing;
 }
 
 /* 应用图标样式优化 */

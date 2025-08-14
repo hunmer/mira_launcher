@@ -7,33 +7,54 @@
 
 // 核心类
 export { BasePlugin } from './BasePlugin'
-export { PluginManager, createReactivePluginManager } from './PluginManager'
-export { EventBus, createReactiveEventBus, globalEventBus, eventBusUtils } from './EventBus'
+export { createReactiveEventBus, EventBus, eventBusUtils, globalEventBus } from './EventBus'
+export { createReactivePluginManager, PluginManager } from './PluginManager'
+
+// 队列系统
+export { BaseQueue } from './BaseQueue'
+export {
+  CircularQueue, DelayedQueue, FIFOQueue,
+  PriorityQueue, QueueFactory
+} from './QueueFactory'
+export { TaskExecutor } from './TaskExecutor'
+
+// 任务调度系统 (Task 2)
+export { default as ConcurrencyController } from './ConcurrencyController'
+export {
+  globalSchedulerMonitor, default as SchedulerPerformanceMonitor
+} from './SchedulerPerformanceMonitor'
+export { default as TaskScheduler } from './TaskScheduler'
+
+// 错误处理和监控系统 (Task 3)
+export { default as DeadLetterQueue } from './DeadLetterQueue'
+export { default as QueueMonitor } from './QueueMonitor'
+export { default as RetryHandler } from './RetryHandler'
+
+// 测试功能 (开发环境)
+export {
+  runQueueTests, testDelayedQueue, testFIFOQueue,
+  testPriorityQueue, testTaskExecutor
+} from './QueueTest'
+
+export {
+  runSchedulerTests, testConcurrencyController, testMixedMode, testModeSwitch, testParallelMode, testRateLimit, testSerialMode, testTaskCancellation
+} from './SchedulerTest'
 
 // 工具函数
 export { usePluginStore } from '@/stores/plugin'
 
 // 类型定义 (从 types 模块重新导出，方便使用)
 export type {
-  PluginMetadata,
-  PluginState,
-  PluginAPI,
-  PluginRegistryEntry,
-  PluginConfiguration,
-  PluginEventType,
   EventListener,
-  EventListenerOptions,
-  PluginEvent,
-  PluginInfo,
-  PluginStats,
-  PluginLifecycleEvent,
+  EventListenerOptions, ITaskQueue, PluginAPI, PluginConfiguration, PluginEvent, PluginEventType, PluginInfo, PluginLifecycleEvent, PluginMetadata, PluginRegistryEntry, PluginState, PluginStats, QueueConfig, QueueEventContext, QueueStats, QueueType, Task, TaskExecutorOptions,
+  TaskExecutorStats, TaskMetadata, TaskState
 } from '@/types/plugin'
 
 // 导入核心类用于函数内部使用
-import { BasePlugin } from './BasePlugin'
-import { PluginManager } from './PluginManager'
-import { EventBus } from './EventBus'
 import type { PluginMetadata } from '@/types/plugin'
+import { BasePlugin } from './BasePlugin'
+import { EventBus } from './EventBus'
+import { PluginManager } from './PluginManager'
 
 /**
  * 插件系统快速初始化函数
@@ -50,36 +71,36 @@ export function createPluginSystem(config?: {
 }) {
   const eventBus = new EventBus()
   const pluginManager = new PluginManager(eventBus, config)
-  
+
   return {
     eventBus,
     pluginManager,
-    
+
     // 便捷方法
     async register(pluginClass: new () => BasePlugin, metadata: PluginMetadata) {
       return await pluginManager.register(pluginClass, metadata)
     },
-    
+
     async activate(pluginId: string) {
       return await pluginManager.activate(pluginId)
     },
-    
+
     async deactivate(pluginId: string) {
       return await pluginManager.deactivate(pluginId)
     },
-    
+
     getPlugin(pluginId: string) {
       return pluginManager.getPlugin(pluginId)
     },
-    
+
     getAllPlugins() {
       return pluginManager.getAllPlugins()
     },
-    
+
     getStats() {
       return pluginManager.getStats()
     },
-    
+
     async destroy() {
       return await pluginManager.destroy()
     }

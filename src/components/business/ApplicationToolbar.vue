@@ -26,25 +26,8 @@
             <div class="add-item-dropdown" ref="addItemDropdownRef">
                 <Button icon="pi pi-plus-circle" class="add-item-btn" size="small" variant="primary"
                     @click="toggleAddItemDropdown" title="添加新项目" />
-                <div v-if="showAddItemDropdown" class="dropdown-menu">
-                    <div class="dropdown-item" @click="$emit('add-file')">
-                        <i class="pi pi-file" />
-                        <span>添加文件</span>
-                    </div>
-                    <div class="dropdown-item" @click="$emit('add-folder')">
-                        <i class="pi pi-folder" />
-                        <span>添加文件夹</span>
-                    </div>
-                    <div class="dropdown-item" @click="$emit('add-url')">
-                        <i class="pi pi-link" />
-                        <span>添加网址</span>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <div class="dropdown-item test-item" @click="$emit('add-test-data')">
-                        <i class="pi pi-bolt" />
-                        <span>测试添加</span>
-                    </div>
-                </div>
+                <TieredMenu v-if="showAddItemDropdown" ref="addItemMenu" :model="addItemMenuItems" :popup="false"
+                    class="dropdown-menu-tiered" @hide="showAddItemDropdown = false" />
             </div>
 
             <!-- 视图切换 -->
@@ -72,7 +55,8 @@
 import Button from '@/components/common/Button.vue'
 import FilterSelect from '@/components/common/FilterSelect.vue'
 import IconSizeDropdown from '@/components/common/IconSizeDropdown.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import TieredMenu from 'primevue/tieredmenu'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 interface Category {
     label: string
@@ -104,6 +88,46 @@ const emit = defineEmits<Emits>()
 // 下拉菜单状态
 const showAddItemDropdown = ref(false)
 const addItemDropdownRef = ref<HTMLElement>()
+const addItemMenu = ref()
+
+// TieredMenu菜单项配置
+const addItemMenuItems = computed(() => [
+    {
+        label: '添加文件',
+        icon: 'pi pi-file',
+        command: () => {
+            emit('add-file')
+            showAddItemDropdown.value = false
+        }
+    },
+    {
+        label: '添加文件夹',
+        icon: 'pi pi-folder',
+        command: () => {
+            emit('add-folder')
+            showAddItemDropdown.value = false
+        }
+    },
+    {
+        label: '添加网址',
+        icon: 'pi pi-link',
+        command: () => {
+            emit('add-url')
+            showAddItemDropdown.value = false
+        }
+    },
+    {
+        separator: true
+    },
+    {
+        label: '测试添加',
+        icon: 'pi pi-bolt',
+        command: () => {
+            emit('add-test-data')
+            showAddItemDropdown.value = false
+        }
+    }
+])
 
 // 获取分组图标
 const getCategoryIcon = (categoryValue: string) => {
@@ -251,6 +275,36 @@ onUnmounted(() => {
 .add-item-dropdown {
     position: relative;
     display: inline-block;
+}
+
+.dropdown-menu-tiered {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 9999;
+    margin-top: 0.5rem;
+    /* 确保不超出右边界 */
+    transform: translateX(0);
+}
+
+/* 在小屏幕上调整位置 */
+@media (max-width: 640px) {
+    .dropdown-menu-tiered {
+        right: auto;
+        left: 0;
+        transform: translateX(-50%);
+    }
+}
+
+/* TieredMenu 样式定制 */
+:deep(.dropdown-menu-tiered .p-tieredmenu) {
+    min-width: 160px;
+    max-width: 250px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.dark .dropdown-menu-tiered .p-tieredmenu) {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-menu {

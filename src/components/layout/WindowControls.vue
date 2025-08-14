@@ -39,7 +39,8 @@ const showMaximizeIcon = ref(false)
 // 窗口控制函数
 const handleMinimize = async () => {
   try {
-    const { appWindow } = await import('@tauri-apps/api/window')
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    const appWindow = getCurrentWindow()
     await appWindow.minimize()
     emit('minimize')
   } catch (error) {
@@ -49,7 +50,8 @@ const handleMinimize = async () => {
 
 const handleMaximize = async () => {
   try {
-    const { appWindow } = await import('@tauri-apps/api/window')
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    const appWindow = getCurrentWindow()
     const isMaximized = await appWindow.isMaximized()
     if (isMaximized) {
       await appWindow.unmaximize()
@@ -64,7 +66,8 @@ const handleMaximize = async () => {
 
 const handleClose = async () => {
   try {
-    const { appWindow } = await import('@tauri-apps/api/window')
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    const appWindow = getCurrentWindow()
     await appWindow.close()
     emit('close')
   } catch (error) {

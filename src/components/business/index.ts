@@ -14,6 +14,9 @@ export { default as AddApplicationDialog } from './AddApplicationDialog.vue'
 export { default as ApplicationGrid } from './ApplicationGrid.vue'
 export { default as ApplicationToolbar } from './ApplicationToolbar.vue'
 
+// 下载管理组件
+export { default as DownloadProgress } from './DownloadProgress.vue'
+
 // 注意：其他业务组件待实现
 // export { default as PluginManager } from './PluginManager.vue'
 // export { default as AppLauncher } from './AppLauncher.vue'

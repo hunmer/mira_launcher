@@ -1,170 +1,14 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "productName": "mira-launcher",
+  "version": "0.1.0",
+  "identifier": "com.miralauncher.app",
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "mira-launcher",
-    "version": "0.1.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true,
-        "execute": true,
-        "sidecar": true,
-        "scope": [
-          {
-            "name": "run-app",
-            "cmd": "cmd",
-            "args": [
-              "/C",
-              "start",
-              {
-                "validator": "\\S+"
-              }
-            ]
-          },
-          {
-            "name": "run-exe",
-            "cmd": "cmd",
-            "args": [
-              "/C",
-              {
-                "validator": "\\S+"
-              }
-            ]
-          },
-          {
-            "name": "powershell",
-            "cmd": "powershell",
-            "args": [
-              "-Command",
-              {
-                "validator": "\\S+"
-              }
-            ]
-          }
-        ]
-      },
-      "fs": {
-        "all": false,
-        "readFile": true,
-        "writeFile": true,
-        "readDir": true,
-        "copyFile": true,
-        "createDir": true,
-        "removeDir": true,
-        "removeFile": true,
-        "renameFile": true,
-        "exists": true,
-        "scope": [
-          "$APPDATA",
-          "$LOCALAPPDATA",
-          "$DESKTOP",
-          "$DOCUMENT",
-          "$DOWNLOAD",
-          "$HOME",
-          "$PICTURE",
-          "$PUBLIC",
-          "$VIDEO",
-          "$AUDIO",
-          "$CACHE",
-          "$CONFIG",
-          "$DATA",
-          "$LOG",
-          "$RUNTIME",
-          "$TEMP"
-        ]
-      },
-      "path": {
-        "all": true
-      },
-      "window": {
-        "all": false,
-        "close": true,
-        "hide": true,
-        "show": true,
-        "maximize": true,
-        "minimize": true,
-        "unmaximize": true,
-        "unminimize": true,
-        "startDragging": true,
-        "setTitle": true,
-        "setSize": true,
-        "setPosition": true,
-        "setFocus": true,
-        "setIcon": true,
-        "setDecorations": true,
-        "setAlwaysOnTop": true,
-        "setSkipTaskbar": true,
-        "center": true
-      },
-      "globalShortcut": {
-        "all": true
-      },
-      "os": {
-        "all": true
-      },
-      "notification": {
-        "all": true
-      },
-      "dialog": {
-        "all": false,
-        "open": true,
-        "save": true,
-        "message": true,
-        "ask": true,
-        "confirm": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Utility",
-      "copyright": "Copyright © 2025 Mira Launcher Team",
-      "shortDescription": "輕量化應用啟動器",
-      "longDescription": "一個功能強大且輕量化的應用啟動器，支援快速啟動應用程式、插件系統和自訂快捷鍵",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.miralauncher.app",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "wix": {
-          "language": "zh-TW"
-        }
-      }
-    },
-    "security": {
-      "csp": null
-    },
-    "updater": {
-      "active": false
-    },
+  "app": {
     "windows": [
       {
         "label": "main",
@@ -183,10 +27,50 @@
         "transparent": false,
         "visible": true,
         "center": true,
-        "skipTaskbar": false,
-        "fileDropEnabled": true,
-        "url": "index.html"
+        "skipTaskbar": false
       }
-    ]
-  }
+    ],
+    "security": {
+      "csp": null
+    },
+    "withGlobalTauri": false
+  },
+  "bundle": {
+    "active": true,
+    "category": "Utility",
+    "copyright": "Copyright © 2025 Mira Launcher Team",
+    "shortDescription": "輕量化應用啟動器",
+    "longDescription": "一個功能強大且輕量化的應用啟動器，支援快速啟動應用程式、插件系統和自訂快捷鍵",
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": [],
+    "resources": [],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": {
+        "language": "zh-CN"
+      }
+    },
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
+  },
+  "plugins": {}
 }

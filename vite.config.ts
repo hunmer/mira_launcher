@@ -35,13 +35,24 @@ export default defineConfig({
       },
     },
     minify: 'esbuild',
-    sourcemap: true,
+    sourcemap: false, // 生产环境关闭sourcemap
+    cssCodeSplit: true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000,
   },
 
   // Development server configuration
   server: {
+    host: process.env.TAURI_DEV_HOST || false,
     port: 1420,
     strictPort: true,
+    hmr: process.env.TAURI_DEV_HOST
+      ? {
+        protocol: 'ws',
+        host: process.env.TAURI_DEV_HOST,
+        port: 1430,
+      }
+      : undefined,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ['**/src-tauri/**'],

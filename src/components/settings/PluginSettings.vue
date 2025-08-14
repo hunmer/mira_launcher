@@ -15,17 +15,8 @@
                 插件目录路径
               </label>
               <div class="flex gap-2">
-                <InputText
-                  v-model="pluginPath"
-                  placeholder="选择插件目录路径"
-                  class="flex-1"
-                  readonly
-                />
-                <Button
-                  icon="pi pi-folder-open"
-                  label="浏览"
-                  @click="selectPluginDirectory"
-                />
+                <InputText v-model="pluginPath" placeholder="选择插件目录路径" class="flex-1" readonly />
+                <Button icon="pi pi-folder-open" label="浏览" @click="selectPluginDirectory" />
               </div>
               <small class="text-gray-500 dark:text-gray-400 block mt-1">
                 插件将从此目录加载。默认为应用程序目录下的 plugins 文件夹。
@@ -111,23 +102,9 @@
             </div>
 
             <div class="flex gap-3 pt-4">
-              <Button
-                label="应用设置"
-                icon="pi pi-check"
-                @click="applySettings"
-              />
-              <Button
-                label="重置为默认"
-                icon="pi pi-refresh"
-                severity="secondary"
-                @click="resetToDefaults"
-              />
-              <Button
-                label="重新扫描插件"
-                icon="pi pi-search"
-                severity="info"
-                @click="rescanPlugins"
-              />
+              <Button label="应用设置" icon="pi pi-check" @click="applySettings" />
+              <Button label="重置为默认" icon="pi pi-refresh" severity="secondary" @click="resetToDefaults" />
+              <Button label="重新扫描插件" icon="pi pi-search" severity="info" @click="rescanPlugins" />
             </div>
           </div>
         </AccordionContent>
@@ -182,19 +159,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { 
-  Accordion, 
-  AccordionPanel, 
-  AccordionHeader, 
-  AccordionContent, 
-  Button, 
-  Input as InputText, 
-  ToggleSwitch, 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionHeader,
+  AccordionPanel,
+  Button,
   Divider,
+  Input as InputText,
+  ToggleSwitch,
 } from '@/components/common'
 import { usePluginStore } from '@/stores/plugin'
 import { useToast } from 'primevue/usetoast'
+import { computed, onMounted, ref } from 'vue'
 
 // Store 和工具
 const pluginStore = usePluginStore()
@@ -222,30 +199,28 @@ const pluginStats = computed(() => {
 // 选择插件目录
 const selectPluginDirectory = async () => {
   try {
-    if (typeof window !== 'undefined' && (window as unknown as { __TAURI__?: unknown }).__TAURI__) {
-      try {
-        // 尝试使用 Tauri API
-        const { open } = await import('@tauri-apps/api/dialog')
-        const selected = await open({
-          directory: true,
-          multiple: false,
-        })
-        
-        if (selected) {
-          pluginPath.value = selected as string
-        }
-      } catch (tauriError) {
-        console.warn('Tauri dialog not available:', tauriError)
-        // 降级到模拟模式
-        const mockPath = '/Users/Example/MiraLauncher/plugins'
-        pluginPath.value = mockPath
-        toast.add({
-          severity: 'info',
-          summary: '模拟模式',
-          detail: `模拟选择路径: ${mockPath}`,
-          life: 3000,
-        })
+    try {
+      // 尝试使用 Tauri API
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const selected = await open({
+        directory: true,
+        multiple: false,
+      })
+
+      if (selected) {
+        pluginPath.value = selected as string
       }
+    } catch (tauriError) {
+      console.warn('Tauri dialog not available:', tauriError)
+      // 降级到模拟模式
+      const mockPath = '/Users/Example/MiraLauncher/plugins'
+      pluginPath.value = mockPath
+      toast.add({
+        severity: 'info',
+        summary: '模拟模式',
+        detail: `模拟选择路径: ${mockPath}`,
+        life: 3000,
+      })
     }
   } catch (error) {
     console.error('Failed to select directory:', error)
@@ -270,17 +245,17 @@ const applySettings = async () => {
       verifySignature: verifySignature.value,
       sandboxMode: sandboxMode.value,
     }
-    
+
     // 在实际应用中，这里应该保存到配置文件
     localStorage.setItem('pluginSettings', JSON.stringify(settings))
-    
+
     // 如果插件路径改变了，重新初始化插件系统
     if (pluginPath.value && pluginStore.isInitialized) {
       await pluginStore.destroy()
       await pluginStore.initialize()
       await rescanPlugins()
     }
-    
+
     toast.add({
       severity: 'success',
       summary: '成功',
@@ -306,7 +281,7 @@ const resetToDefaults = () => {
   showPluginErrors.value = true
   verifySignature.value = false
   sandboxMode.value = false
-  
+
   toast.add({
     severity: 'info',
     summary: '已重置',
@@ -323,7 +298,7 @@ const rescanPlugins = async () => {
       await pluginStore.destroy()
     }
     await pluginStore.initialize()
-    
+
     toast.add({
       severity: 'success',
       summary: '完成',
@@ -369,11 +344,11 @@ onMounted(() => {
   max-width: 800px;
 }
 
-.space-y-6 > * + * {
+.space-y-6>*+* {
   margin-top: 1.5rem;
 }
 
-.space-y-4 > * + * {
+.space-y-4>*+* {
   margin-top: 1rem;
 }
 </style>

@@ -9,18 +9,38 @@ default-run = "app"
 edition = "2021"
 rust-version = "1.60"
 
+[lib]
+name = "app"
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.5.5", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.8.1", features = ["dialog-ask", "dialog-confirm", "dialog-message", "dialog-open", "dialog-save", "fs-copy-file", "fs-create-dir", "fs-exists", "fs-read-dir", "fs-read-file", "fs-remove-dir", "fs-remove-file", "fs-rename-file", "fs-write-file", "global-shortcut-all", "notification-all", "os-all", "path-all", "shell-execute", "shell-open", "shell-sidecar", "window-center", "window-close", "window-hide", "window-maximize", "window-minimize", "window-set-always-on-top", "window-set-decorations", "window-set-focus", "window-set-icon", "window-set-position", "window-set-size", "window-set-skip-taskbar", "window-set-title", "window-show", "window-start-dragging", "window-unmaximize", "window-unminimize"] }
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-os = "2"
+tauri-plugin-fs = "2"
+
+[profile.release]
+opt-level = "z"      # 优化体积
+lto = true          # 链接时优化
+codegen-units = 1   # 减少代码生成单元
+panic = "abort"     # 减少panic处理代码
+strip = true        # 移除调试符号
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
 # If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.
 # DO NOT REMOVE!!
 custom-protocol = [ "tauri/custom-protocol" ]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"

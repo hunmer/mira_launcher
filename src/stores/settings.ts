@@ -11,7 +11,7 @@ export interface AppSettings {
     minimizeToTray: boolean
     showInTaskbar: boolean
   }
-  
+
   // 快捷键设置
   shortcuts: {
     globalHotkey: string
@@ -19,7 +19,7 @@ export interface AppSettings {
     settingsHotkey: string
     exitHotkey: string
   }
-  
+
   // 启动设置
   startup: {
     autoStart: boolean
@@ -27,7 +27,7 @@ export interface AppSettings {
     checkUpdates: boolean
     loadPluginsOnStart: boolean
   }
-  
+
   // 插件设置
   plugins: {
     autoUpdate: boolean
@@ -35,7 +35,7 @@ export interface AppSettings {
     pluginPath: string
     maxCacheSize: number
   }
-  
+
   // 高级设置
   advanced: {
     debugMode: boolean
@@ -88,7 +88,13 @@ export const useSettingsStore = defineStore('settings', () => {
   const lastSaved = ref<Date | null>(null)
 
   // 检查是否在 Tauri 环境中
-  const isTauriEnv = () => !!window.__TAURI__
+  const isTauriEnv = () => {
+    try {
+      return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+    } catch {
+      return false
+    }
+  }
 
   // 保存设置到本地存储
   const saveToLocalStorage = (settingsData: AppSettings) => {
@@ -120,15 +126,22 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!isTauriEnv()) return
 
     try {
-      const { writeTextFile, BaseDirectory } = await import('@tauri-apps/api/fs')
-      await writeTextFile('settings.json', JSON.stringify(settingsData, null, 2), {
-        dir: BaseDirectory.AppData
-      })
-      console.log('Settings saved to Tauri storage')
+      const { writeTextFile, BaseDirectory, mkdir } = await import('@tauri-apps/plugin-fs')
+
+      // 优先使用 AppConfig 目录
+      try {
+        await writeTextFile('settings.json', JSON.stringify(settingsData, null, 2), {
+          baseDir: BaseDirectory.AppConfig,
+          create: true,
+          createNew: true,
+        })
+        console.log('Settings saved to Tauri storage (AppConfig)')
+        return
+      } catch (error) {
+        console.log('Failed to save to AppConfig, trying AppData:', error)
+      }
     } catch (error) {
-      console.error('Failed to save settings to Tauri:', error)
-      // 降级到 localStorage
-      saveToLocalStorage(settingsData)
+      console.error('Failed to save to Tauri storage:', error)
     }
   }
 
@@ -137,13 +150,34 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!isTauriEnv()) return null
 
     try {
-      const { readTextFile, BaseDirectory } = await import('@tauri-apps/api/fs')
-      const content = await readTextFile('settings.json', {
-        dir: BaseDirectory.AppData
-      })
-      const parsed = JSON.parse(content)
-      console.log('Settings loaded from Tauri storage')
-      return { ...defaultSettings, ...parsed }
+      const { readTextFile, BaseDirectory, exists } = await import('@tauri-apps/plugin-fs')
+
+      // 尝试多个可能的目录位置
+      const possibleLocations = [
+        { baseDir: BaseDirectory.AppConfig, path: 'settings.json' },
+        { baseDir: BaseDirectory.AppData, path: 'settings.json' },
+        { baseDir: BaseDirectory.AppData, path: 'com.miralauncher.app/settings.json' },
+        { baseDir: BaseDirectory.Config, path: 'mira-launcher/settings.json' }
+      ]
+
+      for (const location of possibleLocations) {
+        try {
+          const fileExists = await exists(location.path, { baseDir: location.baseDir })
+          if (fileExists) {
+            const content = await readTextFile(location.path, { baseDir: location.baseDir })
+            const parsed = JSON.parse(content)
+            console.log('Settings loaded from Tauri storage:', location)
+            return { ...defaultSettings, ...parsed }
+          }
+        } catch (error) {
+          // 继续尝试下一个位置
+          console.log('Failed to load from location:', location, error)
+        }
+      }
+
+      // 如果都失败了，降级到 localStorage
+      console.log('No Tauri settings found, falling back to localStorage')
+      return loadFromLocalStorage()
     } catch (error) {
       console.error('Failed to load settings from Tauri:', error)
       // 降级到 localStorage
@@ -173,7 +207,7 @@ export const useSettingsStore = defineStore('settings', () => {
     isLoading.value = true
     try {
       let loadedSettings: AppSettings | null = null
-      
+
       if (isTauriEnv()) {
         loadedSettings = await loadFromTauri()
       } else {
@@ -197,7 +231,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // 深度合并设置对象
   const mergeSettings = (defaults: AppSettings, loaded: Partial<AppSettings>): AppSettings => {
     const result = { ...defaults }
-    
+
     for (const key in loaded) {
       const typedKey = key as keyof AppSettings
       if (loaded.hasOwnProperty(key) && typeof loaded[typedKey] === 'object' && !Array.isArray(loaded[typedKey])) {
@@ -206,7 +240,7 @@ export const useSettingsStore = defineStore('settings', () => {
         result[typedKey] = loaded[typedKey] as any
       }
     }
-    
+
     return result
   }
 

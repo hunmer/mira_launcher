@@ -5,6 +5,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const Home = () => import('@/views/Home.vue')
 const Settings = () => import('@/views/Settings.vue')
 const Applications = () => import('@/views/Applications.vue')
+const Downloads = () => import('@/views/Downloads.vue')
 const Plugins = () => import('@/views/Plugins.vue')
 const PluginStore = () => import('@/views/PluginStore.vue')
 const About = () => import('@/views/About.vue')
@@ -30,6 +31,17 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '應用程式',
       icon: 'apps',
+      transition: 'slide',
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/downloads',
+    name: 'Downloads',
+    component: Downloads,
+    meta: {
+      title: '下載管理',
+      icon: 'download',
       transition: 'slide',
       requiresAuth: false,
     },

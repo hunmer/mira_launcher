@@ -1,7 +1,6 @@
-import { invoke } from '@tauri-apps/api/tauri'
-import { readDir, readTextFile, exists } from '@tauri-apps/api/fs'
-import { join, appConfigDir } from '@tauri-apps/api/path'
 import type { PluginMetadata } from '@/types/plugin'
+import { appConfigDir, join } from '@tauri-apps/api/path'
+import { exists, readDir, readTextFile } from '@tauri-apps/plugin-fs'
 
 /**
  * 插件发现结果
@@ -59,14 +58,14 @@ export class PluginDiscovery {
    */
   async discoverPlugins(): Promise<PluginDiscoveryResult[]> {
     const results: PluginDiscoveryResult[] = []
-    
+
     try {
       // 获取应用配置目录
       const configDir = await appConfigDir()
-      
+
       for (const pluginDir of this.config.pluginDirectories) {
         const fullPath = await join(configDir, pluginDir)
-        
+
         // 检查目录是否存在
         if (await exists(fullPath)) {
           const dirResults = await this.scanDirectory(fullPath)
@@ -95,18 +94,19 @@ export class PluginDiscovery {
    */
   private async scanDirectory(dirPath: string, depth = 0): Promise<PluginDiscoveryResult[]> {
     const results: PluginDiscoveryResult[] = []
-    
+
     if (depth > this.config.maxDepth) {
       return results
     }
 
     try {
-      const entries = await readDir(dirPath, { recursive: false })
-      
+      const entries = await readDir(dirPath)
+
       for (const entry of entries) {
-        if (entry.children && this.config.recursive) {
+        if (entry.isDirectory && this.config.recursive) {
           // 递归扫描子目录
-          const subResults = await this.scanDirectory(entry.path, depth + 1)
+          const entryPath = `${dirPath}/${entry.name}`
+          const subResults = await this.scanDirectory(entryPath, depth + 1)
           results.push(...subResults)
         } else if (entry.name === 'plugin.json') {
           // 发现插件描述文件
@@ -154,7 +154,7 @@ export class PluginDiscovery {
 
       // 确定入口文件路径
       const entryPath = await join(pluginPath, manifest.entry)
-      
+
       // 检查入口文件是否存在
       if (!(await exists(entryPath))) {
         errors.push(`Entry file not found: ${manifest.entry}`)
@@ -343,7 +343,7 @@ export const discoveryUtils = {
    */
   validateManifest(manifest: any): string[] {
     const errors: string[] = []
-    
+
     // 必需字段
     const requiredFields = ['id', 'name', 'version', 'entry']
     for (const field of requiredFields) {

@@ -95,47 +95,35 @@ const toggleDevMenu = (event: Event) => {
 const openDevConsole = async () => {
   console.log('Opening dev console...')
 
-  // 检查是否在 Tauri 环境中
-  if (window.__TAURI__) {
-    try {
-      // 首先检查是否为调试模式
-      const { invoke } = await import('@tauri-apps/api/tauri')
-      const isDebug = await invoke('is_debug_mode')
+  try {
+    // 首先检查是否为调试模式
+    const { invoke } = await import('@tauri-apps/api/core')
+    const isDebug = await invoke('is_debug_mode')
 
-      if (!isDebug) {
-        alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
-        return
-      }
-
-      // 在调试模式下，调用 Rust 命令打开开发者工具
-      await invoke('open_devtools')
-      console.log('开发者工具已打开')
-
-    } catch (error) {
-      console.error('Failed to open dev tools:', error)
-
-      // 提供备用解决方案
-      const errorMessage = error?.toString() || '未知错误'
-      let fallbackMessage = '无法通过程序打开开发者工具\n\n'
-
-      if (navigator.platform.toLowerCase().includes('mac')) {
-        fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
-      } else {
-        fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
-      }
-
-      fallbackMessage += `\n\n错误信息: ${errorMessage}`
-      alert(fallbackMessage)
+    if (!isDebug) {
+      alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
+      return
     }
-  } else {
-    // 在浏览器环境中的处理
-    console.log('Running in browser environment')
+
+    // 在调试模式下，调用 Rust 命令打开开发者工具
+    await invoke('open_devtools')
+    console.log('开发者工具已打开')
+
+  } catch (error) {
+    console.error('Failed to open dev tools:', error)
+
+    // 提供备用解决方案
+    const errorMessage = error?.toString() || '未知错误'
+    let fallbackMessage = '无法通过程序打开开发者工具\n\n'
 
     if (navigator.platform.toLowerCase().includes('mac')) {
-      alert('请按 Cmd+Option+I 或右键选择"检查元素"来打开开发者控制台')
+      fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
     } else {
-      alert('请按 F12 或右键选择"检查元素"来打开开发者控制台')
+      fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
     }
+
+    fallbackMessage += `\n\n错误信息: ${errorMessage}`
+    alert(fallbackMessage)
   }
 }
 </script>

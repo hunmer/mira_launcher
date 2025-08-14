@@ -1,14 +1,14 @@
 // 插件相关类型定义
 // 扩展现有 components.ts 类型系统，确保与项目架构一致
 
+import type { MenuItem } from 'primevue/menuitem'
 import type { App, Component } from 'vue'
 import type { Router } from 'vue-router'
-import type { MenuItem } from 'primevue/menuitem'
 
 /**
  * 插件状态枚举
  */
-export type PluginState = 
+export type PluginState =
   | 'registered'  // 已注册
   | 'unloaded'    // 未加载
   | 'loading'     // 加载中
@@ -114,7 +114,7 @@ export interface PluginStats {
 /**
  * 插件事件类型
  */
-export type PluginEventType = 
+export type PluginEventType =
   | 'plugin:registered'
   | 'plugin:beforeLoad'
   | 'plugin:loaded'
@@ -132,6 +132,95 @@ export type PluginEventType =
   | 'ui:notificationShown'
   | 'system:beforeShutdown'
   | 'system:ready'
+  | 'queue:taskAdded'
+  | 'queue:taskStarted'
+  | 'queue:taskCompleted'
+  | 'queue:taskFailed'
+  | 'queue:taskCancelled'
+  | 'queue:stateChanged'
+  | 'queue:error'
+  | 'scheduler:initialized'
+  | 'scheduler:taskScheduled'
+  | 'scheduler:taskCompleted'
+  | 'scheduler:taskFailed'
+  | 'scheduler:taskCancelled'
+  | 'scheduler:allTasksCancelled'
+  | 'scheduler:rateLimitExceeded'
+  | 'scheduler:started'
+  | 'scheduler:stopped'
+  | 'scheduler:modeChanged'
+  | 'scheduler:configUpdated'
+  | 'scheduler:destroyed'
+  | 'concurrency:initialized'
+  | 'concurrency:adjusted'
+  | 'concurrency:schedulerRegistered'
+  | 'concurrency:schedulerUnregistered'
+  | 'concurrency:configUpdated'
+  | 'concurrency:destroyed'
+  | 'scheduler:performanceMonitorStarted'
+  | 'scheduler:performanceMonitorStopped'
+  | 'scheduler:metricsUpdated'
+  | 'scheduler:metricsReset'
+  | 'scheduler:performanceMonitorDestroyed'
+  | 'retry:taskSucceededAfterRetry'
+  | 'retry:taskScheduled'
+  | 'retry:taskStarted'
+  | 'retry:taskFinallyFailed'
+  | 'retry:taskCancelled'
+  | 'retry:statsReset'
+  | 'retry:configUpdated'
+  | 'retry:handlerDestroyed'
+  | 'deadLetter:queueInitialized'
+  | 'deadLetter:taskAdded'
+  | 'deadLetter:taskReprocessed'
+  | 'deadLetter:reprocessFailed'
+  | 'deadLetter:batchReprocessed'
+  | 'deadLetter:taskRecovered'
+  | 'deadLetter:tasksExpired'
+  | 'deadLetter:analysisCompleted'
+  | 'deadLetter:configUpdated'
+  | 'deadLetter:queueCleared'
+  | 'deadLetter:queueDestroyed'
+  | 'deadLetter:taskProcessed'
+  | 'monitor:alertTriggered'
+  | 'monitor:thresholdExceeded'
+  | 'monitor:reportGenerated'
+  | 'monitor:initialized'
+  | 'monitor:metricsCollected'
+  | 'monitor:alertAcknowledged'
+  | 'monitor:configUpdated'
+  | 'monitor:destroyed'
+  | 'download:taskAdded'
+  | 'download:taskRemoved'
+  | 'download:taskStarted'
+  | 'download:taskPaused'
+  | 'download:taskResumed'
+  | 'download:taskCancelled'
+  | 'download:taskRetrying'
+  | 'download:progressUpdated'
+  | 'download:taskCompleted'
+  | 'download:taskFailed'
+  | 'download:stateChanged'
+  | 'download:historyAdded'
+  | 'download:historyCleared'
+  | 'download:configUpdated'
+  | 'download:completedTasksCleared'
+  | 'download:managerInitialized'
+  | 'download:downloadCreated'
+  | 'download:downloadCompleted'
+  | 'download:downloadFailed'
+  | 'download:batchDownloadsCreated'
+  | 'download:allDownloadsPaused'
+  | 'download:allDownloadsResumed'
+  | 'download:allDownloadsCancelled'
+  | 'download:managerConfigUpdated'
+  | 'download:managerDestroyed'
+  | 'download:progressStart'
+  | 'download:progressUpdate'
+  | 'download:progressEnd'
+  | 'download:progressError'
+  | 'download:progressPause'
+  | 'download:progressResume'
 
 /**
  * 插件事件数据接口
@@ -415,7 +504,7 @@ export interface PluginLifecycleEvent extends PluginEvent<{
   loadTime?: number
   activationTime?: number
   deactivationTime?: number
-}> {}
+}> { }
 
 /**
  * 插件加载器选项
@@ -457,4 +546,154 @@ export interface PluginDependency {
   version?: string
   /** 是否为可选依赖 */
   optional?: boolean
+}
+
+/**
+ * 任务状态枚举
+ */
+export type TaskState =
+  | 'pending'    // 等待执行
+  | 'running'    // 正在执行
+  | 'completed'  // 已完成
+  | 'failed'     // 执行失败
+  | 'cancelled'  // 已取消
+
+/**
+ * 任务接口
+ */
+export interface Task {
+  /** 任务唯一标识符 */
+  id: string
+  /** 任务优先级 (数字越大优先级越高) */
+  priority: number
+  /** 任务执行函数 */
+  execute: () => Promise<any>
+  /** 成功回调 */
+  onSuccess?: (result: any) => void
+  /** 错误回调 */
+  onError?: (error: Error) => void
+  /** 任务超时时间（毫秒） */
+  timeout?: number
+  /** 最大重试次数 */
+  maxRetries?: number
+  /** 任务元数据 */
+  metadata?: Record<string, any>
+  /** 任务状态 */
+  state?: TaskState
+  /** 创建时间 */
+  createdAt?: Date
+  /** 开始执行时间 */
+  startedAt?: Date
+  /** 完成时间 */
+  completedAt?: Date
+  /** 执行结果 */
+  result?: any
+  /** 错误信息 */
+  error?: Error
+}
+
+/**
+ * 任务元数据类型
+ */
+export type TaskMetadata = Record<string, any>
+
+/**
+ * 任务执行器选项
+ */
+export interface TaskExecutorOptions {
+  /** 默认超时时间 */
+  defaultTimeout?: number
+  /** 启用资源监控 */
+  enableResourceMonitoring?: boolean
+  /** 最大并发数 */
+  maxConcurrency?: number
+}
+
+/**
+ * 任务执行器统计信息
+ */
+export interface TaskExecutorStats {
+  /** 执行的任务总数 */
+  totalExecuted: number
+  /** 成功的任务数 */
+  successCount: number
+  /** 失败的任务数 */
+  failureCount: number
+  /** 平均执行时间 */
+  averageExecutionTime: number
+  /** 当前运行的任务数 */
+  currentRunning: number
+}
+
+/**
+ * 队列事件上下文
+ */
+export interface QueueEventContext {
+  /** 队列ID */
+  queueId: string
+  /** 任务ID */
+  taskId?: string
+  /** 任务信息 */
+  task?: Task
+  /** 队列统计信息 */
+  stats?: QueueStats
+  /** 额外数据 */
+  data?: Record<string, any>
+}
+
+/**
+ * 队列统计信息
+ */
+export interface QueueStats {
+  /** 总任务数 */
+  totalTasks: number
+  /** 等待中的任务数 */
+  pendingTasks: number
+  /** 正在执行的任务数 */
+  runningTasks: number
+  /** 已完成的任务数 */
+  completedTasks: number
+  /** 失败的任务数 */
+  failedTasks: number
+  /** 平均执行时间（毫秒） */
+  averageExecutionTime: number
+  /** 吞吐量（任务/秒） */
+  throughput: number
+}
+
+/**
+ * 队列配置
+ */
+export interface QueueConfig {
+  /** 最大并发数 */
+  concurrency?: number
+  /** 自动启动 */
+  autostart?: boolean
+  /** 任务超时时间 */
+  timeout?: number
+  /** 是否收集结果 */
+  results?: boolean
+}
+
+/**
+ * 队列类型
+ */
+export type QueueType = 'fifo' | 'priority' | 'delayed' | 'circular'
+
+/**
+ * 任务队列接口
+ */
+export interface ITaskQueue {
+  /** 添加任务到队列 */
+  push(task: Task): Promise<string>
+  /** 启动队列处理 */
+  start(): Promise<void>
+  /** 停止队列处理 */
+  stop(): Promise<void>
+  /** 获取队列统计信息 */
+  getStats(): QueueStats
+  /** 获取队列长度 */
+  length: number
+  /** 队列是否正在运行 */
+  isRunning: boolean
 }
