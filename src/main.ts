@@ -1,11 +1,11 @@
 import { createPinia } from 'pinia'
-import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
-import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import ToastService from 'primevue/toastservice'
 import Tooltip from 'primevue/tooltip'
-import { MiraPreset } from './config/primevue-theme'
+import { createApp } from 'vue'
 import App from './App.vue'
+import { MiraPreset } from './config/primevue-theme'
 import router from './router'
 import { useSettingsStore } from './stores/settings'
 
@@ -15,6 +15,10 @@ import 'primeicons/primeicons.css'
 // 插件导入
 import { registerGlobalComponents, setupComponentDevtools } from './plugins/components'
 import { monitorMemoryUsage, setupPerformanceMonitor } from './plugins/performance'
+// Initialize plugin registry for development
+import './plugins/registry'
+// 初始化快捷键系统
+import { initializeShortcutSystem } from './utils/shortcut-system'
 
 // 導入樣式
 import './styles/main.css'
@@ -101,14 +105,26 @@ app.config.warnHandler = (msg, vm, trace) => {
 // 掛載應用
 app.mount('#app')
 
-// 初始化设置存储
-const initializeSettings = async () => {
-  const settingsStore = useSettingsStore()
-  await settingsStore.loadSettings()
-  console.log('Settings initialized')
+// 初始化设置和快捷键系统
+const initializeAppSystems = async () => {
+  try {
+    console.log('[App] Initializing app systems...')
+
+    // 初始化设置存储
+    const settingsStore = useSettingsStore()
+    await settingsStore.loadSettings()
+    console.log('[Settings] Settings initialized')
+
+    // 初始化快捷键系统
+    await initializeShortcutSystem()
+    console.log('[Shortcuts] Shortcut system initialized')
+
+  } catch (error) {
+    console.error('[App] Failed to initialize app systems:', error)
+  }
 }
 
-// 在应用挂载后初始化设置
-initializeSettings().catch(console.error)
+// 在应用挂载后初始化系统
+initializeAppSystems().catch(console.error)
 
 export default app

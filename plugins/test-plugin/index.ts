@@ -1,4 +1,3 @@
-import { BasePlugin } from '../../../src/plugins/core/BasePlugin'
 import type {
     PluginBuilderFunction,
     PluginConfigDefinition,
@@ -10,7 +9,8 @@ import type {
     PluginQueueConfig,
     PluginStorageConfig,
     PluginSubscription
-} from '../../../src/types/plugin'
+} from '../plugin-sdk'
+import { BasePlugin } from '../plugin-sdk'
 
 /**
  * 测试插件类
@@ -25,22 +25,22 @@ export class TestPlugin extends BasePlugin {
     readonly author = 'Mira Launcher Team'
     readonly dependencies = []
     readonly minAppVersion = '1.0.0'
-    readonly permissions = ['storage', 'notifications', 'system']
+    readonly permissions = ['storage', 'notification', 'system']
 
-    readonly search_regexps = [
+    override readonly search_regexps = [
         '^test:.*',           // 匹配 test: 开头的搜索
         '.*\\.(test|spec)\\.',  // 匹配测试文件
         'demo|example|sample'   // 匹配演示相关关键词
     ]
 
-    readonly logs: PluginLogConfig = {
+    override readonly logs: PluginLogConfig = {
         level: 'info',
         maxEntries: 1000,
         persist: true,
         format: 'simple'
     }
 
-    readonly configs: PluginConfigDefinition = {
+    override readonly configs: PluginConfigDefinition = {
         properties: {
             enableNotifications: {
                 type: 'boolean',
@@ -72,7 +72,7 @@ export class TestPlugin extends BasePlugin {
         }
     }
 
-    readonly contextMenus: PluginContextMenu[] = [
+    override readonly contextMenus: PluginContextMenu[] = [
         {
             id: 'test-action-1',
             title: '测试操作1',
@@ -87,7 +87,7 @@ export class TestPlugin extends BasePlugin {
         }
     ]
 
-    readonly hotkeys: PluginHotkey[] = [
+    override readonly hotkeys: PluginHotkey[] = [
         {
             id: 'test-hotkey-1',
             combination: 'Ctrl+Shift+T',
@@ -104,7 +104,7 @@ export class TestPlugin extends BasePlugin {
         }
     ]
 
-    readonly subscriptions: PluginSubscription[] = [
+    override readonly subscriptions: PluginSubscription[] = [
         {
             event: 'app:startup',
             handler: () => this.onAppStartup(),
@@ -122,7 +122,7 @@ export class TestPlugin extends BasePlugin {
         }
     ]
 
-    readonly notifications: PluginNotificationConfig = {
+    override readonly notifications: PluginNotificationConfig = {
         defaults: {
             type: 'info',
             duration: 3000,
@@ -142,14 +142,14 @@ export class TestPlugin extends BasePlugin {
         }
     }
 
-    readonly storage: PluginStorageConfig = {
+    override readonly storage: PluginStorageConfig = {
         type: 'localStorage',
         prefix: 'test-plugin',
         encrypt: false,
         sizeLimit: 1024 * 1024 // 1MB
     }
 
-    readonly queue: PluginQueueConfig = {
+    override readonly queue: PluginQueueConfig = {
         type: 'fifo',
         config: {
             concurrency: 3,
@@ -159,7 +159,7 @@ export class TestPlugin extends BasePlugin {
         }
     }
 
-    readonly builder: PluginBuilderFunction = (options) => {
+    override readonly builder: PluginBuilderFunction = (options) => {
         console.log('[TestPlugin] Builder executed with options:', options)
         // 构建器逻辑 - 可以用于插件的动态配置和初始化
         if (options?.api) {
@@ -183,7 +183,7 @@ export class TestPlugin extends BasePlugin {
     /**
      * 获取插件元数据
      */
-    getMetadata(): PluginMetadata {
+    override getMetadata(): PluginMetadata {
         const baseMetadata = this.metadata
         return {
             ...baseMetadata,
@@ -202,7 +202,7 @@ export class TestPlugin extends BasePlugin {
     /**
      * 插件加载生命周期
      */
-    async onLoad(): Promise<void> {
+    override async onLoad(): Promise<void> {
         console.log('[TestPlugin] Loading plugin...')
 
         // 加载配置
@@ -217,7 +217,7 @@ export class TestPlugin extends BasePlugin {
     /**
      * 插件激活生命周期
      */
-    async onActivate(): Promise<void> {
+    override async onActivate(): Promise<void> {
         console.log('[TestPlugin] Activating plugin...')
 
         this.isRunning = true
@@ -243,7 +243,7 @@ export class TestPlugin extends BasePlugin {
     /**
      * 插件停用生命周期
      */
-    async onDeactivate(): Promise<void> {
+    override async onDeactivate(): Promise<void> {
         console.log('[TestPlugin] Deactivating plugin...')
 
         this.isRunning = false
@@ -260,7 +260,7 @@ export class TestPlugin extends BasePlugin {
     /**
      * 插件卸载生命周期
      */
-    async onUnload(): Promise<void> {
+    override async onUnload(): Promise<void> {
         console.log('[TestPlugin] Unloading plugin...')
 
         // 保存配置
@@ -432,7 +432,7 @@ export class TestPlugin extends BasePlugin {
         this.log('info', `Test completed: ${testResults.passed}/${testResults.total} passed`)
 
         if (this.testConfig.enableNotifications) {
-            this.sendNotification(testResults.failed === 0 ? 'success' : 'warn', {
+            this.sendNotification(testResults.failed === 0 ? 'success' : 'warning', {
                 title: '测试完成',
                 message: `${testResults.passed}/${testResults.total} 测试通过`
             })

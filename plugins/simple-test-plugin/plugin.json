@@ -1,0 +1,14 @@
+{
+    "id": "simple-test-plugin",
+    "name": "简单测试插件",
+    "version": "1.0.0",
+    "description": "用于测试基本插件功能的简单插件",
+    "author": "Mira Launcher Team",
+    "entry": "index.ts",
+    "dependencies": [],
+    "permissions": [
+        "storage",
+        "notification"
+    ],
+    "minAppVersion": "1.0.0"
+}

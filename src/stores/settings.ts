@@ -1,6 +1,28 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
+// 自定义快捷键类型定义
+export interface CustomShortcut {
+  id: string
+  key: string
+  actionId: string
+  type: 'global' | 'application'
+  description?: string
+  enabled: boolean
+  createdAt: string
+  modifiedAt: string
+}
+
+// 快捷键偏好设置
+export interface ShortcutPreferences {
+  enableGlobalShortcuts: boolean
+  enableApplicationShortcuts: boolean
+  captureTimeout: number
+  showConflictWarnings: boolean
+  autoSaveChanges: boolean
+  exportFormat: 'json' | 'yaml'
+}
+
 // 设置项类型定义
 export interface AppSettings {
   // 常规设置
@@ -16,9 +38,19 @@ export interface AppSettings {
   shortcuts: {
     globalHotkey: string
     searchHotkey: string
+    quickSearchHotkey: string
     settingsHotkey: string
+    homeHotkey: string
+    applicationsHotkey: string
+    pluginsHotkey: string
     exitHotkey: string
   }
+
+  // 自定义快捷键配置
+  customShortcuts: CustomShortcut[]
+
+  // 快捷键偏好设置
+  shortcutPreferences: ShortcutPreferences
 
   // 启动设置
   startup: {
@@ -58,8 +90,21 @@ const defaultSettings: AppSettings = {
   shortcuts: {
     globalHotkey: 'Ctrl+Space',
     searchHotkey: 'Ctrl+F',
+    quickSearchHotkey: 'Ctrl+K',
     settingsHotkey: 'Ctrl+,',
+    homeHotkey: 'Ctrl+1',
+    applicationsHotkey: 'Ctrl+2',
+    pluginsHotkey: 'Ctrl+3',
     exitHotkey: 'Ctrl+Q'
+  },
+  customShortcuts: [],
+  shortcutPreferences: {
+    enableGlobalShortcuts: true,
+    enableApplicationShortcuts: true,
+    captureTimeout: 5000,
+    showConflictWarnings: true,
+    autoSaveChanges: true,
+    exportFormat: 'json'
   },
   startup: {
     autoStart: false,
@@ -244,6 +289,198 @@ export const useSettingsStore = defineStore('settings', () => {
     return result
   }
 
+  // === 快捷键管理方法 ===
+
+  // 添加自定义快捷键
+  const addCustomShortcut = async (shortcut: Omit<CustomShortcut, 'id' | 'createdAt' | 'modifiedAt'>) => {
+    const now = new Date().toISOString()
+    const newShortcut: CustomShortcut = {
+      ...shortcut,
+      id: `shortcut-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: now,
+      modifiedAt: now
+    }
+
+    settings.value.customShortcuts.push(newShortcut)
+    await saveSettings()
+    return newShortcut
+  }
+
+  // 更新自定义快捷键
+  const updateCustomShortcut = async (id: string, updates: Partial<Pick<CustomShortcut, 'key' | 'actionId' | 'type' | 'description' | 'enabled'>>) => {
+    const index = settings.value.customShortcuts.findIndex(s => s.id === id)
+    if (index !== -1) {
+      const existing = settings.value.customShortcuts[index]
+      if (existing) {
+        // 直接更新属性
+        if (updates.key !== undefined) existing.key = updates.key
+        if (updates.actionId !== undefined) existing.actionId = updates.actionId
+        if (updates.type !== undefined) existing.type = updates.type
+        if (updates.description !== undefined) existing.description = updates.description
+        if (updates.enabled !== undefined) existing.enabled = updates.enabled
+        existing.modifiedAt = new Date().toISOString()
+
+        await saveSettings()
+        return existing
+      }
+    }
+    return null
+  }
+
+  // 删除自定义快捷键
+  const removeCustomShortcut = async (id: string) => {
+    const index = settings.value.customShortcuts.findIndex(s => s.id === id)
+    if (index !== -1) {
+      const removed = settings.value.customShortcuts.splice(index, 1)[0]
+      await saveSettings()
+      return removed
+    }
+    return null
+  }
+
+  // 启用/禁用自定义快捷键
+  const toggleCustomShortcut = async (id: string, enabled?: boolean) => {
+    const shortcut = settings.value.customShortcuts.find(s => s.id === id)
+    if (shortcut) {
+      shortcut.enabled = enabled !== undefined ? enabled : !shortcut.enabled
+      shortcut.modifiedAt = new Date().toISOString()
+      await saveSettings()
+      return shortcut
+    }
+    return null
+  }
+
+  // 获取所有自定义快捷键
+  const getCustomShortcuts = () => {
+    return settings.value.customShortcuts
+  }
+
+  // 获取启用的自定义快捷键
+  const getEnabledCustomShortcuts = () => {
+    return settings.value.customShortcuts.filter(s => s.enabled)
+  }
+
+  // 检查快捷键冲突
+  const checkShortcutConflict = (key: string, excludeId?: string) => {
+    // 检查系统快捷键
+    const systemShortcuts = settings.value.shortcuts
+    for (const [name, value] of Object.entries(systemShortcuts)) {
+      if (value === key) {
+        return { type: 'system', name, conflict: true }
+      }
+    }
+
+    // 检查自定义快捷键
+    const conflict = settings.value.customShortcuts.find(s =>
+      s.key === key && s.enabled && s.id !== excludeId
+    )
+    if (conflict) {
+      return { type: 'custom', name: conflict.description || conflict.actionId, conflict: true }
+    }
+
+    return { conflict: false }
+  }
+
+  // 导出快捷键配置
+  const exportShortcuts = () => {
+    const exportData = {
+      version: '1.0.0',
+      exportDate: new Date().toISOString(),
+      systemShortcuts: settings.value.shortcuts,
+      customShortcuts: settings.value.customShortcuts,
+      preferences: settings.value.shortcutPreferences
+    }
+
+    const format = settings.value.shortcutPreferences.exportFormat
+    if (format === 'json') {
+      return {
+        data: JSON.stringify(exportData, null, 2),
+        filename: `shortcuts-${new Date().toISOString().split('T')[0]}.json`,
+        mimeType: 'application/json'
+      }
+    } else {
+      // YAML导出（如果需要的话）
+      const yamlData = Object.entries(exportData)
+        .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+        .join('\n')
+      return {
+        data: yamlData,
+        filename: `shortcuts-${new Date().toISOString().split('T')[0]}.yaml`,
+        mimeType: 'text/yaml'
+      }
+    }
+  }
+
+  // 导入快捷键配置
+  const importShortcuts = async (data: string, replaceExisting = false) => {
+    try {
+      const importData = JSON.parse(data)
+
+      // 验证导入数据格式
+      if (!importData.version || !importData.systemShortcuts || !Array.isArray(importData.customShortcuts)) {
+        throw new Error('Invalid import data format')
+      }
+
+      // 备份当前配置
+      const backup = {
+        systemShortcuts: { ...settings.value.shortcuts },
+        customShortcuts: [...settings.value.customShortcuts],
+        preferences: { ...settings.value.shortcutPreferences }
+      }
+
+      try {
+        // 导入系统快捷键
+        if (importData.systemShortcuts) {
+          Object.assign(settings.value.shortcuts, importData.systemShortcuts)
+        }
+
+        // 导入自定义快捷键
+        if (importData.customShortcuts) {
+          if (replaceExisting) {
+            settings.value.customShortcuts = importData.customShortcuts
+          } else {
+            // 合并模式：避免ID冲突
+            const existingIds = new Set(settings.value.customShortcuts.map(s => s.id))
+            const newShortcuts = importData.customShortcuts.filter((s: CustomShortcut) => !existingIds.has(s.id))
+            settings.value.customShortcuts.push(...newShortcuts)
+          }
+        }
+
+        // 导入偏好设置
+        if (importData.preferences) {
+          Object.assign(settings.value.shortcutPreferences, importData.preferences)
+        }
+
+        await saveSettings()
+        return { success: true, imported: importData.customShortcuts?.length || 0 }
+      } catch (saveError) {
+        // 恢复备份
+        settings.value.shortcuts = backup.systemShortcuts
+        settings.value.customShortcuts = backup.customShortcuts
+        settings.value.shortcutPreferences = backup.preferences
+        throw saveError
+      }
+    } catch (error) {
+      console.error('Failed to import shortcuts:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  }
+
+  // 清理过期或无效的快捷键
+  const cleanupShortcuts = async () => {
+    const validShortcuts = settings.value.customShortcuts.filter(shortcut => {
+      // 移除无效的快捷键（如空的key或actionId）
+      return shortcut.key && shortcut.actionId && shortcut.id
+    })
+
+    if (validShortcuts.length !== settings.value.customShortcuts.length) {
+      settings.value.customShortcuts = validShortcuts
+      await saveSettings()
+      return true
+    }
+    return false
+  }
+
   // 重置设置
   const resetSettings = async () => {
     settings.value = { ...defaultSettings }
@@ -281,6 +518,17 @@ export const useSettingsStore = defineStore('settings', () => {
     loadSettings,
     resetSettings,
     updateSetting,
-    updateSettings
+    updateSettings,
+    // 快捷键管理方法
+    addCustomShortcut,
+    updateCustomShortcut,
+    removeCustomShortcut,
+    toggleCustomShortcut,
+    getCustomShortcuts,
+    getEnabledCustomShortcuts,
+    checkShortcutConflict,
+    exportShortcuts,
+    importShortcuts,
+    cleanupShortcuts
   }
 })

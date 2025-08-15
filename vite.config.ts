@@ -57,6 +57,10 @@ export default defineConfig({
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ['**/src-tauri/**'],
     },
+    fs: {
+      // Allow serving files from the plugins directory
+      allow: ['..', '.', './plugins'],
+    },
   },
 
   // Development configuration

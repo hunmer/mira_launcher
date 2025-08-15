@@ -1,5 +1,6 @@
-import type { PluginMetadata } from '@/types/plugin'
 import { BasePlugin } from '@/plugins/core/BasePlugin'
+import { getRegisteredPlugin, getRegisteredPluginIds, isPluginRegistered } from '@/plugins/registry'
+import type { PluginMetadata } from '@/types/plugin'
 import type { PluginDiscoveryResult } from './Discovery'
 
 /**
@@ -102,7 +103,7 @@ export class PluginLoader {
       if (this.config.enableCache && this.moduleCache.has(metadata.id)) {
         const cached = this.moduleCache.get(metadata.id)!
         console.log(`[PluginLoader] Using cached module for plugin: ${metadata.id}`)
-        
+
         return {
           pluginId: metadata.id,
           pluginClass: cached.module.default || cached.module.Plugin,
@@ -124,8 +125,15 @@ export class PluginLoader {
 
       // 验证插件类
       const pluginClass = this.extractPluginClass(module, metadata)
+      const isDev = import.meta.env.DEV
+
       if (this.config.validatePluginClass && !pluginClass) {
-        throw new Error('Plugin module does not export a valid plugin class')
+        if (isDev) {
+          console.warn(`[PluginLoader] Plugin class validation failed for ${metadata.id}, but continuing in dev mode`)
+          console.log(`[PluginLoader] Module structure:`, module)
+        } else {
+          throw new Error('Plugin module does not export a valid plugin class')
+        }
       }
 
       // 缓存模块
@@ -147,7 +155,7 @@ export class PluginLoader {
         loadTime,
         module
       }
-      
+
       if (pluginClass) {
         result.pluginClass = pluginClass
       }
@@ -156,7 +164,7 @@ export class PluginLoader {
     } catch (error) {
       const loadTime = performance.now() - startTime
       const errorMessage = error instanceof Error ? error.message : 'Unknown loading error'
-      
+
       console.error(`[PluginLoader] Failed to load plugin ${metadata.id}:`, error)
 
       return {
@@ -174,7 +182,33 @@ export class PluginLoader {
    */
   private async importPluginModule(entryPath: string): Promise<any> {
     try {
-      // 使用超时包装动态导入
+      // 首先检查插件是否已经在注册表中（开发环境）
+      const isDev = import.meta.env.DEV
+
+      if (isDev) {
+        // 从路径中提取插件 ID
+        console.log(`[PluginLoader] Attempting to extract plugin ID from path: ${entryPath}`)
+        const pluginIdMatch = entryPath.match(/[\\\/]([^\\\/]+)[\\\/]index\.[tj]s?$/) ||
+          entryPath.match(/[\\\/]([^\\\/]+)[\\\/]index\.js$/) ||
+          entryPath.match(/[\\\/]([^\\\/]+)$/) ||
+          entryPath.match(/([^\\\/]+)[\\\/]index\.[tj]s?$/) ||
+          entryPath.match(/([^\\\/]+)[\\\/]index\.js$/)
+
+        if (pluginIdMatch) {
+          const pluginId = pluginIdMatch[1]
+          console.log(`[PluginLoader] Extracted plugin ID: ${pluginId}`)
+
+          if (pluginId && isPluginRegistered(pluginId)) {
+            console.log(`[PluginLoader] Using registered plugin: ${pluginId}`)
+            const factory = getRegisteredPlugin(pluginId)!
+            return await factory()
+          } else {
+            console.log(`[PluginLoader] Plugin ${pluginId} not found in registry. Available: ${getRegisteredPluginIds().join(', ')}`)
+          }
+        } else {
+          console.log(`[PluginLoader] Could not extract plugin ID from path: ${entryPath}`)
+        }
+      }      // 使用超时包装动态导入
       const importPromise = this.createDynamicImport(entryPath)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Plugin load timeout')), this.config.loadTimeout)
@@ -195,21 +229,72 @@ export class PluginLoader {
   private async createDynamicImport(entryPath: string): Promise<any> {
     // 处理不同的文件扩展名
     const ext = entryPath.substring(entryPath.lastIndexOf('.'))
-    
+
+    // 在开发环境中，将文件路径转换为 Vite 可以处理的路径
+    const isDev = import.meta.env.DEV
+
+    if (isDev) {
+      // 将绝对路径转换为相对于项目根目录的路径
+      let importPath = entryPath
+
+      // 如果是 Windows 绝对路径，转换为相对路径
+      if (entryPath.match(/^[A-Za-z]:\\/)) {
+        // 提取相对于项目根目录的路径
+        const projectRootPattern = /.*[\\\/]mira_launcher[\\\/]/
+        if (projectRootPattern.test(entryPath)) {
+          importPath = entryPath.replace(projectRootPattern, './')
+          importPath = importPath.replace(/\\/g, '/')
+
+          // 确保路径以 ./ 开头
+          if (!importPath.startsWith('./')) {
+            importPath = './' + importPath
+          }
+        }
+      }
+
+      console.log(`[PluginLoader] Converting path: ${entryPath} -> ${importPath}`)
+
+      try {
+        // For JavaScript files, ensure we're using the correct extension
+        if (ext === '.js' && !importPath.endsWith('.js')) {
+          importPath += '.js'
+        }
+
+        // 直接使用相对路径导入
+        return await import(/* @vite-ignore */ importPath)
+      } catch (importError) {
+        console.warn(`[PluginLoader] Relative import failed for ${importPath}:`, importError)
+
+        // 如果相对路径导入失败，尝试使用原始路径
+        try {
+          return await import(/* @vite-ignore */ entryPath)
+        } catch (originalError) {
+          console.error(`[PluginLoader] Both import methods failed:`, {
+            relativePath: importPath,
+            relativeError: importError,
+            originalPath: entryPath,
+            originalError: originalError
+          })
+          throw originalError
+        }
+      }
+    }
+
+    // 生产环境或其他情况的处理
     switch (ext) {
       case '.js':
       case '.mjs':
         return await import(/* @vite-ignore */ entryPath)
-      
+
       case '.ts':
-        // TypeScript 文件需要先编译（在实际环境中可能需要不同的处理）
+        // TypeScript 文件需要先编译
         console.warn(`[PluginLoader] Loading TypeScript files directly is not recommended: ${entryPath}`)
         return await import(/* @vite-ignore */ entryPath)
-      
+
       case '.vue':
         // Vue 单文件组件
         return await import(/* @vite-ignore */ entryPath)
-      
+
       default:
         throw new Error(`Unsupported file type: ${ext}`)
     }
@@ -219,24 +304,35 @@ export class PluginLoader {
    * 从模块中提取插件类
    */
   private extractPluginClass(module: any, metadata: PluginMetadata): (new () => BasePlugin) | undefined {
+    console.log(`[PluginLoader] Extracting plugin class for ${metadata.id}. Module:`, Object.keys(module))
+
     // 尝试多种导出方式
     const candidates = [
       module.default,
       module.Plugin,
       module[metadata.name],
       module[`${metadata.name}Plugin`],
-      ...Object.values(module).filter(value => 
-        typeof value === 'function' && 
-        value.prototype instanceof BasePlugin
+      module[metadata.id],
+      module[metadata.id.replace(/-/g, '')], // 移除连字符
+      ...Object.values(module).filter(value =>
+        typeof value === 'function'
       )
     ]
 
-    for (const candidate of candidates) {
+    // 移除重复项和undefined
+    const uniqueCandidates = [...new Set(candidates)].filter(c => c)
+
+    console.log(`[PluginLoader] Found ${uniqueCandidates.length} plugin class candidates`)
+
+    for (const candidate of uniqueCandidates) {
+      console.log(`[PluginLoader] Testing candidate:`, candidate.name || 'unnamed')
       if (this.isValidPluginClass(candidate)) {
+        console.log(`[PluginLoader] Valid plugin class found: ${candidate.name}`)
         return candidate as new () => BasePlugin
       }
     }
 
+    console.log(`[PluginLoader] No valid plugin class found in module for ${metadata.id}`)
     return undefined
   }
 
@@ -245,12 +341,72 @@ export class PluginLoader {
    */
   private isValidPluginClass(candidate: any): boolean {
     if (typeof candidate !== 'function') {
+      console.log(`[PluginLoader] Candidate is not a function:`, typeof candidate)
       return false
     }
 
     try {
       // 检查是否继承自 BasePlugin
-      return candidate.prototype instanceof BasePlugin
+      let extendsBasePlugin = false
+      try {
+        extendsBasePlugin = candidate.prototype instanceof BasePlugin
+      } catch (e) {
+        // BasePlugin may not be available in the plugin's context
+        console.log(`[PluginLoader] BasePlugin check failed for ${candidate.name}, continuing with duck typing`)
+      }
+
+      // 如果继承自 BasePlugin，直接认为有效
+      if (extendsBasePlugin) {
+        console.log(`[PluginLoader] Plugin ${candidate.name} extends BasePlugin`)
+        return true
+      }
+
+      // 如果不继承 BasePlugin，使用鸭子类型检测 (duck typing)
+      console.log(`[PluginLoader] Using duck typing for plugin ${candidate.name}`)
+
+      // 检查原型上的方法
+      const hasPrototypeMethods =
+        typeof candidate.prototype.getMetadata === 'function' ||
+        typeof candidate.prototype.onLoad === 'function' ||
+        typeof candidate.prototype.onActivate === 'function'
+
+      if (hasPrototypeMethods) {
+        console.log(`[PluginLoader] Plugin ${candidate.name} has required prototype methods`)
+        return true
+      }
+
+      // 尝试创建实例来检查实例属性和方法（仅在开发环境）
+      const isDev = import.meta.env.DEV
+      if (isDev) {
+        try {
+          console.log(`[PluginLoader] Attempting to create test instance of ${candidate.name}`)
+          const testInstance = new candidate()
+
+          // 检查必需的实例属性
+          const hasRequiredProperties =
+            typeof testInstance.id === 'string' &&
+            typeof testInstance.name === 'string' &&
+            typeof testInstance.version === 'string'
+
+          // 检查必需的实例方法
+          const hasRequiredMethods =
+            typeof testInstance.getMetadata === 'function' ||
+            typeof testInstance.onLoad === 'function' ||
+            typeof testInstance.onActivate === 'function'
+
+          const isValid = hasRequiredProperties || hasRequiredMethods
+          console.log(`[PluginLoader] Test instance validation for ${candidate.name}: properties=${hasRequiredProperties}, methods=${hasRequiredMethods}, valid=${isValid}`)
+
+          return isValid
+        } catch (instanceError) {
+          console.warn(`[PluginLoader] Could not create test instance of ${candidate.name}:`, instanceError)
+          // 如果无法创建实例，就基于基本检查
+          return false
+        }
+      }
+
+      // 在生产环境中，只检查基本的函数特征
+      return typeof candidate === 'function' && candidate.name
     } catch (error) {
       console.warn('[PluginLoader] Error checking plugin class:', error)
       return false
@@ -288,13 +444,13 @@ export class PluginLoader {
       if (!discoveryResult) {
         throw new Error(`Missing discovery result at index ${index}`)
       }
-      
+
       if (result.status === 'fulfilled') {
         return result.value
       } else {
         const metadata = discoveryResult.metadata
         console.error(`[PluginLoader] Failed to load plugin ${metadata.id}:`, result.reason)
-        
+
         return {
           pluginId: metadata.id,
           metadata,
@@ -337,11 +493,11 @@ export class PluginLoader {
    */
   getLoadStats() {
     const modules = Array.from(this.moduleCache.values())
-    
+
     return {
       totalLoaded: modules.length,
-      avgLoadTime: modules.length > 0 
-        ? modules.reduce((sum, cache) => sum + (Date.now() - cache.loadTime), 0) / modules.length 
+      avgLoadTime: modules.length > 0
+        ? modules.reduce((sum, cache) => sum + (Date.now() - cache.loadTime), 0) / modules.length
         : 0,
       cacheEnabled: this.config.enableCache,
       loadTimeout: this.config.loadTimeout,
@@ -375,10 +531,10 @@ export class PluginLoader {
    */
   async reloadPlugin(discoveryResult: PluginDiscoveryResult): Promise<PluginLoadResult> {
     const { metadata } = discoveryResult
-    
+
     // 清除缓存
     this.unloadPlugin(metadata.id)
-    
+
     // 重新加载
     return await this.loadPlugin(discoveryResult)
   }
@@ -420,17 +576,17 @@ export const loaderUtils = {
    */
   isValidPluginModule(module: any): boolean {
     if (!module) return false
-    
+
     // 检查是否有默认导出或插件类导出
     const hasValidExport = !!(
       module.default ||
       module.Plugin ||
-      Object.values(module).some(value => 
-        typeof value === 'function' && 
+      Object.values(module).some(value =>
+        typeof value === 'function' &&
         value.prototype instanceof BasePlugin
       )
     )
-    
+
     return hasValidExport
   },
 
@@ -443,9 +599,9 @@ export const loaderUtils = {
       hasPlugin: !!module.Plugin,
       exports: Object.keys(module),
       functions: Object.keys(module).filter(key => typeof module[key] === 'function'),
-      classes: Object.keys(module).filter(key => 
-        typeof module[key] === 'function' && 
-        module[key].prototype && 
+      classes: Object.keys(module).filter(key =>
+        typeof module[key] === 'function' &&
+        module[key].prototype &&
         module[key].prototype.constructor === module[key]
       )
     }
@@ -459,8 +615,8 @@ export const loaderUtils = {
       const result = moduleFactory()
       return { success: true, result }
     } catch (error) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: error instanceof Error ? error : new Error('Unknown execution error')
       }
     }

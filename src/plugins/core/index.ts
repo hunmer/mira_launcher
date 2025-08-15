@@ -8,7 +8,9 @@
 // 核心类
 export { BasePlugin } from './BasePlugin'
 export { createReactiveEventBus, EventBus, eventBusUtils, globalEventBus } from './EventBus'
+export { PluginAutoStartService } from './PluginAutoStartService'
 export { createReactivePluginManager, PluginManager } from './PluginManager'
+export { PluginSettingsService } from './PluginSettingsService'
 
 // 队列系统
 export { BaseQueue } from './BaseQueue'
@@ -31,10 +33,10 @@ export { default as QueueMonitor } from './QueueMonitor'
 export { default as RetryHandler } from './RetryHandler'
 
 // 测试功能 (开发环境)
-export {
-  runQueueTests, testDelayedQueue, testFIFOQueue,
-  testPriorityQueue, testTaskExecutor
-} from './QueueTest'
+// export {
+//   runQueueTests, testDelayedQueue, testFIFOQueue,
+//   testPriorityQueue, testTaskExecutor
+// } from './QueueTest'
 
 export {
   runSchedulerTests, testConcurrencyController, testMixedMode, testModeSwitch, testParallelMode, testRateLimit, testSerialMode, testTaskCancellation

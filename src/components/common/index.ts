@@ -19,6 +19,9 @@ export { default as Tooltip } from './Tooltip.vue'
 // 信息工具提示组件 - 带感叹号图标的工具提示
 export { default as TooltipInfo } from './TooltipInfo.vue'
 
+// 快捷键捕获输入组件 - 用于捕获用户按下的快捷键组合
+export { default as KeyCaptureInput } from './KeyCaptureInput.vue'
+
 // 右键上下文菜单组件 - 基于 floating-ui 的智能定位菜单
 export { default as ContextMenu } from './ContextMenu.vue'
 

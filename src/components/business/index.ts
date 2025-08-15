@@ -6,9 +6,6 @@ export { default as PageControls } from './PageControls.vue'
 export { default as PageIndicator } from './PageIndicator.vue'
 export { default as PageManager } from './PageManager.vue'
 
-// 搜索组件
-export { default as QuickSearch } from './QuickSearch.vue'
-
 // 应用程序相关组件
 export { default as AddApplicationDialog } from './AddApplicationDialog.vue'
 export { default as ApplicationGrid } from './ApplicationGrid.vue'

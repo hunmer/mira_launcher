@@ -1,53 +1,32 @@
 <template>
   <div class="action-buttons">
     <!-- 搜索按钮 -->
-    <Button
-      v-tooltip.bottom="'搜索'"
-      icon="pi pi-search"
-      severity="secondary"
-      text
-      rounded
-      size="small"
-      @click="toggleSearch"
-    />
-    
+    <Button v-tooltip.bottom="'搜索'" icon="pi pi-search" severity="secondary" text rounded size="small"
+      @click="toggleSearch" />
+
     <!-- 通知按钮 -->
-    <Button
-      v-tooltip.bottom="'通知'"
-      icon="pi pi-bell"
-      severity="secondary"
-      text
-      rounded
-      size="small"
-      @click="showNotifications"
-    />
-    
+    <Button v-tooltip.bottom="'通知'" icon="pi pi-bell" severity="secondary" text rounded size="small"
+      @click="showNotifications" />
+
     <!-- 主题切换按钮 -->
-    <Button
-      v-tooltip.bottom="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
-      :icon="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
-      severity="secondary"
-      text
-      rounded
-      size="small"
-      @click="toggleTheme"
-    />
+    <Button v-tooltip.bottom="isDarkMode ? '切换到浅色模式' : '切换到深色模式'" :icon="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
+      severity="secondary" text rounded size="small" @click="toggleTheme" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Button from 'primevue/button'
 import { useThemeStore } from '@/stores/theme'
+import { openQuickSearchWindow } from '@/utils/window-manager'
+import Button from 'primevue/button'
+import { computed } from 'vue'
 
 const themeStore = useThemeStore()
 
 const isDarkMode = computed(() => themeStore.currentTheme === 'dark')
 
 // 功能按钮事件处理
-const toggleSearch = () => {
-  console.log('Toggle search')
-  // 触发搜索功能
+const toggleSearch = async () => {
+  await openQuickSearchWindow()
 }
 
 const showNotifications = () => {

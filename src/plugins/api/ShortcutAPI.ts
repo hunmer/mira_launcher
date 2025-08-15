@@ -1,4 +1,4 @@
-import { ref, reactive, onUnmounted } from 'vue'
+import { reactive } from 'vue'
 import type { ShortcutAPI } from '../../types/plugin'
 
 /**
@@ -21,12 +21,48 @@ export interface PluginShortcut {
   global?: boolean
   /** 作用域 */
   scope?: 'global' | 'page' | 'component'
+  /** 快捷鍵類型 */
+  shortcutType?: 'global' | 'application'
   /** 條件檢查函數 */
   condition?: () => boolean
   /** 是否阻止默認行為 */
   preventDefault?: boolean
   /** 是否阻止事件冒泡 */
   stopPropagation?: boolean
+}
+
+/**
+ * 快捷鍵動作定義
+ */
+export interface ShortcutAction {
+  /** 動作ID */
+  id: string
+  /** 動作名稱 */
+  name: string
+  /** 動作描述 */
+  description?: string
+  /** 所屬插件ID */
+  pluginId?: string
+  /** 動作處理函數 */
+  handler: (data?: any) => void | Promise<void>
+  /** 動作分類 */
+  category?: 'system' | 'plugin' | 'user'
+}
+
+/**
+ * 默認快捷鍵配置
+ */
+export interface DefaultShortcutConfig {
+  /** 快捷鍵組合 */
+  key: string
+  /** 關聯動作ID */
+  actionId: string
+  /** 是否可編輯 */
+  editable: boolean
+  /** 是否可刪除 */
+  deletable: boolean
+  /** 快捷鍵類型 */
+  type: 'global' | 'application'
 }
 
 /**
@@ -152,7 +188,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
 
         // 觸發快捷鍵處理
         const result = shortcut.handler(event)
-        
+
         if (result instanceof Promise) {
           result.catch(error => {
             console.error(`[ShortcutAPI] Async shortcut handler error for ${shortcut.id}:`, error)
@@ -179,16 +215,16 @@ export class PluginShortcutAPI implements ShortcutAPI {
    */
   private serializeKeyEvent(event: KeyboardEvent): string {
     const parts: string[] = []
-    
+
     if (event.ctrlKey) parts.push('ctrl')
     if (event.metaKey) parts.push('meta')
     if (event.altKey) parts.push('alt')
     if (event.shiftKey) parts.push('shift')
-    
+
     // 使用 key 而不是 code，因為 key 考慮了鍵盤佈局
     const key = event.key.toLowerCase()
     parts.push(key)
-    
+
     return parts.join('+')
   }
 
@@ -198,7 +234,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
   private parseShortcutString(shortcutString: string): ParsedShortcut {
     const parts = shortcutString.toLowerCase().split('+').map(p => p.trim())
     const key = parts[parts.length - 1] || ''
-    
+
     return {
       ctrl: parts.includes('ctrl'),
       meta: parts.includes('meta') || parts.includes('cmd'),
@@ -214,13 +250,13 @@ export class PluginShortcutAPI implements ShortcutAPI {
   private normalizeShortcutString(shortcutString: string): string {
     const parsed = this.parseShortcutString(shortcutString)
     const parts: string[] = []
-    
+
     if (parsed.ctrl) parts.push('ctrl')
     if (parsed.meta) parts.push('meta')
     if (parsed.alt) parts.push('alt')
     if (parsed.shift) parts.push('shift')
     parts.push(parsed.key)
-    
+
     return parts.join('+')
   }
 
@@ -251,7 +287,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
    */
   registerShortcut(shortcut: PluginShortcut): void {
     const normalizedKey = this.normalizeShortcutString(shortcut.key)
-    
+
     // 檢查ID衝突
     if (this.shortcuts.has(shortcut.id)) {
       throw new Error(`Shortcut with ID '${shortcut.id}' already exists`)
@@ -263,7 +299,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       const firstExistingId = existingIds[0]
       if (firstExistingId) {
         const existingShortcut = this.shortcuts.get(firstExistingId)!
-        
+
         this.emit('shortcut:conflict', {
           shortcut: normalizedKey,
           existing: existingShortcut,
@@ -445,7 +481,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
   trigger(shortcut: string): void {
     const normalizedKey = this.normalizeShortcutString(shortcut)
     const shortcutIds = this.keyMap.get(normalizedKey) || []
-    
+
     if (shortcutIds.length === 0) {
       console.warn(`[ShortcutAPI] No shortcut found for '${shortcut}'`)
       return
@@ -476,7 +512,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
     const shortcuts = Array.from(this.shortcuts.values())
     const shortcutsByScope: Record<string, number> = {}
     const shortcutsByPlugin: Record<string, number> = {}
-    
+
     for (const shortcut of shortcuts) {
       // 統計作用域
       const scope = shortcut.scope || 'global'
@@ -589,10 +625,388 @@ export class PluginShortcutAPI implements ShortcutAPI {
 }
 
 /**
- * 創建快捷鍵 API 實例
+ * Tauri全局快捷鍵集成
  */
-export function createShortcutAPI(config?: Partial<ShortcutConfig>): PluginShortcutAPI {
-  return new PluginShortcutAPI(config)
+export class TauriShortcutIntegration {
+  private registeredGlobalShortcuts = new Set<string>()
+
+  /**
+   * 註冊全局快捷鍵
+   */
+  async registerGlobalShortcut(key: string, handler: () => void): Promise<boolean> {
+    try {
+      // 檢查是否在Tauri環境中
+      if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+        const { register } = await import('@tauri-apps/plugin-global-shortcut')
+
+        // 註冊全局快捷鍵
+        await register(key, () => handler())
+        this.registeredGlobalShortcuts.add(key)
+
+        console.log(`[TauriShortcutIntegration] Registered global shortcut: ${key}`)
+        return true
+      } else {
+        console.warn(`[TauriShortcutIntegration] Not in Tauri environment, cannot register global shortcut: ${key}`)
+        return false
+      }
+    } catch (error) {
+      console.error(`[TauriShortcutIntegration] Failed to register global shortcut ${key}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * 註銷全局快捷鍵
+   */
+  async unregisterGlobalShortcut(key: string): Promise<boolean> {
+    try {
+      if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window && this.registeredGlobalShortcuts.has(key)) {
+        const { unregister } = await import('@tauri-apps/plugin-global-shortcut')
+
+        await unregister(key)
+        this.registeredGlobalShortcuts.delete(key)
+
+        console.log(`[TauriShortcutIntegration] Unregistered global shortcut: ${key}`)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error(`[TauriShortcutIntegration] Failed to unregister global shortcut ${key}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * 註銷所有全局快捷鍵
+   */
+  async unregisterAll(): Promise<void> {
+    const keys = Array.from(this.registeredGlobalShortcuts)
+    for (const key of keys) {
+      await this.unregisterGlobalShortcut(key)
+    }
+  }
+
+  /**
+   * 獲取已註冊的全局快捷鍵
+   */
+  getRegisteredShortcuts(): string[] {
+    return Array.from(this.registeredGlobalShortcuts)
+  }
+}
+
+/**
+ * 默認快捷鍵註冊表
+ */
+export class DefaultShortcutRegistry {
+  private defaultShortcuts: DefaultShortcutConfig[] = [
+    {
+      key: 'ctrl+space',
+      actionId: 'system.toggle-window',
+      editable: true,
+      deletable: false,
+      type: 'global'
+    },
+    {
+      key: 'ctrl+f',
+      actionId: 'system.search',
+      editable: true,
+      deletable: false,
+      type: 'application'
+    },
+    {
+      key: 'ctrl+,',
+      actionId: 'system.open-settings',
+      editable: true,
+      deletable: false,
+      type: 'application'
+    },
+    {
+      key: 'ctrl+q',
+      actionId: 'system.exit',
+      editable: true,
+      deletable: false,
+      type: 'global'
+    }
+  ]
+
+  private systemActions: ShortcutAction[] = [
+    {
+      id: 'system.toggle-window',
+      name: '顯示/隱藏視窗',
+      description: '快速顯示或隱藏啟動器視窗',
+      category: 'system',
+      handler: () => {
+        // TODO: 實現視窗切換邏輯
+        console.log('[SystemAction] Toggle window visibility')
+      }
+    },
+    {
+      id: 'system.search',
+      name: '打開搜索',
+      description: '啟動搜索功能',
+      category: 'system',
+      handler: () => {
+        // TODO: 實現搜索邏輯
+        console.log('[SystemAction] Open search')
+      }
+    },
+    {
+      id: 'system.open-settings',
+      name: '打開設置',
+      description: '打開設置頁面',
+      category: 'system',
+      handler: () => {
+        // TODO: 實現設置頁面跳轉邏輯
+        console.log('[SystemAction] Open settings')
+      }
+    },
+    {
+      id: 'system.exit',
+      name: '退出應用',
+      description: '退出啟動器應用',
+      category: 'system',
+      handler: () => {
+        // TODO: 實現應用退出邏輯
+        console.log('[SystemAction] Exit application')
+      }
+    }
+  ]
+
+  /**
+   * 獲取默認快捷鍵配置
+   */
+  getDefaultShortcuts(): DefaultShortcutConfig[] {
+    return [...this.defaultShortcuts]
+  }
+
+  /**
+   * 獲取系統動作
+   */
+  getSystemActions(): ShortcutAction[] {
+    return [...this.systemActions]
+  }
+
+  /**
+   * 根據動作ID獲取動作
+   */
+  getActionById(actionId: string): ShortcutAction | undefined {
+    return this.systemActions.find(action => action.id === actionId)
+  }
+
+  /**
+   * 重置為默認配置
+   */
+  resetToDefaults(): DefaultShortcutConfig[] {
+    return this.getDefaultShortcuts()
+  }
+}
+
+/**
+ * 快捷鍵管理器
+ */
+export class ShortcutManager extends PluginShortcutAPI {
+  private actions = new Map<string, ShortcutAction>()
+  private tauriIntegration: TauriShortcutIntegration
+  private defaultRegistry: DefaultShortcutRegistry
+  private registeredShortcutIds = new Set<string>()
+
+  constructor(config?: Partial<ShortcutConfig>) {
+    super(config)
+    this.tauriIntegration = new TauriShortcutIntegration()
+    this.defaultRegistry = new DefaultShortcutRegistry()
+
+    // 初始化系統動作
+    this.initializeSystemActions()
+  }
+
+  /**
+   * 初始化系統動作
+   */
+  private initializeSystemActions(): void {
+    const systemActions = this.defaultRegistry.getSystemActions()
+    for (const action of systemActions) {
+      this.actions.set(action.id, action)
+    }
+  }
+
+  /**
+   * 註冊動作
+   */
+  registerAction(action: ShortcutAction): void {
+    if (this.actions.has(action.id)) {
+      console.warn(`[ShortcutManager] Action with ID '${action.id}' already exists`)
+      return
+    }
+
+    this.actions.set(action.id, action)
+    console.log(`[ShortcutManager] Registered action: ${action.id}`)
+  }
+
+  /**
+   * 註銷動作
+   */
+  unregisterAction(actionId: string): void {
+    if (this.actions.delete(actionId)) {
+      console.log(`[ShortcutManager] Unregistered action: ${actionId}`)
+    }
+  }
+
+  /**
+   * 獲取所有可用動作
+   */
+  getAvailableActions(): ShortcutAction[] {
+    return Array.from(this.actions.values())
+  }
+
+  /**
+   * 根據分類獲取動作
+   */
+  getActionsByCategory(category: string): ShortcutAction[] {
+    return Array.from(this.actions.values()).filter(action => action.category === category)
+  }
+
+  /**
+   * 註冊快捷鍵（覆蓋父類方法以支持動作）
+   */
+  registerShortcutWithAction(
+    key: string,
+    actionId: string,
+    options: Partial<PluginShortcut> = {}
+  ): string {
+    const action = this.actions.get(actionId)
+    if (!action) {
+      throw new Error(`Action with ID '${actionId}' not found`)
+    }
+
+    const shortcutId = `shortcut-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const shortcut: PluginShortcut = {
+      id: shortcutId,
+      key,
+      handler: (event) => action.handler(event),
+      description: action.description || '',
+      shortcutType: options.shortcutType || 'application',
+      ...options
+    }
+
+    this.registerShortcut(shortcut)
+    this.registeredShortcutIds.add(shortcutId)
+
+    // 如果是全局快捷鍵，註冊到Tauri
+    if (shortcut.shortcutType === 'global') {
+      this.tauriIntegration.registerGlobalShortcut(key, () => action.handler())
+    }
+
+    return shortcutId
+  }
+
+  /**
+   * 註銷快捷鍵（覆蓋父類方法以處理全局快捷鍵）
+   */
+  override unregister(shortcut: string): void {
+    const shortcutObj = this.getShortcut(shortcut)
+    if (shortcutObj && shortcutObj.shortcutType === 'global') {
+      this.tauriIntegration.unregisterGlobalShortcut(shortcutObj.key)
+    }
+
+    this.registeredShortcutIds.delete(shortcut)
+    super.unregister(shortcut)
+  }
+
+  /**
+   * 加載默認快捷鍵
+   */
+  loadDefaultShortcuts(): void {
+    const defaultShortcuts = this.defaultRegistry.getDefaultShortcuts()
+
+    for (const config of defaultShortcuts) {
+      try {
+        this.registerShortcutWithAction(config.key, config.actionId, {
+          shortcutType: config.type,
+          priority: 0 // 默認快捷鍵優先級最高
+        })
+      } catch (error) {
+        console.error(`[ShortcutManager] Failed to register default shortcut ${config.key}:`, error)
+      }
+    }
+  }
+
+  /**
+   * 重置為默認快捷鍵
+   */
+  resetToDefaults(): void {
+    // 清除所有現有快捷鍵
+    this.clear()
+
+    // 重新加載默認快捷鍵
+    this.loadDefaultShortcuts()
+
+    console.log('[ShortcutManager] Reset to default shortcuts')
+  }
+
+  /**
+   * 獲取快捷鍵統計（包含動作信息）
+   */
+  getStatsWithActions(): {
+    totalShortcuts: number
+    totalActions: number
+    shortcutsByType: Record<string, number>
+    actionsByCategory: Record<string, number>
+    conflicts: number
+  } {
+    const baseStats = this.getStats()
+
+    // 重新統計類型分布（因為基類沒有 shortcutType）
+    const shortcutsByType: Record<string, number> = {}
+
+    // 從註冊記錄重新計算
+    let totalShortcuts = 0
+    for (const shortcutId of this.registeredShortcutIds) {
+      const shortcut = this.getShortcut(shortcutId)
+      if (shortcut) {
+        totalShortcuts++
+        const type = shortcut.shortcutType || 'application'
+        shortcutsByType[type] = (shortcutsByType[type] || 0) + 1
+      }
+    }
+
+    const actionsByCategory: Record<string, number> = {}
+    for (const action of this.actions.values()) {
+      const category = action.category || 'unknown'
+      actionsByCategory[category] = (actionsByCategory[category] || 0) + 1
+    }
+
+    return {
+      totalShortcuts: totalShortcuts,
+      totalActions: this.actions.size,
+      shortcutsByType,
+      actionsByCategory,
+      conflicts: baseStats.conflicts
+    }
+  }
+
+  /**
+   * 銷毀管理器
+   */
+  override async destroy(): Promise<void> {
+    // 註銷所有全局快捷鍵
+    await this.tauriIntegration.unregisterAll()
+
+    // 銷毀基類
+    super.destroy()
+
+    // 清理動作
+    this.actions.clear()
+    this.registeredShortcutIds.clear()
+
+    console.log('[ShortcutManager] Manager destroyed')
+  }
+}
+
+/**
+ * 創建快捷鍵管理器實例
+ */
+export function createShortcutManager(config?: Partial<ShortcutConfig>): ShortcutManager {
+  return new ShortcutManager(config)
 }
 
 /**
@@ -629,13 +1043,13 @@ export const shortcutUtils = {
     try {
       const parts = shortcut.toLowerCase().split('+')
       if (parts.length === 0) return false
-      
+
       const key = parts[parts.length - 1]
       if (!key || key.length === 0) return false
-      
+
       const modifiers = parts.slice(0, -1)
       const validModifiers = ['ctrl', 'meta', 'cmd', 'alt', 'shift']
-      
+
       return modifiers.every(mod => validModifiers.includes(mod))
     } catch {
       return false

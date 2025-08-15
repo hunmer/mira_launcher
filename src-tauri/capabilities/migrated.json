@@ -52,7 +52,8 @@
         "$DATA",
         "$LOG",
         "$RUNTIME",
-        "$TEMP"
+        "$TEMP",
+        "**"
       ]
     },
     "core:window:allow-create",

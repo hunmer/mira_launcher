@@ -1,5 +1,5 @@
 import type { PluginMetadata } from '@/types/plugin'
-import { appConfigDir, join } from '@tauri-apps/api/path'
+import { appConfigDir, join, resourceDir } from '@tauri-apps/api/path'
 import { exists, readDir, readTextFile } from '@tauri-apps/plugin-fs'
 
 /**
@@ -60,18 +60,18 @@ export class PluginDiscovery {
     const results: PluginDiscoveryResult[] = []
 
     try {
-      // 获取应用配置目录
-      const configDir = await appConfigDir()
-
       for (const pluginDir of this.config.pluginDirectories) {
-        const fullPath = await join(configDir, pluginDir)
+        // 尝试多个可能的路径
+        const possiblePaths = await this.getPluginDirectoryPaths(pluginDir)
 
-        // 检查目录是否存在
-        if (await exists(fullPath)) {
-          const dirResults = await this.scanDirectory(fullPath)
-          results.push(...dirResults)
-        } else {
-          console.log(`[PluginDiscovery] Plugin directory not found: ${fullPath}`)
+        for (const fullPath of possiblePaths) {
+          // 检查目录是否存在
+          if (await exists(fullPath)) {
+            console.log(`[PluginDiscovery] Scanning plugin directory: ${fullPath}`)
+            const dirResults = await this.scanDirectory(fullPath)
+            results.push(...dirResults)
+            break // 找到第一个存在的路径就退出
+          }
         }
       }
 
@@ -87,6 +87,58 @@ export class PluginDiscovery {
       console.error('[PluginDiscovery] Failed to discover plugins:', error)
       return []
     }
+  }
+
+  /**
+   * 获取插件目录的可能路径列表
+   */
+  private async getPluginDirectoryPaths(pluginDir: string): Promise<string[]> {
+    const paths: string[] = []
+
+    try {
+      // 1. 如果是绝对路径，直接使用
+      if (this.isAbsolutePath(pluginDir)) {
+        paths.push(pluginDir)
+        // 如果是绝对路径，也尝试在其下查找 plugins 子目录
+        paths.push(await join(pluginDir, 'plugins'))
+        return paths
+      }
+
+      // 2. 开发环境：项目根目录下的插件目录
+      // 尝试使用相对路径（相对于当前工作目录）
+      paths.push(pluginDir)
+
+      // 3. 尝试资源目录
+      try {
+        const resDir = await resourceDir()
+        paths.push(await join(resDir, pluginDir))
+      } catch (e) {
+        console.debug('[PluginDiscovery] Resource dir not available in dev mode')
+      }
+
+      // 4. 生产环境：应用配置目录
+      try {
+        const configDir = await appConfigDir()
+        paths.push(await join(configDir, pluginDir))
+      } catch (e) {
+        console.debug('[PluginDiscovery] App config dir not available')
+      }
+
+      console.log(`[PluginDiscovery] Possible paths for ${pluginDir}:`, paths)
+      return paths
+    } catch (error) {
+      console.error(`[PluginDiscovery] Failed to get paths for ${pluginDir}:`, error)
+      return [pluginDir] // 降级到相对路径
+    }
+  }
+
+  /**
+   * 检查是否为绝对路径
+   */
+  private isAbsolutePath(path: string): boolean {
+    // Windows: C:\ or D:\ etc.
+    // Unix: /
+    return /^[A-Za-z]:\\/.test(path) || path.startsWith('/')
   }
 
   /**

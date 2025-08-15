@@ -1,4 +1,3 @@
-import { BasePlugin } from '../../../src/plugins/core/BasePlugin'
 import type {
     PluginBuilderFunction,
     PluginConfigDefinition,
@@ -10,7 +9,8 @@ import type {
     PluginQueueConfig,
     PluginStorageConfig,
     PluginSubscription
-} from '../../../src/types/plugin'
+} from '../plugin-sdk'
+import { BasePlugin } from '../plugin-sdk'
 
 /**
  * 网页链接处理插件
@@ -25,10 +25,10 @@ export class WebLinkPlugin extends BasePlugin {
     readonly author = 'Mira Launcher Team'
     readonly dependencies = []
     readonly minAppVersion = '1.0.0'
-    readonly permissions = ['shell', 'storage', 'notifications']
+    readonly permissions = ['shell', 'storage', 'notification']
 
     // 网页链接正则表达式匹配规则
-    readonly search_regexps = [
+    override readonly search_regexps = [
         '^https?:\\/\\/',                    // http:// 或 https:// 开头
         '^www\\.',                          // www. 开头
         '.*\\.(com|org|net|edu|gov|io|cn|co\\.uk|de|fr|jp)\\b',  // 常见域名后缀
@@ -37,14 +37,14 @@ export class WebLinkPlugin extends BasePlugin {
         '\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+',     // IP地址端口
     ]
 
-    readonly logs: PluginLogConfig = {
+    override readonly logs: PluginLogConfig = {
         level: 'info',
         maxEntries: 500,
         persist: true,
         format: 'simple'
     }
 
-    readonly configs: PluginConfigDefinition = {
+    override readonly configs: PluginConfigDefinition = {
         properties: {
             defaultOpenMethod: {
                 type: 'string',
@@ -90,7 +90,7 @@ export class WebLinkPlugin extends BasePlugin {
         }
     }
 
-    readonly contextMenus: PluginContextMenu[] = [
+    override readonly contextMenus: PluginContextMenu[] = [
         {
             id: 'open-link-system',
             title: '默认浏览器打开',
@@ -117,7 +117,7 @@ export class WebLinkPlugin extends BasePlugin {
         }
     ]
 
-    readonly hotkeys: PluginHotkey[] = [
+    override readonly hotkeys: PluginHotkey[] = [
         {
             id: 'quick-open-link',
             combination: 'Ctrl+Shift+O',
@@ -134,7 +134,7 @@ export class WebLinkPlugin extends BasePlugin {
         }
     ]
 
-    readonly subscriptions: PluginSubscription[] = [
+    override readonly subscriptions: PluginSubscription[] = [
         {
             event: 'search:query',
             handler: (data?: unknown) => this.onSearchQuery(data as string),
@@ -147,7 +147,7 @@ export class WebLinkPlugin extends BasePlugin {
         }
     ]
 
-    readonly notifications: PluginNotificationConfig = {
+    override readonly notifications: PluginNotificationConfig = {
         defaults: {
             type: 'info',
             duration: 3000,
@@ -172,14 +172,14 @@ export class WebLinkPlugin extends BasePlugin {
         }
     }
 
-    readonly storage: PluginStorageConfig = {
+    override readonly storage: PluginStorageConfig = {
         type: 'localStorage',
         prefix: 'web-link-plugin',
         encrypt: false,
         sizeLimit: 2 * 1024 * 1024 // 2MB
     }
 
-    readonly queue: PluginQueueConfig = {
+    override readonly queue: PluginQueueConfig = {
         type: 'fifo',
         config: {
             concurrency: 2,
@@ -189,7 +189,7 @@ export class WebLinkPlugin extends BasePlugin {
         }
     }
 
-    readonly builder: PluginBuilderFunction = (options) => {
+    override readonly builder: PluginBuilderFunction = (options) => {
         console.log('[WebLinkPlugin] Builder executed with options:', options)
         if (options?.app) {
             this.setupAppIntegration(options.app)
@@ -212,7 +212,7 @@ export class WebLinkPlugin extends BasePlugin {
     /**
      * 获取插件元数据
      */
-    getMetadata(): PluginMetadata {
+    override getMetadata(): PluginMetadata {
         const baseMetadata = this.metadata
         return {
             ...baseMetadata,
@@ -233,7 +233,7 @@ export class WebLinkPlugin extends BasePlugin {
     /**
      * 插件加载生命周期
      */
-    async onLoad(): Promise<void> {
+    override async onLoad(): Promise<void> {
         console.log('[WebLinkPlugin] Loading plugin...')
 
         // 加载配置
@@ -248,7 +248,7 @@ export class WebLinkPlugin extends BasePlugin {
     /**
      * 插件激活生命周期
      */
-    async onActivate(): Promise<void> {
+    override async onActivate(): Promise<void> {
         console.log('[WebLinkPlugin] Activating plugin...')
 
         this.isRunning = true
@@ -271,7 +271,7 @@ export class WebLinkPlugin extends BasePlugin {
     /**
      * 插件停用生命周期
      */
-    async onDeactivate(): Promise<void> {
+    override async onDeactivate(): Promise<void> {
         console.log('[WebLinkPlugin] Deactivating plugin...')
 
         this.isRunning = false
@@ -285,7 +285,7 @@ export class WebLinkPlugin extends BasePlugin {
     /**
      * 插件卸载生命周期
      */
-    async onUnload(): Promise<void> {
+    override async onUnload(): Promise<void> {
         console.log('[WebLinkPlugin] Unloading plugin...')
 
         // 保存配置
@@ -499,7 +499,7 @@ export class WebLinkPlugin extends BasePlugin {
 
         // 检查是否已存在
         const existingIndex = this.linkHistory.findIndex(item => item.url === url)
-        if (existingIndex >= 0) {
+        if (existingIndex >= 0 && this.linkHistory[existingIndex]) {
             this.linkHistory[existingIndex].visitCount += 1
             this.linkHistory[existingIndex].visitTime = new Date()
         } else {

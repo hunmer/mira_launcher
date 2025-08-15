@@ -1,3 +1,4 @@
+import { createShortcutManager } from '@/plugins/api/ShortcutAPI'
 import type {
   EventListener,
   EventListenerOptions,
@@ -7,7 +8,8 @@ import type {
   PluginLifecycleEvent,
   PluginMetadata,
   PluginRegistryEntry,
-  PluginState
+  PluginState,
+  ShortcutAPI
 } from '@/types/plugin'
 import { reactive, type Ref } from 'vue'
 import { BasePlugin } from './BasePlugin'
@@ -37,6 +39,7 @@ export class PluginManager {
   private eventBus: EventBus
   private config: Required<PluginManagerConfig>
   private isDestroyed = false
+  private globalShortcutManager = createShortcutManager()
 
   constructor(eventBus?: EventBus, config: PluginManagerConfig = {}) {
     this.eventBus = eventBus || new EventBus()
@@ -94,9 +97,19 @@ export class PluginManager {
       // 创建插件实例
       const pluginInstance = new pluginClass()
 
-      // 设置插件API
+      // 设置插件API（仅对支持的插件）
       const pluginAPI = this.createPluginAPI(metadata.id)
-      pluginInstance._setAPI(pluginAPI)
+      if (typeof pluginInstance._setAPI === 'function') {
+        pluginInstance._setAPI(pluginAPI)
+        console.log(`[PluginManager] Set API for plugin ${metadata.id}`)
+      } else {
+        console.log(`[PluginManager] Plugin ${metadata.id} doesn't support API injection (external plugin)`)
+        // 对于不支持API的插件，我们可以将API作为属性添加
+        const externalPlugin = pluginInstance as any
+        if (!externalPlugin.api) {
+          externalPlugin.api = pluginAPI
+        }
+      }
 
       const registryEntry: PluginRegistryEntry = {
         metadata,
@@ -655,7 +668,7 @@ export class PluginManager {
         vue: null as any, // TODO: 集成 Vue 应用实例
       },
       menu: this.createSimpleMenuAPI(pluginId),
-      shortcut: this.createSimpleShortcutAPI(pluginId),
+      shortcut: this.createShortcutAPI(pluginId),
       storage: this.createStorageAPI(pluginId),
       notification: this.createSimpleNotificationAPI(pluginId),
       component: this.createSimpleComponentAPI(pluginId),
@@ -706,25 +719,82 @@ export class PluginManager {
     }
   }
 
-  /**
-   * 创建简化快捷键API
-   */
-  private createSimpleShortcutAPI(pluginId: string) {
-    return {
+  private createShortcutAPI(pluginId: string): ShortcutAPI {
+    const baseAPI = {
       register: (shortcut: any) => {
-        console.log(`[Plugin ${pluginId}] Register shortcut:`, shortcut)
+        try {
+          // 如果shortcut包含actionId，使用registerShortcutWithAction
+          if (shortcut.actionId) {
+            return this.globalShortcutManager.registerShortcutWithAction(
+              shortcut.key,
+              shortcut.actionId,
+              { ...shortcut, pluginId }
+            )
+          } else {
+            // 否则使用传统的registerShortcut
+            return this.globalShortcutManager.registerShortcut({
+              ...shortcut,
+              pluginId,
+              id: shortcut.id || `${pluginId}-${Date.now()}`
+            })
+          }
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to register shortcut:`, error)
+          return null
+        }
       },
       unregister: (id: string) => {
-        console.log(`[Plugin ${pluginId}] Unregister shortcut:`, id)
+        try {
+          this.globalShortcutManager.unregister(id)
+          console.log(`[Plugin ${pluginId}] Unregistered shortcut: ${id}`)
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to unregister shortcut:`, error)
+        }
       },
       hasConflict: (combination: string) => {
-        console.log(`[Plugin ${pluginId}] Check shortcut conflict:`, combination)
-        return false
+        try {
+          return this.globalShortcutManager.hasConflict(combination)
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to check shortcut conflict:`, error)
+          return false
+        }
       },
       getAll: () => {
-        return []
+        try {
+          const shortcuts = this.globalShortcutManager.getByPlugin(pluginId)
+          return shortcuts.map(shortcut => ({
+            shortcut: shortcut.key,
+            description: shortcut.description || ''
+          }))
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to get shortcuts:`, error)
+          return []
+        }
       }
-    }
+    } as ShortcutAPI
+
+    // 添加扩展方法
+    return Object.assign(baseAPI, {
+      registerAction: (action: any) => {
+        try {
+          this.globalShortcutManager.registerAction({
+            ...action,
+            category: action.category || pluginId
+          })
+          console.log(`[Plugin ${pluginId}] Registered action: ${action.id}`)
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to register action:`, error)
+        }
+      },
+      getAvailableActions: () => {
+        try {
+          return this.globalShortcutManager.getAvailableActions()
+        } catch (error) {
+          console.error(`[Plugin ${pluginId}] Failed to get available actions:`, error)
+          return []
+        }
+      }
+    })
   }
 
   /**
@@ -1202,6 +1272,9 @@ export class PluginManager {
     for (const pluginId of pluginIds) {
       await this.unload(pluginId).catch(console.error)
     }
+
+    // 销毁全局快捷键管理器
+    await this.globalShortcutManager.destroy()
 
     this.plugins.clear()
     this.loadedModules.clear()

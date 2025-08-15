@@ -8,6 +8,50 @@ import type { SearchableItem, SearchOptions, SearchResult } from '@/utils/search
 import { debounce, highlightText, performSearch, SearchHistory } from '@/utils/search'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
+/**
+ * 启动应用程序
+ */
+const launchApplication = async (path: string, name: string) => {
+  try {
+    // 检查是否在 Tauri 环境中
+    if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+      const { Command } = await import('@tauri-apps/plugin-shell')
+
+      // 根据文件扩展名或路径类型决定启动方式
+      if (path.endsWith('.exe') || path.endsWith('.app') || path.endsWith('.deb') || path.endsWith('.dmg')) {
+        // 直接执行可执行文件
+        const command = Command.create('run-executable', [path])
+        await command.execute()
+      } else {
+        // 使用系统默认程序打开文件
+        const { open } = await import('@tauri-apps/plugin-shell')
+        await open(path)
+      }
+
+      console.log(`✅ 成功启动应用: ${name}`)
+    } else {
+      // 在 Web 环境中的备用方案
+      console.warn('⚠️ 在 Web 环境中无法启动应用程序')
+      // 可以尝试在新标签页中打开
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        window.open(path, '_blank')
+      }
+    }
+  } catch (error) {
+    console.error(`❌ 启动应用失败 ${name}:`, error)
+    // 备用方案：尝试使用系统默认方式打开
+    try {
+      if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+        const { open } = await import('@tauri-apps/plugin-shell')
+        await open(path)
+        console.log(`✅ 使用系统默认程序启动: ${name}`)
+      }
+    } catch (fallbackError) {
+      console.error(`❌ 备用启动方案也失败:`, fallbackError)
+    }
+  }
+}
+
 export interface UseSearchOptions {
   debounceMs?: number
   maxResults?: number
@@ -247,7 +291,8 @@ export const useSearch = (options: UseSearchOptions = {}) => {
       // 启动应用程序
       if (target.path) {
         console.log('启动应用:', target.name, target.path)
-        // 这里可以集成Tauri的shell API来启动应用
+        // 使用 Tauri 的 shell API 在新窗口中启动应用
+        launchApplication(target.path, target.name)
       }
     } else if (target.type === 'page') {
       // 切换到页面

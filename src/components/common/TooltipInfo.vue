@@ -1,10 +1,10 @@
 <template>
-  <div class="inline-flex items-center">
+  <h3 class="font-medium text-gray-900 dark:text-white inline-flex items-center gap-2">
     <slot />
     <i v-tooltip.top="tooltipConfig"
-      class="pi pi-info-circle ml-2 text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:rounded-full"
+      class="pi pi-info-circle text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:rounded-full"
       tabindex="0" />
-  </div>
+  </h3>
 </template>
 
 <script setup lang="ts">

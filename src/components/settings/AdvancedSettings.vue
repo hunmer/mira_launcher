@@ -1,146 +1,34 @@
 <template>
   <div class="space-y-6">
-    <Accordion 
-      :value="['0', '1']" 
-      multiple
-    >
-      <AccordionPanel value="0">
-        <AccordionHeader>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-cog text-gray-600 dark:text-gray-400" />
-            <span>系统设置</span>
-          </div>
-        </AccordionHeader>
-        <AccordionContent>
-          <div class="space-y-4 p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  开发者模式
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  启用开发者选项和调试功能
-                </p>
-              </div>
-              <input
-                v-model="developerMode"
-                type="checkbox"
-                class="toggle"
-                @change="saveDeveloperMode"
-              >
-            </div>
+    <SettingPlan :default-value="['0', '1']">
+      <SettingCard value="0" title="系统设置" icon="pi pi-cog" icon-color="text-gray-600 dark:text-gray-400">
+        <SettingItem title="开发者模式" tooltip="启用开发者选项和调试功能" type="text" right-control="switch" v-model="developerMode"
+          @update:model-value="saveDeveloperMode" readonly />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  调试日志
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  记录详细的调试信息到日志文件
-                </p>
-              </div>
-              <input
-                v-model="debugLogging"
-                type="checkbox"
-                class="toggle"
-                @change="saveDebugLogging"
-              >
-            </div>
+        <SettingItem title="调试日志" tooltip="记录详细的调试信息到日志文件" type="text" right-control="switch" v-model="debugLogging"
+          @update:model-value="saveDebugLogging" readonly />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  数据收集
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  允许收集匿名使用数据以改进产品
-                </p>
-              </div>
-              <input
-                v-model="dataCollection"
-                type="checkbox"
-                class="toggle"
-                @change="saveDataCollection"
-              >
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionPanel>
+        <SettingItem title="数据收集" tooltip="允许收集匿名使用数据以改进产品" type="text" right-control="switch" v-model="dataCollection"
+          @update:model-value="saveDataCollection" readonly />
+      </SettingCard>
 
-      <AccordionPanel value="1">
-        <AccordionHeader>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-shield text-orange-600 dark:text-orange-400" />
-            <span>重置与备份</span>
-          </div>
-        </AccordionHeader>
-        <AccordionContent>
-          <div class="space-y-4 p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  重置所有设置
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  将所有设置恢复到默认值
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                severity="danger"
-                @click="resetSettings"
-              >
-                重置设置
-              </Button>
-            </div>
+      <SettingCard value="1" title="重置与备份" icon="pi pi-shield" icon-color="text-orange-600 dark:text-orange-400">
+        <SettingItem title="重置所有设置" tooltip="将所有设置恢复到默认值" type="button" button-label="重置设置" button-severity="danger"
+          button-variant="outlined" @button-click="resetSettings" />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  导出设置
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  导出当前设置到文件
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                @click="exportSettings"
-              >
-                导出
-              </Button>
-            </div>
+        <SettingItem title="导出设置" tooltip="导出当前设置到文件" type="button" button-label="导出" button-variant="outlined"
+          @button-click="exportSettings" />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  导入设置
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  从文件导入设置配置
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                @click="importSettings"
-              >
-                导入
-              </Button>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionPanel>
-    </Accordion>
+        <SettingItem title="导入设置" tooltip="从文件导入设置配置" type="button" button-label="导入" button-variant="outlined"
+          @button-click="importSettings" />
+      </SettingCard>
+    </SettingPlan>
   </div>
 </template>
 
 <script setup lang="ts">
+import { SettingCard, SettingItem, SettingPlan } from '@/components/settings'
 import { ref } from 'vue'
-import Button from '@/components/common/Button.vue'
-import Accordion from 'primevue/accordion'
-import AccordionPanel from 'primevue/accordionpanel'
-import AccordionHeader from 'primevue/accordionheader'
-import AccordionContent from 'primevue/accordioncontent'
 
 // 系统设置
 const developerMode = ref(false)
@@ -166,7 +54,7 @@ const resetSettings = () => {
     developerMode.value = false
     debugLogging.value = false
     dataCollection.value = true
-    
+
     // 这里可以触发其他组件的重置方法
     // 或者调用 API 重置所有设置
     location.reload() // 临时方案，重新加载页面
@@ -184,35 +72,4 @@ const importSettings = () => {
 }
 </script>
 
-<style scoped>
-.toggle {
-  appearance: none;
-  width: 48px;
-  height: 24px;
-  background-color: #e5e7eb;
-  border-radius: 12px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.toggle:checked {
-  background-color: #3b82f6;
-}
-
-.toggle::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.toggle:checked::before {
-  transform: translateX(24px);
-}
-</style>
+<style scoped></style>

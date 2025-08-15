@@ -3,46 +3,35 @@
 
 // 菜單 API
 export {
-  PluginMenuAPI,
   createMenuAPI,
   globalMenuAPI,
-  menuUtils,
-  type PluginMenuItem,
-  type MenuRegistrationConfig,
-  type MenuEvents
+  menuUtils, PluginMenuAPI, type MenuEvents, type MenuRegistrationConfig, type PluginMenuItem
 } from './MenuAPI'
 
 // 快捷鍵 API
 export {
-  PluginShortcutAPI,
-  createShortcutAPI,
-  globalShortcutAPI,
-  shortcutUtils
+  createShortcutManager,
+  globalShortcutAPI, PluginShortcutAPI, shortcutUtils
 } from './ShortcutAPI'
 
 // 存儲 API
 export {
-  PluginStorageAPI,
-  PluginStorageAPIImpl,
   createStorageAPI,
-  globalStorageAPI,
-  storageUtils
+  globalStorageAPI, PluginStorageAPI,
+  PluginStorageAPIImpl, storageUtils
 } from './StorageAPI'
 
 // 通知 API
 export {
-  PluginNotificationAPI,
   createNotificationAPI,
   globalNotificationAPI,
-  notificationUtils
+  notificationUtils, PluginNotificationAPI
 } from './NotificationAPI'
 
 // 沙箱環境
 export {
-  PluginSandbox,
   createSandbox,
-  globalSandbox,
-  sandboxUtils
+  globalSandbox, PluginSandbox, sandboxUtils
 } from './Sandbox'
 
 // 進一步導入以供內部使用
@@ -53,7 +42,7 @@ import {
 } from './MenuAPI'
 
 import {
-  createShortcutAPI,
+  createShortcutManager,
   globalShortcutAPI,
   shortcutUtils
 } from './ShortcutAPI'
@@ -82,14 +71,14 @@ import {
 export function createPluginAPIs(pluginId: string) {
   // 創建各個 API 實例
   const menuAPI = createMenuAPI()
-  const shortcutAPI = createShortcutAPI()
+  const shortcutAPI = createShortcutManager()
   const storageAPI = createStorageAPI()
   const notificationAPI = createNotificationAPI()
   const sandbox = createSandbox()
 
   // 設置插件上下文
   storageAPI.setCurrentPlugin(pluginId)
-  
+
   // 創建沙箱環境
   const context = sandbox.createSandbox(pluginId, [
     'storage:read',
@@ -115,7 +104,7 @@ export function createPluginAPIs(pluginId: string) {
     storage: storageAPI,
     notification: notificationAPI,
     sandbox: context,
-    
+
     // 工具函數
     utils: {
       menu: menuUtils,
@@ -148,7 +137,7 @@ export const API_VERSION = '1.0.0'
  */
 export const SUPPORTED_APIS = [
   'menu',
-  'shortcut', 
+  'shortcut',
   'storage',
   'notification',
   'sandbox'
@@ -164,24 +153,16 @@ export type {
 
 export type {
   StorageConfig,
-  StorageEvents,
-  StorageStats,
-  StorageItem
+  StorageEvents, StorageItem, StorageStats
 } from './StorageAPI'
 
 export type {
   NotificationConfig,
-  NotificationEvents,
-  NotificationStats,
-  NotificationItem,
-  NotificationType
+  NotificationEvents, NotificationItem, NotificationStats, NotificationType
 } from './NotificationAPI'
 
 export type {
-  SandboxPolicy,
-  SandboxContext,
-  SandboxEvents,
-  SandboxStats,
-  SandboxPermission,
-  APICallRecord
+  APICallRecord, SandboxContext,
+  SandboxEvents, SandboxPermission, SandboxPolicy, SandboxStats
 } from './Sandbox'
+

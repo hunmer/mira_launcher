@@ -1,124 +1,35 @@
 <template>
   <div class="space-y-6">
-    <Accordion :value="['0', '1', '2']" multiple>
-      <AccordionPanel value="0">
-        <AccordionHeader>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-power-off text-green-600 dark:text-green-400" />
-            <span>启动设置</span>
-          </div>
-        </AccordionHeader>
-        <AccordionContent>
-          <div class="space-y-4 p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <TooltipInfo content="系统启动时自动运行 Mira Launcher">
-                  <h3 class="font-medium text-gray-900 dark:text-white">
-                    开机自启动
-                  </h3>
-                </TooltipInfo>
-              </div>
-              <input v-model="settingsStore.settings.startup.autoStart" type="checkbox" class="toggle">
-            </div>
+    <SettingPlan :default-value="['0', '1', '2']">
+      <SettingCard value="0" title="启动设置" icon="pi pi-power-off" icon-color="text-green-600 dark:text-green-400">
+        <SettingItem title="开机自启动" tooltip="系统启动时自动运行 Mira Launcher" type="text" right-control="switch"
+          v-model="settingsStore.settings.startup.autoStart" readonly />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  最小化到系统托盘
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  关闭窗口时最小化到系统托盘
-                </p>
-              </div>
-              <input v-model="settingsStore.settings.startup.startMinimized" type="checkbox" class="toggle">
-            </div>
+        <SettingItem title="最小化到系统托盘" tooltip="关闭窗口时最小化到系统托盘" type="text" right-control="switch"
+          v-model="settingsStore.settings.startup.startMinimized" readonly />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  启动时加载插件
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  应用程序启动时自动加载所有插件
-                </p>
-              </div>
-              <input v-model="settingsStore.settings.startup.loadPluginsOnStart" type="checkbox" class="toggle">
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionPanel>
+        <SettingItem title="启动时加载插件" tooltip="应用程序启动时自动加载所有插件" type="text" right-control="switch"
+          v-model="settingsStore.settings.startup.loadPluginsOnStart" readonly />
+      </SettingCard>
 
-      <AccordionPanel value="1">
-        <AccordionHeader>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-bolt text-orange-600 dark:text-orange-400" />
-            <span>性能设置</span>
-          </div>
-        </AccordionHeader>
-        <AccordionContent>
-          <div class="space-y-4 p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  启用硬件加速
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  使用 GPU 加速渲染，提升性能
-                </p>
-              </div>
-              <input v-model="hardwareAcceleration" type="checkbox" class="toggle" @change="saveHardwareAcceleration">
-            </div>
+      <SettingCard value="1" title="性能设置" icon="pi pi-bolt" icon-color="text-orange-600 dark:text-orange-400">
+        <SettingItem title="启用硬件加速" tooltip="使用 GPU 加速渲染，提升性能" type="text" right-control="switch"
+          v-model="hardwareAcceleration" @update:model-value="saveHardwareAcceleration" readonly />
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  预加载应用信息
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  启动时预先加载应用程序信息，提升响应速度
-                </p>
-              </div>
-              <input v-model="preloadApps" type="checkbox" class="toggle" @change="savePreloadApps">
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionPanel>
+        <SettingItem title="预加载应用信息" tooltip="启动时预先加载应用程序信息，提升响应速度" type="text" right-control="switch"
+          v-model="preloadApps" @update:model-value="savePreloadApps" readonly />
+      </SettingCard>
 
-      <AccordionPanel value="2">
-        <AccordionHeader>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-download text-blue-600 dark:text-blue-400" />
-            <span>更新设置</span>
-          </div>
-        </AccordionHeader>
-        <AccordionContent>
-          <div class="space-y-4 p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-medium text-gray-900 dark:text-white">
-                  自动检查更新
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  定期检查并提示有可用更新
-                </p>
-              </div>
-              <input v-model="settingsStore.settings.startup.checkUpdates" type="checkbox" class="toggle">
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionPanel>
-    </Accordion>
+      <SettingCard value="2" title="更新设置" icon="pi pi-download" icon-color="text-blue-600 dark:text-blue-400">
+        <SettingItem title="自动检查更新" tooltip="定期检查并提示有可用更新" type="text" right-control="switch"
+          v-model="settingsStore.settings.startup.checkUpdates" readonly />
+      </SettingCard>
+    </SettingPlan>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Accordion,
-  AccordionContent,
-  AccordionHeader,
-  AccordionPanel,
-  TooltipInfo
-} from '@/components/common'
+import { SettingCard, SettingItem, SettingPlan } from '@/components/settings'
 import { useSettingsStore } from '@/stores/settings'
 import { ref } from 'vue'
 
@@ -137,35 +48,4 @@ const savePreloadApps = () => {
 }
 </script>
 
-<style scoped>
-.toggle {
-  appearance: none;
-  width: 48px;
-  height: 24px;
-  background-color: #e5e7eb;
-  border-radius: 12px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.toggle:checked {
-  background-color: #3b82f6;
-}
-
-.toggle::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.toggle:checked::before {
-  transform: translateX(24px);
-}
-</style>
+<style scoped></style>

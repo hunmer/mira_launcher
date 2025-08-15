@@ -3,22 +3,14 @@
     <Container class="max-w-4xl mx-auto">
       <Tabs v-model:value="activeTab">
         <TabList class="flex border-b border-gray-200 dark:border-gray-700">
-          <Tab 
-            v-for="tab in tabs" 
-            :key="tab.value" 
-            :value="tab.value"
-            class="tab-item"
-          >
-            <div 
-              v-ripple 
-              class="flex items-center gap-2 text-inherit"
-            >
-              <i :class="tab.icon" />
+          <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value" class="tab-item">
+            <div v-ripple class="flex items-center gap-3 text-inherit">
+              <i :class="tab.icon" style="padding-right: 10px;" />
               <span>{{ tab.label }}</span>
             </div>
           </Tab>
         </TabList>
-        
+
         <TabPanels>
           <!-- 常规设置 -->
           <TabPanel value="general">
@@ -61,10 +53,10 @@
 </template>
 
 <script setup lang="ts">
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@/components/common'
 import Container from '@/components/layout/Container.vue'
-import { GeneralSettings, ShortcutSettings, StartupSettings, AdvancedSettings, PluginSettings } from '@/components/settings'
+import { AdvancedSettings, GeneralSettings, PluginSettings, ShortcutSettings, StartupSettings } from '@/components/settings'
 import { onMounted, ref } from 'vue'
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@/components/common'
 
 // Tab 状态
 const activeTab = ref('general')
@@ -74,27 +66,27 @@ const tabs = ref([
   {
     value: 'general',
     label: '常规',
-    icon: 'pi pi-cog',
+    icon: 'i-mdi-cog',
   },
   {
-    value: 'shortcuts', 
+    value: 'shortcuts',
     label: '快捷键',
-    icon: 'pi pi-keyboard',
+    icon: 'i-mdi-keyboard',
   },
   {
     value: 'startup',
     label: '启动设置',
-    icon: 'pi pi-power-off',
+    icon: 'i-mdi-rocket-launch',
   },
   {
     value: 'plugins',
     label: '插件设置',
-    icon: 'pi pi-puzzle-piece',
+    icon: 'i-mdi-puzzle',
   },
   {
     value: 'advanced',
     label: '高级',
-    icon: 'pi pi-wrench',
+    icon: 'i-mdi-tune-variant',
   },
 ])
 
@@ -106,7 +98,6 @@ onMounted(() => {
 <style scoped>
 .settings-page {
   min-height: 100vh;
-  padding: 2rem 1rem;
   background-color: #f9fafb;
 }
 

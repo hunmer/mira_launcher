@@ -1,9 +1,10 @@
 <template>
   <!-- 搜索覆盖层 -->
-  <Teleport to="body">
-    <div v-if="visible"
-      class="quick-search-overlay fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black bg-opacity-50 backdrop-blur-sm"
-      @click="hide" @keydown="handleKeyDown">
+  <component :is="usePortal ? Teleport : 'div'" :to="usePortal ? 'body' : undefined">
+    <div v-if="visible || alwaysVisible" :class="[
+      usePortal ? 'quick-search-overlay fixed inset-0 z-50' : 'quick-search-standalone',
+      'flex items-start justify-center pt-20 bg-black bg-opacity-50 backdrop-blur-sm'
+    ]" @click="usePortal ? hide() : undefined" @keydown="handleKeyDown">
       <!-- 搜索面板 -->
       <div
         class="quick-search-panel bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl mx-4 overflow-hidden transform transition-all duration-200 ease-out"
@@ -183,24 +184,28 @@
         </div>
       </div>
     </div>
-  </Teleport>
+  </component>
 </template>
 
 <script setup lang="ts">
 import SearchIcon from '@/components/icons/SearchIcon.vue'
 import { useSearch } from '@/composables/useSearch'
 import type { SearchResult } from '@/utils/search'
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, Teleport, watch } from 'vue'
 
 // Props
 interface Props {
   modelValue?: boolean
+  usePortal?: boolean
+  alwaysVisible?: boolean
   searchScope?: 'all' | 'current-page' | 'apps' | 'pages' | 'plugins'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
   searchScope: 'all',
+  usePortal: true,
+  alwaysVisible: false,
 })
 
 // Emits
@@ -366,6 +371,12 @@ watch(visible, (isVisible) => {
     focusSearchInput()
   }
 })
+
+// 暴露方法给父组件
+defineExpose({
+  show,
+  hide
+})
 </script>
 
 <style scoped>
@@ -475,5 +486,23 @@ watch(visible, (isVisible) => {
 /* 深色模式适配 */
 .dark .bg-gray-750 {
   background-color: rgb(31 41 55);
+}
+
+/* 独立模式样式 */
+.quick-search-standalone {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+.quick-search-standalone .quick-search-panel {
+  margin-top: 0;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 </style>

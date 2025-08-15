@@ -1,0 +1,21 @@
+{
+    "id": "web-link-plugin",
+    "name": "网页链接插件",
+    "version": "1.0.0",
+    "description": "处理网页链接和URL的插件",
+    "author": "Mira Launcher Team",
+    "entry": "index.ts",
+    "dependencies": [],
+    "permissions": [
+        "shell",
+        "storage",
+        "notification"
+    ],
+    "minAppVersion": "1.0.0",
+    "keywords": [
+        "web",
+        "link",
+        "url",
+        "browser"
+    ]
+}

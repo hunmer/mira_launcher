@@ -1,0 +1,20 @@
+{
+    "id": "test-plugin",
+    "name": "测试插件",
+    "version": "1.0.0",
+    "description": "用于测试插件系统功能的示例插件",
+    "author": "Mira Launcher Team",
+    "entry": "index.ts",
+    "dependencies": [],
+    "permissions": [
+        "storage",
+        "notification",
+        "system"
+    ],
+    "minAppVersion": "1.0.0",
+    "keywords": [
+        "test",
+        "example",
+        "demo"
+    ]
+}

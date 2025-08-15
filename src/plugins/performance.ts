@@ -91,7 +91,7 @@ class PerformanceMonitor {
       const checkMemory = () => {
         const memory = (performance as any).memory
         const usedMB = memory.usedJSHeapSize / 1024 / 1024
-        
+
         if (usedMB > this.generalMetrics.memoryPeakUsage) {
           this.generalMetrics.memoryPeakUsage = usedMB
         }
@@ -115,13 +115,13 @@ class PerformanceMonitor {
     if ('memory' in performance) {
       const memory = (performance as any).memory
       const currentUsage = memory.usedJSHeapSize / 1024 / 1024
-      
-      console.log('[Performance] Memory Usage:', {
-        current: `${currentUsage.toFixed(2)} MB`,
-        peak: `${this.generalMetrics.memoryPeakUsage.toFixed(2)} MB`,
-        total: `${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)} MB`,
-        limit: `${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)} MB`,
-      })
+
+      // console.log('[Performance] Memory Usage:', {
+      //   current: `${currentUsage.toFixed(2)} MB`,
+      //   peak: `${this.generalMetrics.memoryPeakUsage.toFixed(2)} MB`,
+      //   total: `${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)} MB`,
+      //   limit: `${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)} MB`,
+      // })
     }
 
     // 收集插件指标
@@ -134,17 +134,17 @@ class PerformanceMonitor {
    * 收集插件性能指标
    */
   private collectPluginMetrics() {
-    console.log('[Performance] Plugin Metrics:', {
-      totalPlugins: this.generalMetrics.totalPlugins,
-      activePlugins: this.pluginMetrics.size,
-      metrics: Array.from(this.pluginMetrics.values()).map(metric => ({
-        pluginId: metric.pluginId,
-        loadTime: `${metric.loadTime}ms`,
-        memory: `${metric.memoryUsage.toFixed(2)}MB`,
-        renders: metric.renderCount,
-        errors: metric.errorCount,
-      })),
-    })
+    // console.log('[Performance] Plugin Metrics:', {
+    //   totalPlugins: this.generalMetrics.totalPlugins,
+    //   activePlugins: this.pluginMetrics.size,
+    //   metrics: Array.from(this.pluginMetrics.values()).map(metric => ({
+    //     pluginId: metric.pluginId,
+    //     loadTime: `${metric.loadTime}ms`,
+    //     memory: `${metric.memoryUsage.toFixed(2)}MB`,
+    //     renders: metric.renderCount,
+    //     errors: metric.errorCount,
+    //   })),
+    // })
   }
 
   /**
@@ -177,7 +177,7 @@ class PerformanceMonitor {
 
     const message = `Plugin ${pluginId} performance issue: ${type} = ${value}`
     console.warn(`[Performance] ${message}`)
-    
+
     this.dispatchPerformanceEvent('plugin-performance-warning', {
       pluginId,
       type,
@@ -201,7 +201,7 @@ class PerformanceMonitor {
    */
   startPluginLoad(pluginId: string) {
     const startTime = performance.now()
-    
+
     // 创建或更新插件指标
     const existing = this.pluginMetrics.get(pluginId)
     const metric: PluginPerformanceData = existing || {
@@ -214,8 +214,8 @@ class PerformanceMonitor {
       lastUpdate: new Date(),
     }
 
-    // 存储加载开始时间
-    ;(metric as any).loadStartTime = startTime
+      // 存储加载开始时间
+      ; (metric as any).loadStartTime = startTime
     this.pluginMetrics.set(pluginId, metric)
 
     console.log(`[Performance] Plugin load started: ${pluginId}`)
@@ -227,11 +227,11 @@ class PerformanceMonitor {
   endPluginLoad(pluginId: string, success: boolean = true) {
     const endTime = performance.now()
     const metric = this.pluginMetrics.get(pluginId)
-    
+
     if (metric && (metric as any).loadStartTime) {
       metric.loadTime = endTime - (metric as any).loadStartTime
       metric.lastUpdate = new Date()
-      
+
       if (!success) {
         metric.errorCount++
       }
@@ -248,10 +248,10 @@ class PerformanceMonitor {
    */
   recordPluginActivation(pluginId: string) {
     const startTime = performance.now()
-    
+
     const metric = this.pluginMetrics.get(pluginId)
     if (metric) {
-      ;(metric as any).activationStartTime = startTime
+      ; (metric as any).activationStartTime = startTime
     }
 
     // 更新总插件数
@@ -264,11 +264,11 @@ class PerformanceMonitor {
   recordPluginActivationEnd(pluginId: string) {
     const endTime = performance.now()
     const metric = this.pluginMetrics.get(pluginId)
-    
+
     if (metric && (metric as any).activationStartTime) {
       metric.activationTime = endTime - (metric as any).activationStartTime
       metric.lastUpdate = new Date()
-      
+
       delete (metric as any).activationStartTime
       this.pluginMetrics.set(pluginId, metric)
 
@@ -300,7 +300,7 @@ class PerformanceMonitor {
     }
 
     console.error(`[Performance] Plugin error in ${pluginId}:`, error)
-    
+
     this.dispatchPerformanceEvent('plugin-error', {
       pluginId,
       error: error.message,
@@ -322,7 +322,7 @@ class PerformanceMonitor {
    */
   getPerformanceReport() {
     const uptime = Date.now() - this.generalMetrics.startTime
-    
+
     return {
       uptime,
       general: { ...this.generalMetrics },
@@ -364,7 +364,7 @@ class PerformanceMonitor {
       clearInterval(this.monitoringInterval)
       this.monitoringInterval = null
     }
-    
+
     this.pluginMetrics.clear()
     console.log('[Performance] Monitor cleaned up')
   }
@@ -392,11 +392,11 @@ export function setupPerformanceMonitor(app: App) {
       mounted() {
         renderCount++
         performanceMonitor.recordComponentRender()
-        
+
         if (renderCount % 10 === 0) {
           console.log(`[Performance] Rendered ${renderCount} components`)
         }
-        
+
         // 检查是否是插件组件
         const pluginId = (this.$el as HTMLElement)?.getAttribute?.('data-plugin-id')
         if (pluginId) {
@@ -410,8 +410,8 @@ export function setupPerformanceMonitor(app: App) {
       console.log(`[Performance] Final stats:`, performanceMonitor.getPerformanceReport())
     })
 
-    // 暴露到全局以便调试
-    ;(window as any).__performanceMonitor = performanceMonitor
+      // 暴露到全局以便调试
+      ; (window as any).__performanceMonitor = performanceMonitor
 
     console.log('[Performance Monitor] Initialized for development environment')
   }
@@ -450,3 +450,4 @@ export function analyzeBundleSize() {
 
 // 导出性能监控实例
 export { performanceMonitor }
+
