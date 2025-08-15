@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HistoryPanel组件测试</title>
+    
+    <!-- PrimeVue CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/primevue@^4/resources/themes/aura-light-green/theme.css">
+    <link rel="stylesheet" href="https://unpkg.com/primevue@^4/resources/primevue.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons@^7/primeicons.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@^3/primeflex.css">
+    
+    <!-- 组件样式 -->
+    <link rel="stylesheet" href="components/HistoryPanel.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+            background: var(--surface-ground, #f8f9fa);
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .test-controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+        }
+        .control-group {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-group label {
+            font-weight: 500;
+            min-width: 100px;
+        }
+        .control-group input, .control-group select {
+            padding: 5px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            flex: 1;
+        }
+        .control-group button {
+            padding: 5px 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .control-group button:hover {
+            background: #2563eb;
+        }
+        .test-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+        }
+        .event-log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .demo-panel {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="test-container">
+            <h1>HistoryPanel 组件测试</h1>
+            
+            <div class="test-controls">
+                <div class="control-group">
+                    <label>当前查询:</label>
+                    <input v-model="currentQuery" type="text" placeholder="输入当前搜索查询...">
+                </div>
+                <div class="control-group">
+                    <label>选中索引:</label>
+                    <input v-model.number="selectedIndex" type="number" min="-1" :max="10">
+                    <button @click="selectedIndex = -1">清除选中</button>
+                </div>
+                <div class="control-group">
+                    <label>显示历史:</label>
+                    <input v-model="showHistory" type="checkbox">
+                </div>
+                <div class="control-group">
+                    <label>添加历史:</label>
+                    <input v-model="newHistoryItem" type="text" placeholder="输入新历史记录..." @keyup.enter="addNewHistory">
+                    <button @click="addNewHistory">添加</button>
+                </div>
+            </div>
+            
+            <div class="test-info">
+                <h3>测试功能:</h3>
+                <ul>
+                    <li>✅ 历史记录本地存储持久化</li>
+                    <li>✅ 历史记录列表显示和选择</li>
+                    <li>✅ 点击历史记录快速重用</li>
+                    <li>✅ 删除单条和清空所有历史记录</li>
+                    <li>✅ 搜索频次统计和热门搜索</li>
+                    <li>✅ 鼠标和键盘交互支持</li>
+                </ul>
+                <p><strong>当前历史记录数量:</strong> {{ historyCount }}</p>
+            </div>
+            
+            <!-- HistoryPanel组件测试 -->
+            <div class="demo-panel">
+                <history-panel
+                    :show-history="showHistory"
+                    :selected-index="selectedIndex"
+                    :current-query="currentQuery"
+                    :max-items="10"
+                    storage-key="test-history"
+                    @select="handleSelect"
+                    @selected-index-change="handleSelectedIndexChange"
+                    @mouse-enter="handleMouseEnter"
+                    @mouse-leave="handleMouseLeave"
+                    @history-update="handleHistoryUpdate"
+                    ref="historyPanel"
+                />
+            </div>
+            
+            <div class="event-log">
+                <h4>事件日志:</h4>
+                <div
+                    v-for="(log, index) in eventLogs"
+                    :key="index"
+                    class="log-item"
+                >
+                    {{ log }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- PrimeVue CDN -->
+    <script src="https://unpkg.com/primevue@^4/umd/primevue.min.js"></script>
+    <!-- HistoryPanel组件 -->
+    <script src="components/HistoryPanel.js"></script>
+
+    <script>
+        const { createApp, ref } = Vue
+
+        const TestApp = {
+            setup() {
+                const eventLogs = ref([])
+                const currentQuery = ref('')
+                const selectedIndex = ref(-1)
+                const showHistory = ref(true)
+                const newHistoryItem = ref('')
+                const historyCount = ref(0)
+                const historyPanel = ref(null)
+
+                const addLog = (message) => {
+                    const timestamp = new Date().toLocaleTimeString()
+                    eventLogs.value.unshift(`[${timestamp}] ${message}`)
+                    // 保持最多30条日志
+                    if (eventLogs.value.length > 30) {
+                        eventLogs.value = eventLogs.value.slice(0, 30)
+                    }
+                }
+
+                const handleSelect = ({ query, index }) => {
+                    addLog(`✅ 选择历史记录: "${query}" (索引: ${index})`)
+                    currentQuery.value = query
+                }
+
+                const handleSelectedIndexChange = (newIndex) => {
+                    selectedIndex.value = newIndex
+                    addLog(`📍 选中索引变更: ${newIndex}`)
+                }
+
+                const handleMouseEnter = ({ index, item }) => {
+                    addLog(`🖱️ 鼠标悬停在历史记录: "${item}" (索引: ${index})`)
+                }
+
+                const handleMouseLeave = () => {
+                    addLog(`🖱️ 鼠标离开历史记录`)
+                }
+
+                const handleHistoryUpdate = (historyItems) => {
+                    historyCount.value = historyItems.length
+                    addLog(`🔄 历史记录更新: ${historyItems.length} 条记录`)
+                }
+
+                const addNewHistory = () => {
+                    if (newHistoryItem.value.trim() && historyPanel.value) {
+                        historyPanel.value.addHistory(newHistoryItem.value.trim())
+                        addLog(`➕ 添加新历史记录: "${newHistoryItem.value.trim()}"`)
+                        newHistoryItem.value = ''
+                    }
+                }
+
+                // 初始化一些测试数据
+                const initTestData = () => {
+                    const testQueries = [
+                        'Visual Studio Code',
+                        'Chrome浏览器',
+                        '设置页面',
+                        'JavaScript教程',
+                        'Vue 3文档'
+                    ]
+                    
+                    setTimeout(() => {
+                        if (historyPanel.value) {
+                            testQueries.forEach(query => {
+                                historyPanel.value.addHistory(query)
+                            })
+                            addLog(`🚀 初始化测试数据: ${testQueries.length} 条历史记录`)
+                        }
+                    }, 500)
+                }
+
+                // 页面加载后初始化测试数据
+                setTimeout(initTestData, 100)
+
+                return {
+                    eventLogs,
+                    currentQuery,
+                    selectedIndex,
+                    showHistory,
+                    newHistoryItem,
+                    historyCount,
+                    historyPanel,
+                    handleSelect,
+                    handleSelectedIndexChange,
+                    handleMouseEnter,
+                    handleMouseLeave,
+                    handleHistoryUpdate,
+                    addNewHistory
+                }
+            }
+        }
+
+        const app = createApp(TestApp)
+        app.component('HistoryPanel', HistoryPanel)
+        app.mount('#app')
+    </script>
+</body>
+</html>

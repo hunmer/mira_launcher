@@ -1,3 +1,7 @@
+<!-- eslint-disable vue/html-closing-bracket-newline -->
+<!-- eslint-disable vue/max-attributes-per-line -->
+<!-- eslint-disable vue/html-indent -->
+<!-- eslint-disable vue/first-attribute-linebreak -->
 <template>
   <div class="applications-page">
     <!-- 工具栏 -->
@@ -52,7 +56,7 @@ const applicationsStore = useApplicationsStore()
 // 图标尺寸配置和布局
 const {
   setLayoutMode,
-  layoutMode
+  layoutMode,
 } = useApplicationLayout()
 
 const gridColumnsStr = ref('4') // 字符串形式的网格列数，用于下拉菜单
@@ -77,7 +81,7 @@ const currentPageApps = computed({
   set: (value) => {
     // 这里可以处理拖拽排序后的数据更新
     console.log('应用列表更新:', value)
-  }
+  },
 })
 
 // 右键菜单
@@ -100,7 +104,7 @@ const blankAreaContextMenuItems = computed((): MenuItem[] => [
   },
   {
     label: '',
-    separator: true
+    separator: true,
   },
   {
     label: '删除当前页面',
@@ -134,7 +138,7 @@ const contextMenuItems = computed((): MenuItem[] => [
   },
   {
     label: '',
-    separator: true
+    separator: true,
   },
   {
     label: '编辑',
@@ -277,7 +281,7 @@ const onBlankAreaContextMenuSelect = (item: MenuItem) => {
   hideBlankAreaContextMenu()
 }
 
-const handleClickOutside = (event: Event) => {
+const handleClickOutside = () => {
   hideContextMenu()
   hideBlankAreaContextMenu()
 }

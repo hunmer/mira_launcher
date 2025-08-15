@@ -22,9 +22,9 @@
         "minimizable": true,
         "closable": true,
         "decorations": false,
-        "alwaysOnTop": false,
+        "alwaysOnTop": true,
         "fullscreen": false,
-        "transparent": false,
+        "transparent": true,
         "visible": true,
         "center": true,
         "skipTaskbar": false
@@ -33,7 +33,8 @@
     "security": {
       "csp": null
     },
-    "withGlobalTauri": true
+    "withGlobalTauri": true,
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

@@ -1,0 +1,264 @@
+/**
+ * 组件集成适配器
+ * 确保现有组件与新主题系统的兼容性
+ */
+
+/* ==========================================================================
+   SearchInput 组件适配
+   ========================================================================== */
+
+/* 重写SearchInput组件的样式以使用新的主题系统变量 */
+.search-input-component {
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+}
+
+.search-input-component:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input-component .search-input {
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-light);
+}
+
+.search-input-component .search-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.search-input-component .search-loading-indicator {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   ResultList 组件适配
+   ========================================================================== */
+
+.result-list-component {
+  background: transparent;
+}
+
+.result-list-component .result-item {
+  background: transparent;
+  border-left: 3px solid transparent;
+  transition: all var(--transition-normal);
+}
+
+.result-list-component .result-item:hover {
+  background: var(--bg-hover);
+  border-left-color: var(--color-primary);
+}
+
+.result-list-component .result-item.selected {
+  background: var(--bg-selected);
+  border-left-color: var(--color-primary);
+}
+
+.result-list-component .result-title {
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+}
+
+.result-list-component .result-description {
+  color: var(--text-secondary);
+}
+
+.result-list-component .result-icon {
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+}
+
+.result-list-component .highlight {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--color-primary);
+  padding: 1px 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   HistoryPanel 组件适配
+   ========================================================================== */
+
+.history-panel-component {
+  background: transparent;
+}
+
+.history-panel-component .history-item {
+  background: transparent;
+  border-left: 3px solid transparent;
+  transition: all var(--transition-normal);
+}
+
+.history-panel-component .history-item:hover {
+  background: var(--bg-hover);
+  border-left-color: var(--color-primary);
+}
+
+.history-panel-component .history-item.selected {
+  background: var(--bg-selected);
+  border-left-color: var(--color-primary);
+}
+
+.history-panel-component .history-query {
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+}
+
+.history-panel-component .history-meta {
+  color: var(--text-tertiary);
+}
+
+.history-panel-component .history-remove {
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.history-panel-component .history-remove:hover {
+  background: var(--bg-hover);
+  color: var(--color-danger);
+}
+
+/* ==========================================================================
+   通用组件类覆盖
+   ========================================================================== */
+
+/* 确保所有文本元素使用主题颜色 */
+.component-container,
+.component-container * {
+  color: var(--text-primary);
+}
+
+/* 背景元素 */
+.component-background {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+}
+
+/* 悬停状态 */
+.component-hoverable:hover {
+  background: var(--bg-hover);
+}
+
+/* 选中状态 */
+.component-selected {
+  background: var(--bg-selected);
+  border-color: var(--color-primary);
+}
+
+/* 按钮样式 */
+.component-button {
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all var(--transition-normal);
+}
+
+.component-button:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.component-button:active {
+  background: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* 输入框样式 */
+.component-input {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all var(--transition-normal);
+}
+
+.component-input:focus {
+  border-color: var(--border-focus);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.component-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+/* ==========================================================================
+   深色模式特殊调整
+   ========================================================================== */
+
+.dark .search-input-component .search-input,
+[data-theme="dark"] .search-input-component .search-input {
+  /* 深色模式下搜索输入的特殊处理 */
+  -webkit-text-fill-color: var(--text-primary);
+}
+
+/* ==========================================================================
+   移动端适配
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .component-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .search-input-component .search-input {
+    font-size: var(--text-xl);
+  }
+  
+  .result-list-component .result-item,
+  .history-panel-component .history-item {
+    padding: var(--spacing-md);
+  }
+  
+  .component-button {
+    padding: var(--spacing-sm);
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   高对比度模式适配
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  .component-container {
+    border-width: 2px;
+  }
+  
+  .component-button {
+    border-width: 2px;
+  }
+  
+  .component-input {
+    border-width: 2px;
+  }
+  
+  .result-list-component .result-item.selected,
+  .history-panel-component .history-item.selected {
+    border-left-width: 4px;
+  }
+}
+
+/* ==========================================================================
+   动画减少模式适配
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .component-container,
+  .component-container * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

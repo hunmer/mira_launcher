@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SearchInput组件测试</title>
+    
+    <!-- PrimeVue CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/primevue@^4/resources/themes/aura-light-green/theme.css">
+    <link rel="stylesheet" href="https://unpkg.com/primevue@^4/resources/primevue.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons@^7/primeicons.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@^3/primeflex.css">
+    
+    <!-- 组件样式 -->
+    <link rel="stylesheet" href="components/SearchInput.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+            background: var(--surface-ground, #f8f9fa);
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .test-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+        }
+        .event-log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 14px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="test-container">
+            <h1>SearchInput 组件测试</h1>
+            
+            <div class="test-info">
+                <h3>测试功能:</h3>
+                <ul>
+                    <li>✅ 防抖搜索 (300ms)</li>
+                    <li>✅ 键盘导航 (上下箭头、Enter、ESC)</li>
+                    <li>✅ 搜索状态指示器</li>
+                    <li>✅ 自动聚焦</li>
+                    <li>✅ 清空搜索</li>
+                </ul>
+            </div>
+            
+            <!-- SearchInput组件测试 -->
+            <search-input
+                ref="searchInput"
+                @search="handleSearch"
+                @keydown="handleKeyDown"
+                @focus="handleFocus"
+                @blur="handleBlur"
+                @clear="handleClear"
+                placeholder="输入测试内容..."
+                :auto-focus="true"
+                :debounce-ms="300"
+            />
+            
+            <div class="event-log">
+                <h4>事件日志:</h4>
+                <div
+                    v-for="(log, index) in eventLogs"
+                    :key="index"
+                    class="log-item"
+                >
+                    {{ log }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- PrimeVue CDN -->
+    <script src="https://unpkg.com/primevue@^4/umd/primevue.min.js"></script>
+    <!-- SearchInput组件 -->
+    <script src="components/SearchInput.js"></script>
+
+    <script>
+        const { createApp, ref } = Vue
+
+        const TestApp = {
+            setup() {
+                const eventLogs = ref([])
+                const searchInput = ref(null)
+
+                const addLog = (message) => {
+                    const timestamp = new Date().toLocaleTimeString()
+                    eventLogs.value.unshift(`[${timestamp}] ${message}`)
+                    // 保持最多20条日志
+                    if (eventLogs.value.length > 20) {
+                        eventLogs.value = eventLogs.value.slice(0, 20)
+                    }
+                }
+
+                const handleSearch = (query) => {
+                    addLog(`🔍 搜索: "${query}" (${query.length} 字符)`)
+                }
+
+                const handleKeyDown = (event) => {
+                    addLog(`⌨️ 键盘事件: ${event.key} (${event.code})`)
+                }
+
+                const handleFocus = () => {
+                    addLog(`🎯 输入框获得焦点`)
+                }
+
+                const handleBlur = () => {
+                    addLog(`😴 输入框失去焦点`)
+                }
+
+                const handleClear = () => {
+                    addLog(`🧹 清空搜索`)
+                }
+
+                return {
+                    eventLogs,
+                    searchInput,
+                    handleSearch,
+                    handleKeyDown,
+                    handleFocus,
+                    handleBlur,
+                    handleClear
+                }
+            }
+        }
+
+        const app = createApp(TestApp)
+        app.component('SearchInput', SearchInput)
+        app.mount('#app')
+    </script>
+</body>
+</html>
