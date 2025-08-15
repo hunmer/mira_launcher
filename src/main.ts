@@ -19,6 +19,8 @@ import { monitorMemoryUsage, setupPerformanceMonitor } from './plugins/performan
 import './plugins/registry'
 // 初始化快捷键系统
 import { initializeShortcutSystem } from './utils/shortcut-system'
+// 初始化窗口管理器
+import { initWindowManager } from './utils/window-manager'
 
 // 導入樣式
 import './styles/main.css'
@@ -118,6 +120,10 @@ const initializeAppSystems = async () => {
     // 初始化快捷键系统
     await initializeShortcutSystem()
     console.log('[Shortcuts] Shortcut system initialized')
+
+    // 初始化窗口管理器
+    await initWindowManager()
+    console.log('[WindowManager] Window manager initialized')
 
   } catch (error) {
     console.error('[App] Failed to initialize app systems:', error)
