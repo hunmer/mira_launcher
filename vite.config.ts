@@ -58,8 +58,8 @@ export default defineConfig({
       ignored: ['**/src-tauri/**'],
     },
     fs: {
-      // Allow serving files from the plugins directory
-      allow: ['..', '.', './plugins'],
+      // Allow serving files from the plugins directory and quick-search
+      allow: ['..', '.', './plugins', './quick-search'],
     },
   },
 

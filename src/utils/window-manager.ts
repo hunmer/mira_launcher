@@ -65,9 +65,14 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
         // 合并配置选项
         const windowOptions = { ...DEFAULT_QUICK_SEARCH_OPTIONS, ...options }
 
+        // 获取当前目录路径来加载独立的 HTML 文件
+        const quickSearchUrl = window.location.protocol === 'https:'
+            ? '/quick-search/index.html'  // 生产环境
+            : 'http://localhost:1420/quick-search/index.html'  // 开发环境
+
         // 创建新的快速搜索窗口
         const quickSearchWindow = new WebviewWindow('quick-search', {
-            url: '/quick-search',
+            url: quickSearchUrl,
             title: '快速搜索',
             ...windowOptions
         })
@@ -106,9 +111,7 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
             throw fallbackError
         }
     }
-}
-
-/**
+}/**
  * 关闭快速搜索窗口
  */
 export async function closeQuickSearchWindow(): Promise<void> {
