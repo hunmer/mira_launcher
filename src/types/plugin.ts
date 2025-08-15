@@ -60,6 +60,26 @@ export interface PluginMetadata {
   style?: string[]
   /** 插件资源文件 */
   assets?: string[]
+  /** 搜索框正则规则 */
+  search_regexps?: string[]
+  /** 插件日志配置 */
+  logs?: PluginLogConfig
+  /** 插件配置定义 */
+  configs?: PluginConfigDefinition
+  /** 插件右键菜单 */
+  contextMenus?: PluginContextMenu[]
+  /** 插件快捷键 */
+  hotkeys?: PluginHotkey[]
+  /** 插件事件订阅 */
+  subscriptions?: PluginSubscription[]
+  /** 插件通知配置 */
+  notifications?: PluginNotificationConfig
+  /** 插件存储配置 */
+  storage?: PluginStorageConfig
+  /** 队列管理器配置 */
+  queue?: PluginQueueConfig
+  /** 插件构建器函数 */
+  builder?: PluginBuilderFunction
 }
 
 /**
@@ -696,4 +716,214 @@ export interface ITaskQueue {
   length: number
   /** 队列是否正在运行 */
   isRunning: boolean
+}
+
+// ===== 新增插件扩展类型定义 =====
+
+/**
+ * 插件日志配置
+ */
+export interface PluginLogConfig {
+  /** 日志级别 */
+  level?: 'debug' | 'info' | 'warn' | 'error'
+  /** 最大日志条数 */
+  maxEntries?: number
+  /** 是否持久化 */
+  persist?: boolean
+  /** 日志格式 */
+  format?: 'simple' | 'json' | 'detailed'
+}
+
+/**
+ * 插件配置定义
+ */
+export interface PluginConfigDefinition {
+  /** 配置项定义 */
+  properties?: Record<string, PluginConfigProperty>
+  /** 必填配置项 */
+  required?: string[]
+  /** 默认配置值 */
+  defaults?: Record<string, unknown>
+}
+
+/**
+ * 插件配置属性
+ */
+export interface PluginConfigProperty {
+  /** 配置类型 */
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+  /** 配置标题 */
+  title?: string
+  /** 配置描述 */
+  description?: string
+  /** 默认值 */
+  default?: unknown
+  /** 可选值 */
+  enum?: unknown[]
+  /** 最小值 */
+  minimum?: number
+  /** 最大值 */
+  maximum?: number
+}
+
+/**
+ * 插件右键菜单
+ */
+export interface PluginContextMenu {
+  /** 菜单ID */
+  id: string
+  /** 菜单标题 */
+  title: string
+  /** 菜单图标 */
+  icon?: string
+  /** 触发上下文 */
+  contexts: PluginContextType[]
+  /** 点击处理函数 */
+  onClick?: (info: PluginContextMenuInfo) => void
+  /** 子菜单 */
+  children?: PluginContextMenu[]
+}
+
+/**
+ * 插件上下文类型
+ */
+export type PluginContextType = 'selection' | 'link' | 'image' | 'page' | 'frame' | 'all'
+
+/**
+ * 插件右键菜单信息
+ */
+export interface PluginContextMenuInfo {
+  /** 菜单ID */
+  menuItemId: string
+  /** 选中的文本 */
+  selectionText?: string
+  /** 链接URL */
+  linkUrl?: string
+  /** 页面URL */
+  pageUrl?: string
+}
+
+/**
+ * 插件快捷键
+ */
+export interface PluginHotkey {
+  /** 快捷键ID */
+  id: string
+  /** 快捷键组合 */
+  combination: string
+  /** 快捷键描述 */
+  description?: string
+  /** 是否全局 */
+  global?: boolean
+  /** 触发处理函数 */
+  handler: () => void
+}
+
+/**
+ * 插件事件订阅
+ */
+export interface PluginSubscription {
+  /** 事件名称 */
+  event: PluginEventType | string
+  /** 事件处理函数 */
+  handler: (data?: unknown) => void
+  /** 订阅选项 */
+  options?: PluginSubscriptionOptions
+}
+
+/**
+ * 插件订阅选项
+ */
+export interface PluginSubscriptionOptions {
+  /** 是否只执行一次 */
+  once?: boolean
+  /** 优先级 */
+  priority?: number
+  /** 过滤条件 */
+  filter?: (data?: unknown) => boolean
+}
+
+/**
+ * 插件通知配置
+ */
+export interface PluginNotificationConfig {
+  /** 默认通知选项 */
+  defaults?: PluginNotificationOptions
+  /** 通知模板 */
+  templates?: Record<string, PluginNotificationTemplate>
+}
+
+/**
+ * 插件通知选项
+ */
+export interface PluginNotificationOptions {
+  /** 通知标题 */
+  title?: string
+  /** 通知内容 */
+  message?: string
+  /** 通知类型 */
+  type?: 'info' | 'success' | 'warning' | 'error'
+  /** 持续时间（毫秒） */
+  duration?: number
+  /** 是否可关闭 */
+  closable?: boolean
+  /** 通知图标 */
+  icon?: string
+}
+
+/**
+ * 插件通知模板
+ */
+export interface PluginNotificationTemplate {
+  /** 模板标题 */
+  title: string
+  /** 模板内容 */
+  message: string
+  /** 模板类型 */
+  type: 'info' | 'success' | 'warning' | 'error'
+}
+
+/**
+ * 插件存储配置
+ */
+export interface PluginStorageConfig {
+  /** 存储方式 */
+  type?: 'localStorage' | 'sessionStorage' | 'indexedDB' | 'file'
+  /** 存储键前缀 */
+  prefix?: string
+  /** 是否加密 */
+  encrypt?: boolean
+  /** 存储限制（字节） */
+  sizeLimit?: number
+}
+
+/**
+ * 插件队列配置
+ */
+export interface PluginQueueConfig {
+  /** 队列类型 */
+  type?: QueueType
+  /** 队列配置 */
+  config?: QueueConfig
+  /** 自定义队列实现 */
+  custom?: boolean
+}
+
+/**
+ * 插件构建器函数类型
+ */
+export type PluginBuilderFunction = (options?: PluginBuilderOptions) => unknown
+
+/**
+ * 插件构建器选项
+ */
+export interface PluginBuilderOptions {
+  /** 构建环境 */
+  env?: 'development' | 'production' | 'test'
+  /** 构建配置 */
+  config?: Record<string, unknown>
+  /** API实例 */
+  api?: unknown
+  /** 应用实例 */
+  app?: App
 }

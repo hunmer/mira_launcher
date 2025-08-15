@@ -1,0 +1,40 @@
+{
+    "name": "@mira/test-plugin",
+    "version": "1.0.0",
+    "description": "用于测试插件系统功能的示例插件",
+    "main": "index.ts",
+    "type": "module",
+    "keywords": [
+        "mira-launcher",
+        "plugin",
+        "test",
+        "example",
+        "demo"
+    ],
+    "author": "Mira Launcher Team",
+    "license": "MIT",
+    "engines": {
+        "mira": ">=1.0.0"
+    },
+    "mira": {
+        "pluginType": "extension",
+        "category": "development",
+        "permissions": [
+            "storage",
+            "notifications",
+            "system"
+        ],
+        "minVersion": "1.0.0",
+        "maxVersion": "*"
+    },
+    "files": [
+        "index.ts",
+        "README.md",
+        "package.json"
+    ],
+    "dependencies": {},
+    "devDependencies": {},
+    "peerDependencies": {
+        "vue": "^3.0.0"
+    }
+}

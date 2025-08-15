@@ -1,5 +1,20 @@
 import type { App } from 'vue'
-import type { PluginAPI, PluginConfig, PluginMetadata, PluginState, PluginComponents } from '../../types/plugin'
+import type {
+  PluginAPI,
+  PluginBuilderFunction,
+  PluginComponents,
+  PluginConfig,
+  PluginConfigDefinition,
+  PluginContextMenu,
+  PluginHotkey,
+  PluginLogConfig,
+  PluginMetadata,
+  PluginNotificationConfig,
+  PluginQueueConfig,
+  PluginState,
+  PluginStorageConfig,
+  PluginSubscription
+} from '../../types/plugin'
 
 /**
  * 插件基类
@@ -50,6 +65,56 @@ export abstract class BasePlugin {
   abstract readonly permissions?: string[]
 
   /**
+   * 搜索框正则规则
+   */
+  abstract readonly search_regexps?: string[]
+
+  /**
+   * 插件日志配置
+   */
+  abstract readonly logs?: PluginLogConfig
+
+  /**
+   * 插件配置定义
+   */
+  abstract readonly configs?: PluginConfigDefinition
+
+  /**
+   * 插件右键菜单
+   */
+  abstract readonly contextMenus?: PluginContextMenu[]
+
+  /**
+   * 插件快捷键
+   */
+  abstract readonly hotkeys?: PluginHotkey[]
+
+  /**
+   * 插件事件订阅
+   */
+  abstract readonly subscriptions?: PluginSubscription[]
+
+  /**
+   * 插件通知配置
+   */
+  abstract readonly notifications?: PluginNotificationConfig
+
+  /**
+   * 插件存储配置
+   */
+  abstract readonly storage?: PluginStorageConfig
+
+  /**
+   * 队列管理器配置
+   */
+  abstract readonly queue?: PluginQueueConfig
+
+  /**
+   * 插件构建器函数
+   */
+  abstract readonly builder?: PluginBuilderFunction
+
+  /**
    * 插件当前状态
    */
   protected _state: PluginState = 'unloaded'
@@ -80,19 +145,60 @@ export abstract class BasePlugin {
       dependencies: this.dependencies || [],
       permissions: this.permissions || [],
     }
-    
+
     if (this.description) {
       metadata.description = this.description
     }
-    
+
     if (this.author) {
       metadata.author = this.author
     }
-    
+
     if (this.minAppVersion) {
       metadata.minAppVersion = this.minAppVersion
     }
-    
+
+    // 添加新字段支持
+    if (this.search_regexps) {
+      metadata.search_regexps = this.search_regexps
+    }
+
+    if (this.logs) {
+      metadata.logs = this.logs
+    }
+
+    if (this.configs) {
+      metadata.configs = this.configs
+    }
+
+    if (this.contextMenus) {
+      metadata.contextMenus = this.contextMenus
+    }
+
+    if (this.hotkeys) {
+      metadata.hotkeys = this.hotkeys
+    }
+
+    if (this.subscriptions) {
+      metadata.subscriptions = this.subscriptions
+    }
+
+    if (this.notifications) {
+      metadata.notifications = this.notifications
+    }
+
+    if (this.storage) {
+      metadata.storage = this.storage
+    }
+
+    if (this.queue) {
+      metadata.queue = this.queue
+    }
+
+    if (this.builder) {
+      metadata.builder = this.builder
+    }
+
     return metadata
   }
 
@@ -200,6 +306,87 @@ export abstract class BasePlugin {
       throw new Error(`Plugin ${this.id}: Vue app not initialized`)
     }
     return this._app
+  }
+
+  /**
+   * 注册右键菜单
+   */
+  protected registerContextMenus(): void {
+    if (this.contextMenus && this._api) {
+      this.contextMenus.forEach(menu => {
+        // 通过API注册右键菜单
+        console.log(`[Plugin:${this.name}] Registering context menu:`, menu.id)
+      })
+    }
+  }
+
+  /**
+   * 注册快捷键
+   */
+  protected registerHotkeys(): void {
+    if (this.hotkeys && this._api) {
+      this.hotkeys.forEach(hotkey => {
+        // 通过API注册快捷键
+        console.log(`[Plugin:${this.name}] Registering hotkey:`, hotkey.combination)
+      })
+    }
+  }
+
+  /**
+   * 订阅事件
+   */
+  protected subscribeEvents(): void {
+    if (this.subscriptions && this._api) {
+      this.subscriptions.forEach(subscription => {
+        // 通过API订阅事件
+        console.log(`[Plugin:${this.name}] Subscribing to event:`, subscription.event)
+      })
+    }
+  }
+
+  /**
+   * 发送通知
+   */
+  protected sendNotification(type: string, options?: Record<string, unknown>): void {
+    if (this._api) {
+      console.log(`[Plugin:${this.name}] Sending notification:`, type, options)
+      // 通过API发送通知
+    }
+  }
+
+  /**
+   * 获取存储实例
+   */
+  protected getStorage(): unknown {
+    if (this._api) {
+      console.log(`[Plugin:${this.name}] Getting storage instance`)
+      // 通过API获取存储实例
+      return {}
+    }
+    return null
+  }
+
+  /**
+   * 获取队列实例
+   */
+  protected getQueue(): unknown {
+    if (this._api) {
+      console.log(`[Plugin:${this.name}] Getting queue instance`)
+      // 通过API获取队列实例
+      return {}
+    }
+    return null
+  }
+
+  /**
+   * 执行构建器函数
+   */
+  protected executeBuilder(options?: Record<string, unknown>): unknown {
+    if (this.builder && this._api && this._app) {
+      console.log(`[Plugin:${this.name}] Executing builder function`)
+      return this.builder({ ...options, api: this._api, app: this._app })
+    }
+    return null
   }
 
   /**

@@ -3,16 +3,17 @@
 
 import { useGridStore } from '@/stores/grid'
 import { usePageStore } from '@/stores/page'
+import { usePluginStore } from '@/stores/plugin'
 import type { SearchableItem, SearchOptions, SearchResult } from '@/utils/search'
 import { debounce, highlightText, performSearch, SearchHistory } from '@/utils/search'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 export interface UseSearchOptions {
-    debounceMs?: number
-    maxResults?: number
-    searchScope?: 'all' | 'current-page' | 'apps' | 'pages'
-    enableHistory?: boolean
-    historyKey?: string
+  debounceMs?: number
+  maxResults?: number
+  searchScope?: 'all' | 'current-page' | 'apps' | 'pages' | 'plugins'
+  enableHistory?: boolean
+  historyKey?: string
 }
 
 export const useSearch = (options: UseSearchOptions = {}) => {
@@ -35,6 +36,7 @@ export const useSearch = (options: UseSearchOptions = {}) => {
   // Store引用
   const gridStore = useGridStore()
   const pageStore = usePageStore()
+  const pluginStore = usePluginStore()
 
   // 搜索历史管理
   const searchHistory = new SearchHistory(historyKey, 10)
@@ -49,43 +51,9 @@ export const useSearch = (options: UseSearchOptions = {}) => {
     const items: SearchableItem[] = []
 
     switch (searchScope) {
-    case 'apps': {
-      // 获取应用程序数据
-      const apps = gridStore.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description || '',
-        category: item.category || '应用程序',
-        tags: [],
-        path: item.path || '',
-        icon: item.icon || '',
-        type: 'app',
-      }))
-      items.push(...apps)
-      break
-    }
-
-    case 'pages': {
-      // 获取页面数据
-      const pages = pageStore.pages.map(page => ({
-        id: page.id,
-        name: page.name,
-        description: page.description || '',
-        category: '页面',
-        tags: [],
-        path: page.route,
-        icon: page.icon || '',
-        type: 'page',
-      }))
-      items.push(...pages)
-      break
-    }
-
-    case 'current-page': {
-      // 仅当前页面的应用
-      const currentPage = pageStore.currentPage
-      if (currentPage) {
-        const apps = currentPage.gridData.map(item => ({
+      case 'apps': {
+        // 获取应用程序数据
+        const apps = gridStore.items.map(item => ({
           id: item.id,
           name: item.name,
           description: item.description || '',
@@ -96,40 +64,108 @@ export const useSearch = (options: UseSearchOptions = {}) => {
           type: 'app',
         }))
         items.push(...apps)
+        break
       }
-      break
-    }
 
-    case 'all':
-    default: {
-      // 获取所有数据
-      // 应用程序
-      const apps = gridStore.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description || '',
-        category: item.category || '应用程序',
-        tags: [],
-        path: item.path || '',
-        icon: item.icon || '',
-        type: 'app',
-      }))
+      case 'pages': {
+        // 获取页面数据
+        const pages = pageStore.pages.map(page => ({
+          id: page.id,
+          name: page.name,
+          description: page.description || '',
+          category: '页面',
+          tags: [],
+          path: page.route,
+          icon: page.icon || '',
+          type: 'page',
+        }))
+        items.push(...pages)
+        break
+      }
 
-      // 页面
-      const pages = pageStore.pages.map(page => ({
-        id: page.id,
-        name: page.name,
-        description: page.description || '',
-        category: '页面',
-        tags: [],
-        path: page.route,
-        icon: page.icon || '',
-        type: 'page',
-      }))
+      case 'plugins': {
+        // 获取插件数据
+        const plugins = pluginStore.plugins.map(plugin => ({
+          id: plugin.metadata.id,
+          name: plugin.metadata.name,
+          description: plugin.metadata.description || '',
+          category: '插件',
+          tags: plugin.metadata.keywords || [],
+          path: plugin.metadata.homepage || '',
+          icon: plugin.metadata.icon || '',
+          type: 'plugin',
+          author: plugin.metadata.author,
+          version: plugin.metadata.version,
+          state: plugin.state,
+        }))
+        items.push(...plugins)
+        break
+      }
 
-      items.push(...apps, ...pages)
-      break
-    }
+      case 'current-page': {
+        // 仅当前页面的应用
+        const currentPage = pageStore.currentPage
+        if (currentPage) {
+          const apps = currentPage.gridData.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description || '',
+            category: item.category || '应用程序',
+            tags: [],
+            path: item.path || '',
+            icon: item.icon || '',
+            type: 'app',
+          }))
+          items.push(...apps)
+        }
+        break
+      }
+
+      case 'all':
+      default: {
+        // 获取所有数据
+        // 应用程序
+        const apps = gridStore.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || '',
+          category: item.category || '应用程序',
+          tags: [],
+          path: item.path || '',
+          icon: item.icon || '',
+          type: 'app',
+        }))
+
+        // 页面
+        const pages = pageStore.pages.map(page => ({
+          id: page.id,
+          name: page.name,
+          description: page.description || '',
+          category: '页面',
+          tags: [],
+          path: page.route,
+          icon: page.icon || '',
+          type: 'page',
+        }))
+
+        // 插件
+        const plugins = pluginStore.plugins.map(plugin => ({
+          id: plugin.metadata.id,
+          name: plugin.metadata.name,
+          description: plugin.metadata.description || '',
+          category: '插件',
+          tags: plugin.metadata.keywords || [],
+          path: plugin.metadata.homepage || '',
+          icon: plugin.metadata.icon || '',
+          type: 'plugin',
+          author: plugin.metadata.author,
+          version: plugin.metadata.version,
+          state: plugin.state,
+        }))
+
+        items.push(...apps, ...pages, ...plugins)
+        break
+      }
     }
 
     return items
@@ -219,6 +255,23 @@ export const useSearch = (options: UseSearchOptions = {}) => {
       if (pageIndex !== -1) {
         pageStore.switchToPage(pageIndex)
       }
+    } else if (target.type === 'plugin') {
+      // 激活或配置插件
+      const plugin = pluginStore.plugins.find(p => p.metadata.id === target.id)
+      if (plugin) {
+        if (plugin.state === 'loaded' || plugin.state === 'inactive') {
+          // 激活插件
+          pluginStore.activatePlugin(target.id).then(() => {
+            console.log('插件已激活:', target.name)
+          }).catch((error) => {
+            console.error('激活插件失败:', error)
+          })
+        } else if (plugin.state === 'active') {
+          // 插件已激活，可以显示配置界面或其他操作
+          console.log('打开插件配置:', target.name)
+          // 这里可以触发插件配置界面的显示
+        }
+      }
     }
 
     hide()
@@ -227,41 +280,41 @@ export const useSearch = (options: UseSearchOptions = {}) => {
   // 键盘导航
   const handleKeyDown = (event: KeyboardEvent) => {
     switch (event.key) {
-    case 'ArrowDown':
-      event.preventDefault()
-      if (hasResults.value) {
-        selectedIndex.value = Math.min(selectedIndex.value + 1, searchResults.value.length - 1)
-      }
-      break
+      case 'ArrowDown':
+        event.preventDefault()
+        if (hasResults.value) {
+          selectedIndex.value = Math.min(selectedIndex.value + 1, searchResults.value.length - 1)
+        }
+        break
 
-    case 'ArrowUp':
-      event.preventDefault()
-      if (hasResults.value) {
-        selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
-      }
-      break
+      case 'ArrowUp':
+        event.preventDefault()
+        if (hasResults.value) {
+          selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
+        }
+        break
 
-    case 'Enter':
-      event.preventDefault()
-      if (!hasQuery.value && recentSearches.value.length > 0) {
-        // 没有查询内容时，选择最近搜索
-        searchQuery.value = recentSearches.value[selectedIndex.value] || ''
-      } else {
-        selectResult()
-      }
-      break
+      case 'Enter':
+        event.preventDefault()
+        if (!hasQuery.value && recentSearches.value.length > 0) {
+          // 没有查询内容时，选择最近搜索
+          searchQuery.value = recentSearches.value[selectedIndex.value] || ''
+        } else {
+          selectResult()
+        }
+        break
 
-    case 'Escape':
-      event.preventDefault()
-      hide()
-      break
+      case 'Escape':
+        event.preventDefault()
+        hide()
+        break
 
-    case 'Tab':
-      event.preventDefault()
-      if (hasResults.value) {
-        selectedIndex.value = (selectedIndex.value + 1) % searchResults.value.length
-      }
-      break
+      case 'Tab':
+        event.preventDefault()
+        if (hasResults.value) {
+          selectedIndex.value = (selectedIndex.value + 1) % searchResults.value.length
+        }
+        break
     }
   }
 

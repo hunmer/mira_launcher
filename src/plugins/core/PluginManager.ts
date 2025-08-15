@@ -1,15 +1,15 @@
-import { reactive, type Ref } from 'vue'
-import type { 
-  PluginMetadata, 
-  PluginState, 
-  PluginAPI, 
-  PluginRegistryEntry,
-  PluginLifecycleEvent,
+import type {
+  EventListener,
+  EventListenerOptions,
+  PluginAPI,
   PluginConfiguration,
   PluginEventType,
-  EventListener,
-  EventListenerOptions
+  PluginLifecycleEvent,
+  PluginMetadata,
+  PluginRegistryEntry,
+  PluginState
 } from '@/types/plugin'
+import { reactive, type Ref } from 'vue'
 import { BasePlugin } from './BasePlugin'
 import { EventBus } from './EventBus'
 
@@ -93,7 +93,7 @@ export class PluginManager {
 
       // 创建插件实例
       const pluginInstance = new pluginClass()
-      
+
       // 设置插件API
       const pluginAPI = this.createPluginAPI(metadata.id)
       pluginInstance._setAPI(pluginAPI)
@@ -166,7 +166,7 @@ export class PluginManager {
 
       // 执行加载
       entry.state = 'loading'
-      
+
       const loadPromise = this.executeWithTimeout(
         () => entry.instance.onLoad(),
         this.config.loadTimeout,
@@ -191,13 +191,13 @@ export class PluginManager {
       entry.state = 'error'
       entry.error = error
       console.error(`[PluginManager] Failed to load plugin ${pluginId}:`, error)
-      
+
       await this.eventBus.emit('plugin:error', {
         pluginId,
         error,
         operation: 'load',
       })
-      
+
       return false
     }
   }
@@ -242,6 +242,10 @@ export class PluginManager {
       // 执行激活
       entry.state = 'activating'
       await entry.instance.onActivate()
+
+      // 注册插件扩展功能
+      await this.registerPluginExtensions(entry)
+
       entry.state = 'active'
       entry.activatedAt = Date.now()
 
@@ -263,13 +267,13 @@ export class PluginManager {
       entry.state = 'error'
       entry.error = error
       console.error(`[PluginManager] Failed to activate plugin ${pluginId}:`, error)
-      
+
       await this.eventBus.emit('plugin:error', {
         pluginId,
         error,
         operation: 'activate',
       })
-      
+
       return false
     }
   }
@@ -328,13 +332,13 @@ export class PluginManager {
       entry.state = 'error'
       entry.error = error
       console.error(`[PluginManager] Failed to deactivate plugin ${pluginId}:`, error)
-      
+
       await this.eventBus.emit('plugin:error', {
         pluginId,
         error,
         operation: 'deactivate',
       })
-      
+
       return false
     }
   }
@@ -390,13 +394,13 @@ export class PluginManager {
         entry.error = error
       }
       console.error(`[PluginManager] Failed to unload plugin ${pluginId}:`, error)
-      
+
       await this.eventBus.emit('plugin:error', {
         pluginId,
         error,
         operation: 'unload',
       })
-      
+
       return false
     }
   }
@@ -426,6 +430,151 @@ export class PluginManager {
     if (!versionRegex.test(metadata.version)) {
       throw new Error('Plugin version must follow semantic versioning (x.y.z)')
     }
+
+    // 验证新字段
+    this.validatePluginExtensions(metadata)
+  }
+
+  /**
+   * 验证插件扩展字段
+   */
+  private validatePluginExtensions(metadata: PluginMetadata): void {
+    // 验证搜索正则表达式
+    if (metadata.search_regexps) {
+      if (!Array.isArray(metadata.search_regexps)) {
+        throw new Error('search_regexps must be an array of strings')
+      }
+
+      for (const regex of metadata.search_regexps) {
+        if (typeof regex !== 'string') {
+          throw new Error('search_regexps must contain only strings')
+        }
+
+        try {
+          new RegExp(regex)
+        } catch (error) {
+          throw new Error(`Invalid regex pattern in search_regexps: ${regex}`)
+        }
+      }
+    }
+
+    // 验证日志配置
+    if (metadata.logs) {
+      const validLevels = ['debug', 'info', 'warn', 'error']
+      if (metadata.logs.level && !validLevels.includes(metadata.logs.level)) {
+        throw new Error(`Invalid log level: ${metadata.logs.level}`)
+      }
+    }
+
+    // 验证右键菜单配置
+    if (metadata.contextMenus) {
+      if (!Array.isArray(metadata.contextMenus)) {
+        throw new Error('contextMenus must be an array')
+      }
+
+      for (const menu of metadata.contextMenus) {
+        if (!menu.id || !menu.title || !menu.contexts) {
+          throw new Error('contextMenus items must have id, title, and contexts')
+        }
+      }
+    }
+
+    // 验证快捷键配置
+    if (metadata.hotkeys) {
+      if (!Array.isArray(metadata.hotkeys)) {
+        throw new Error('hotkeys must be an array')
+      }
+
+      for (const hotkey of metadata.hotkeys) {
+        if (!hotkey.id || !hotkey.combination || !hotkey.handler) {
+          throw new Error('hotkeys items must have id, combination, and handler')
+        }
+      }
+    }
+
+    // 验证存储配置
+    if (metadata.storage) {
+      const validTypes = ['localStorage', 'sessionStorage', 'indexedDB', 'file']
+      if (metadata.storage.type && !validTypes.includes(metadata.storage.type)) {
+        throw new Error(`Invalid storage type: ${metadata.storage.type}`)
+      }
+    }
+
+    // 验证队列配置
+    if (metadata.queue) {
+      const validQueueTypes = ['fifo', 'priority', 'delayed', 'circular']
+      if (metadata.queue.type && !validQueueTypes.includes(metadata.queue.type)) {
+        throw new Error(`Invalid queue type: ${metadata.queue.type}`)
+      }
+    }
+
+    // 验证构建器函数
+    if (metadata.builder && typeof metadata.builder !== 'function') {
+      throw new Error('builder must be a function')
+    }
+  }
+
+  /**
+   * 注册插件扩展功能
+   */
+  private async registerPluginExtensions(entry: PluginRegistryEntry): Promise<void> {
+    const { metadata, instance } = entry
+
+    try {
+      // 注册右键菜单
+      if (metadata.contextMenus && metadata.contextMenus.length > 0) {
+        console.log(`[PluginManager] Registering ${metadata.contextMenus.length} context menus for plugin ${metadata.id}`)
+        // 通过插件实例的保护方法注册
+        if (typeof (instance as any).registerContextMenus === 'function') {
+          (instance as any).registerContextMenus()
+        }
+      }
+
+      // 注册快捷键
+      if (metadata.hotkeys && metadata.hotkeys.length > 0) {
+        console.log(`[PluginManager] Registering ${metadata.hotkeys.length} hotkeys for plugin ${metadata.id}`)
+        if (typeof (instance as any).registerHotkeys === 'function') {
+          (instance as any).registerHotkeys()
+        }
+      }
+
+      // 订阅事件
+      if (metadata.subscriptions && metadata.subscriptions.length > 0) {
+        console.log(`[PluginManager] Subscribing to ${metadata.subscriptions.length} events for plugin ${metadata.id}`)
+        if (typeof (instance as any).subscribeEvents === 'function') {
+          (instance as any).subscribeEvents()
+        }
+      }
+
+      // 初始化存储
+      if (metadata.storage) {
+        console.log(`[PluginManager] Initializing storage for plugin ${metadata.id}`)
+        if (typeof (instance as any).getStorage === 'function') {
+          (instance as any).getStorage()
+        }
+      }
+
+      // 初始化队列
+      if (metadata.queue) {
+        console.log(`[PluginManager] Initializing queue for plugin ${metadata.id}`)
+        if (typeof (instance as any).getQueue === 'function') {
+          (instance as any).getQueue()
+        }
+      }
+
+      // 执行构建器函数
+      if (metadata.builder) {
+        console.log(`[PluginManager] Executing builder function for plugin ${metadata.id}`)
+        if (typeof (instance as any).executeBuilder === 'function') {
+          (instance as any).executeBuilder()
+        }
+      }
+
+      console.log(`[PluginManager] Plugin extensions registered successfully for ${metadata.id}`)
+    } catch (error) {
+      console.error(`[PluginManager] Failed to register extensions for plugin ${metadata.id}:`, error)
+      throw error
+    }
   }
 
   /**
@@ -439,7 +588,7 @@ export class PluginManager {
 
     for (const depId of entry.dependencies) {
       const depEntry = this.plugins.get(depId)
-      
+
       if (!depEntry) {
         throw new Error(`Dependency ${depId} not found for plugin ${pluginId}`)
       }
@@ -685,26 +834,26 @@ export class PluginManager {
               memoryUsage: undefined,
             }
           }
-          
+
           if (entry.error) {
             info.error = String(entry.error)
           }
-          
+
           if (entry.loadedAt && entry.registeredAt) {
             info.loadTime = entry.loadedAt - entry.registeredAt
           }
-          
+
           if (entry.activatedAt) {
             info.lastActivated = new Date(entry.activatedAt)
           }
-          
+
           return info
         })
       },
       get: (id: string) => {
         const entry = this.plugins.get(id)
         if (!entry) return undefined
-        
+
         const info: any = {
           metadata: entry.metadata,
           state: entry.state,
@@ -718,19 +867,19 @@ export class PluginManager {
             memoryUsage: undefined,
           }
         }
-        
+
         if (entry.error) {
           info.error = String(entry.error)
         }
-        
+
         if (entry.loadedAt && entry.registeredAt) {
           info.loadTime = entry.loadedAt - entry.registeredAt
         }
-        
+
         if (entry.activatedAt) {
           info.lastActivated = new Date(entry.activatedAt)
         }
-        
+
         return info
       },
       has: (id: string) => {
@@ -784,7 +933,7 @@ export class PluginManager {
    */
   private createStorageAPI(pluginId: string) {
     const prefix = `plugin:${pluginId}:`
-    
+
     return {
       get: (key: string) => {
         try {
@@ -795,7 +944,7 @@ export class PluginManager {
           return null
         }
       },
-      
+
       set: (key: string, value: unknown) => {
         try {
           localStorage.setItem(prefix + key, JSON.stringify(value))
@@ -805,7 +954,7 @@ export class PluginManager {
           return false
         }
       },
-      
+
       remove: (key: string) => {
         try {
           localStorage.removeItem(prefix + key)
@@ -815,7 +964,7 @@ export class PluginManager {
           return false
         }
       },
-      
+
       clear: () => {
         try {
           const keys = Object.keys(localStorage).filter(key => key.startsWith(prefix))
@@ -859,12 +1008,12 @@ export class PluginManager {
         console.log(`[Plugin ${pluginId}] ${type.toUpperCase()}: ${message}`)
         // TODO: 集成 PrimeVue Toast
       },
-      
+
       createMenuItem: (menu: unknown) => {
         console.log(`[Plugin ${pluginId}] Create menu item:`, menu)
         // TODO: 集成到应用菜单系统
       },
-      
+
       registerComponent: (name: string, component: unknown) => {
         console.log(`[Plugin ${pluginId}] Register component: ${name}`)
         // TODO: 集成到全局组件注册系统
@@ -882,7 +1031,7 @@ export class PluginManager {
           const entry = this.plugins.get(id)
           return entry ? { ...entry.metadata, state: entry.state } : null
         }
-        
+
         return Array.from(this.plugins.entries()).map(([pluginId, entry]) => ({
           id: pluginId,
           name: entry.metadata.name,
@@ -892,12 +1041,12 @@ export class PluginManager {
           state: entry.state,
         }))
       },
-      
+
       isPluginActive: (id: string) => {
         const entry = this.plugins.get(id)
         return entry?.state === 'active'
       },
-      
+
       getVersion: () => {
         // TODO: 从 package.json 获取应用版本
         return '1.0.0'
@@ -968,7 +1117,7 @@ export class PluginManager {
   }
 
   // 公共接口方法
-  
+
   /**
    * 获取插件信息
    */
@@ -1068,7 +1217,7 @@ export class PluginManager {
  * 创建响应式插件管理器
  */
 export function createReactivePluginManager(
-  eventBus?: EventBus, 
+  eventBus?: EventBus,
   config?: PluginManagerConfig
 ): PluginManager & Ref {
   const manager = new PluginManager(eventBus, config)

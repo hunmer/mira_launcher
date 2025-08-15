@@ -2,34 +2,34 @@
 // 包含关键词搜索、拼音搜索、模糊匹配等功能
 
 export interface SearchableItem {
-    id: string
-    name: string
-    description?: string
-    category?: string
-    tags?: string[]
-    path?: string
-    icon?: string
-    type?: string
-    [key: string]: any
+  id: string
+  name: string
+  description?: string
+  category?: string
+  tags?: string[]
+  path?: string
+  icon?: string
+  type?: string
+  [key: string]: any
 }
 
 export interface SearchOptions {
-    fuzzyMatch?: boolean
-    pinyinSearch?: boolean
-    caseSensitive?: boolean
-    maxResults?: number
-    searchFields?: string[]
-    boost?: {
-        name?: number
-        description?: number
-        tags?: number
-    }
+  fuzzyMatch?: boolean
+  pinyinSearch?: boolean
+  caseSensitive?: boolean
+  maxResults?: number
+  searchFields?: string[]
+  boost?: {
+    name?: number
+    description?: number
+    tags?: number
+  }
 }
 
 export interface SearchResult extends SearchableItem {
-    score: number
-    matchedFields: string[]
-    highlightRanges: { field: string; start: number; end: number }[]
+  score: number
+  matchedFields: string[]
+  highlightRanges: { field: string; start: number; end: number }[]
 }
 
 // 简单的拼音映射表（用于基础拼音搜索）
@@ -119,6 +119,59 @@ export const fuzzyMatch = (text: string, query: string): boolean => {
 }
 
 /**
+ * 正则匹配算法
+ * 支持插件自定义的search_regexps字段
+ */
+export const regexMatch = (text: string, regexPatterns: string[]): boolean => {
+  if (!regexPatterns || regexPatterns.length === 0) return false
+
+  try {
+    for (const pattern of regexPatterns) {
+      const regex = new RegExp(pattern, 'i') // 忽略大小写
+      if (regex.test(text)) {
+        return true
+      }
+    }
+  } catch (error) {
+    console.warn('Invalid regex pattern:', error)
+  }
+
+  return false
+}
+
+/**
+ * 检查插件是否匹配搜索查询
+ * 包括名称、描述、标签和自定义正则匹配
+ */
+export const matchPlugin = (plugin: SearchableItem, query: string): boolean => {
+  const queryLower = query.toLowerCase()
+
+  // 基础匹配（名称、描述、标签）
+  if (plugin.name?.toLowerCase().includes(queryLower) ||
+    plugin.description?.toLowerCase().includes(queryLower) ||
+    plugin.tags?.some(tag => tag.toLowerCase().includes(queryLower))) {
+    return true
+  }
+
+  // 拼音匹配
+  if (plugin.name && pinyinSearch(plugin.name, query)) {
+    return true
+  }
+
+  // 模糊匹配
+  if (plugin.name && fuzzyMatch(plugin.name, query)) {
+    return true
+  }
+
+  // 正则匹配（如果插件定义了search_regexps）
+  if (plugin['search_regexps'] && regexMatch(query, plugin['search_regexps'] as string[])) {
+    return true
+  }
+
+  return false
+}
+
+/**
  * 计算匹配得分
  */
 export const calculateScore = (
@@ -184,6 +237,29 @@ export const calculateScore = (
     }
   }
 
+  // 插件特殊评分逻辑
+  if (item.type === 'plugin') {
+    // 正则匹配得分
+    if (item['search_regexps'] && regexMatch(query, item['search_regexps'] as string[])) {
+      score += 50 // 正则匹配获得高分
+    }
+
+    // 插件状态评分
+    if (item['state'] === 'active') {
+      score += 20 // 活跃插件优先
+    } else if (item['state'] === 'loaded') {
+      score += 10 // 已加载插件次优先
+    }
+
+    // 作者匹配评分
+    if (item['author'] && typeof item['author'] === 'string') {
+      const authorLower = item['author'].toLowerCase()
+      if (authorLower.includes(queryLower)) {
+        score += 15
+      }
+    }
+  }
+
   return score
 }
 
@@ -234,11 +310,9 @@ export const highlightText = (
   for (let i = ranges.length - 1; i >= 0; i--) {
     const range = ranges[i]
     if (range) {
-      result = `${result.slice(0, range.start) 
-      }<span class="${className}">${ 
-        result.slice(range.start, range.end) 
-      }</span>${ 
-        result.slice(range.end)}`
+      result = `${result.slice(0, range.start)
+        }<span class="${className}">${result.slice(range.start, range.end)
+        }</span>${result.slice(range.end)}`
     }
   }
 
