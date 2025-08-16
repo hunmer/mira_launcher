@@ -95,10 +95,10 @@ class ThemeManager {
     }
 
     toggleTheme() {
-        const themes = ['light', 'dark', 'auto']
-        const currentIndex = themes.indexOf(this.currentTheme)
-        const nextIndex = (currentIndex + 1) % themes.length
-        this.setTheme(themes[nextIndex])
+        // 只在亮色和深色模式之间切换
+        const currentEffective = this.getEffectiveTheme()
+        const newTheme = currentEffective === 'dark' ? 'light' : 'dark'
+        this.setTheme(newTheme)
     }
 
     dispatchThemeChangeEvent(theme) {
@@ -339,4 +339,9 @@ if (typeof module !== 'undefined' && module.exports) {
         ResponsiveUtils,
         AnimationUtils,
     }
+}
+
+// 初始化全局主题管理器
+if (typeof window !== 'undefined') {
+    window.themeManager = new ThemeManager()
 }

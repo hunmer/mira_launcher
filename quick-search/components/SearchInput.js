@@ -18,8 +18,8 @@ function debounce(func, wait) {
 const SearchInput = {
     template: `
     <div class="search-input-container">
-      <div class="search-input-wrapper">
-        <i class="pi pi-search search-icon"></i>
+      <!-- 搜索框卡片 -->
+      <div class="search-input-card">
         <input 
           ref="input"
           v-model="query" 
@@ -29,20 +29,24 @@ const SearchInput = {
           @blur="handleBlur"
           class="search-input"
           type="text"
-          placeholder="搜索应用、文件或功能..."
+          :placeholder="placeholder"
           autocomplete="off"
         />
-        <div v-if="isSearching" class="loading-spinner">
-          <i class="pi pi-spin pi-spinner"></i>
+        
+        <!-- 输入框内部的操作按钮 -->
+        <div class="input-actions">
+          <div v-if="isSearching" class="loading-spinner">
+            <i class="pi pi-spin pi-spinner"></i>
+          </div>
+          <button 
+            v-if="query.length > 0"
+            @click="clearSearch"
+            class="action-button clear-button"
+            title="清空搜索"
+          >
+            <i class="pi pi-times"></i>
+          </button>
         </div>
-        <button 
-          v-if="query.length > 0"
-          @click="clearSearch"
-          class="clear-button"
-          title="清空搜索"
-        >
-          <i class="pi pi-times"></i>
-        </button>
       </div>
     </div>
   `,
@@ -100,6 +104,24 @@ const SearchInput = {
 
         // 键盘事件处理
         const handleKeyDown = (e) => {
+            // 处理 Ctrl+A 全选
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault()
+                if (input.value) {
+                    input.value.select()
+                }
+                return
+            }
+
+            // 禁用其他 Ctrl 快捷键（除了 F12）
+            if (e.ctrlKey && !['F12'].includes(e.key)) {
+                const allowedKeys = ['a', 'c', 'v', 'x', 'z', 'y'] // 允许基本编辑操作
+                if (!allowedKeys.includes(e.key.toLowerCase())) {
+                    e.preventDefault()
+                    return
+                }
+            }
+
             // 发送键盘事件给父组件处理导航逻辑
             emit('keydown', e)
 

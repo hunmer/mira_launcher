@@ -257,6 +257,14 @@ pub fn run() {
             {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_title("Mira Launcher");
+                    
+                    // 确保窗口完全透明
+                    let _ = window.set_decorations(false);
+                    #[cfg(target_os = "windows")]
+                    {
+                        // Windows 特定的阴影设置
+                        let _ = window.set_shadow(false);
+                    }
                 }
             }
 

@@ -22,6 +22,7 @@ interface QuickSearchWindowOptions {
     skipTaskbar?: boolean
     focus?: boolean
     visible?: boolean
+    shadow?: boolean
 }
 
 /**
@@ -37,7 +38,8 @@ const DEFAULT_QUICK_SEARCH_OPTIONS: QuickSearchWindowOptions = {
     alwaysOnTop: true,
     skipTaskbar: true,
     focus: true,
-    visible: false // 先隐藏，加载完成后显示
+    visible: false, // 先隐藏，加载完成后显示
+    shadow: false // 无阴影
 }
 
 // 快速搜索窗口实例
@@ -300,6 +302,17 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
         // 窗口加载完成后显示
         quickSearchWindow.once('tauri://window-created', async () => {
             try {
+                // 确保窗口完全透明
+                await quickSearchWindow.setDecorations(false)
+                await quickSearchWindow.setTransparent(true)
+
+                // 尝试设置阴影（可能在某些平台上不可用）
+                try {
+                    await quickSearchWindow.setShadow(false)
+                } catch (shadowError) {
+                    console.log('[WindowManager] Shadow setting not available on this platform')
+                }
+
                 await quickSearchWindow.show()
                 await quickSearchWindow.setFocus()
                 console.log('[WindowManager] Quick search window shown and focused')

@@ -16,7 +16,6 @@ import { getShortcutSystem } from '@/utils/shortcut-system'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 // 布局组件导入
-import QuickSearch from '@/components/business/QuickSearch.vue'
 import MainLayout from '@/components/layout/MainLayout.vue'
 import NotificationContainer from '@/components/ui/NotificationContainer.vue'
 
@@ -27,9 +26,6 @@ const pluginStore = usePluginStore()
 // Plugin loading status for debugging
 const pluginLoadingStatus = ref<any>(null)
 
-// QuickSearch 引用
-const quickSearchRef = ref<InstanceType<typeof QuickSearch>>()
-
 // 窗口事件处理
 const handleWindowEvent = () => {
   // 可以在这里添加额外的窗口事件处理逻辑
@@ -38,9 +34,7 @@ const handleWindowEvent = () => {
 
 // 快速搜索事件处理
 const handleShowQuickSearch = () => {
-  if (quickSearchRef.value) {
-    quickSearchRef.value.show()
-  }
+  // TODO:触发全局搜索
 }
 
 // 鍵盤快捷鍵處理

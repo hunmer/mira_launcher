@@ -1,4 +1,3 @@
-/* eslint-disable vue/no-reserved-component-names */
 /* eslint-disable no-undef */
 /* eslint-disable indent */
 // Vue 3 Quick Search Application
@@ -11,7 +10,40 @@ const { createApp, ref, onMounted, nextTick } = window.Vue
 const QuickSearchApp = {
     template: `
     <div class="quick-search-app">
+      <!-- 应用级别操作按钮 -->
+      <div class="app-header">
+        <div class="header-actions">
+          <button 
+            @click="handleThemeToggle"
+            class="action-button theme-button"
+            :title="getThemeButtonTitle()"
+          >
+            <i :class="getThemeIcon()"></i>
+          </button>
+          <button 
+            @click="handleSettings"
+            class="action-button settings-button"
+            title="设置"
+          >
+            <i class="pi pi-cog"></i>
+          </button>
+          <button 
+            @click="handlePin"
+            class="action-button pin-button"
+            :class="{ 'pinned': isPinned }"
+            title="固定窗口"
+          >
+            <i class="pi pi-thumbtack"></i>
+          </button>
+        </div>
+      </div>
+      
       <div class="search-container">
+        <!-- 拖拽条移动到search-container顶部 -->
+        <div class="drag-indicator" data-tauri-drag-region>
+          <div class="drag-bar"></div>
+        </div>
+        
         <!-- 搜索输入区域 - 使用SearchInput组件 -->
         <SearchInput
           ref="searchInput"
@@ -25,10 +57,17 @@ const QuickSearchApp = {
         />
         
         <!-- 搜索结果区域 -->
-        <div class="results-container" ref="resultsContainer">
+        <div 
+          class="results-container" 
+          ref="resultsContainer"
+          :class="{ 
+            'no-results': !searchQuery.trim() && !hasHistoryItems,
+            'hidden': !searchQuery.trim() && !hasHistoryItems
+          }"
+        >
           <!-- 历史记录面板 - 当没有搜索查询时显示 -->
           <HistoryPanel
-            v-if="!searchQuery.trim()"
+            v-if="!searchQuery.trim() && hasHistoryItems"
             :show-history="true"
             :selected-index="selectedIndex"
             :current-query="searchQuery"
@@ -43,7 +82,7 @@ const QuickSearchApp = {
           
           <!-- 使用ResultList组件 - 当有搜索查询时显示 -->
           <ResultList
-            v-else
+            v-else-if="searchQuery.trim()"
             :results="currentResults"
             :selected-index="selectedIndex"
             :search-query="searchQuery"
@@ -58,14 +97,6 @@ const QuickSearchApp = {
           />
         </div>
       </div>
-      
-      <!-- 快捷键提示 -->
-      <div class="hotkey-hint p-2 text-center border-top-1 surface-border text-sm">
-        <span class="hotkey px-2 py-1 border-1 surface-border border-round mr-2">ESC</span> 关闭
-        <span class="hotkey px-2 py-1 border-1 surface-border border-round mr-2">↑↓</span> 选择
-        <span class="hotkey px-2 py-1 border-1 surface-border border-round">Enter</span> 打开
-      </div>
-    </div>
   `,
 
     setup() {
@@ -76,6 +107,11 @@ const QuickSearchApp = {
         const selectedIndex = ref(-1)
         const searchInput = ref(null)
         const resultsContainer = ref(null)
+        const hasHistoryItems = ref(false)
+
+        // 主题响应式状态
+        const currentTheme = ref('auto')
+        const effectiveTheme = ref('light')
 
         // 搜索防抖计时器
         let searchTimeout = null
@@ -238,6 +274,72 @@ const QuickSearchApp = {
             selectedIndex.value = -1
         }
 
+        // 设置按钮点击处理
+        const handleSettings = () => {
+            console.log('Settings button clicked')
+            // TODO: 实现设置功能
+            // 可以打开设置对话框或发送事件到主进程
+            if (isTauriEnvironment()) {
+                // 在 Tauri 环境中发送设置事件
+                try {
+                    const { webviewWindow } = window.__TAURI__
+                    const currentWindow = webviewWindow.getCurrentWebviewWindow()
+                    currentWindow.emit('show-settings')
+                } catch (error) {
+                    console.error('发送设置事件失败:', error)
+                }
+            }
+        }
+
+        // 主题切换按钮处理
+        const handleThemeToggle = () => {
+            if (window.themeManager) {
+                window.themeManager.toggleTheme()
+                // 更新响应式状态
+                nextTick(() => {
+                    currentTheme.value = window.themeManager.currentTheme
+                    effectiveTheme.value = window.themeManager.getEffectiveTheme()
+                })
+            }
+        }
+
+        // 固定按钮状态
+        const isPinned = ref(false)
+
+        // 固定按钮点击处理
+        const handlePin = () => {
+            isPinned.value = !isPinned.value
+            console.log('Pin button clicked, pinned:', isPinned.value)
+            // TODO: 实现窗口固定功能
+            if (isTauriEnvironment()) {
+                try {
+                    const { webviewWindow } = window.__TAURI__
+                    const currentWindow = webviewWindow.getCurrentWebviewWindow()
+                    currentWindow.emit('toggle-pin', isPinned.value)
+                } catch (error) {
+                    console.error('发送固定事件失败:', error)
+                }
+            }
+        }
+
+        // 获取主题图标
+        const getThemeIcon = () => {
+            if (window.themeManager) {
+                const theme = window.themeManager.getEffectiveTheme()
+                return theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'
+            }
+            return 'pi pi-moon'
+        }
+
+        // 获取主题按钮标题
+        const getThemeButtonTitle = () => {
+            if (window.themeManager) {
+                const theme = window.themeManager.getEffectiveTheme()
+                return theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'
+            }
+            return '切换主题'
+        }
+
         // 获取空状态配置
         const getEmptyState = () => {
             if (!searchQuery.value.trim()) {
@@ -295,6 +397,7 @@ const QuickSearchApp = {
 
         const handleHistoryUpdate = (historyItems) => {
             // 历史记录更新事件
+            hasHistoryItems.value = historyItems && historyItems.length > 0
             console.log('历史记录已更新:', historyItems.length, '条记录')
         }
 
@@ -514,22 +617,77 @@ const QuickSearchApp = {
 
         // 组件挂载后初始化
         onMounted(async () => {
+            // 初始化主题状态
+            if (window.themeManager) {
+                currentTheme.value = window.themeManager.currentTheme
+                effectiveTheme.value = window.themeManager.getEffectiveTheme()
+
+                // 监听主题变化事件
+                window.addEventListener('themechange', (event) => {
+                    currentTheme.value = event.detail.theme
+                    effectiveTheme.value = event.detail.effectiveTheme
+                })
+            }
+
             // 初始化数据同步
             await initDataSync()
 
             // 聚焦搜索输入框
             nextTick(() => {
-                if (searchInput.value) {
-                    searchInput.value.$el.focus()
+                if (searchInput.value && searchInput.value.focus) {
+                    searchInput.value.focus()
                 }
             })
 
             // 全局键盘事件监听
             document.addEventListener('keydown', (e) => {
+                // 禁用常见的浏览器快捷键（除了F12）
+                if (e.ctrlKey && !['F12'].includes(e.key)) {
+                    const allowedKeys = ['a', 'c', 'v', 'x', 'z', 'y'] // 基本编辑操作
+                    const isInputFocused = document.activeElement && document.activeElement.tagName === 'INPUT'
+
+                    // 如果不是在输入框中，或者不是允许的快捷键，则阻止
+                    if (!isInputFocused || !allowedKeys.includes(e.key.toLowerCase())) {
+                        // 特殊处理一些常见快捷键
+                        if (['j', 'f', 'k', 'r', 't', 'w', 'n'].includes(e.key.toLowerCase())) {
+                            e.preventDefault()
+                            return
+                        }
+                    }
+                }
+
                 if (e.key === 'Escape') {
                     closeWindow()
                 }
             })
+
+            // 监听窗口显示事件，确保每次显示时都聚焦搜索框
+            if (isTauriEnvironment()) {
+                try {
+                    const { webviewWindow } = window.__TAURI__
+                    const currentWindow = webviewWindow.getCurrentWebviewWindow()
+
+                    // 监听窗口显示事件
+                    await currentWindow.listen('tauri://focus', () => {
+                        nextTick(() => {
+                            if (searchInput.value && searchInput.value.focus) {
+                                searchInput.value.focus()
+                            }
+                        })
+                    })
+                } catch (error) {
+                    console.error('设置窗口焦点监听失败:', error)
+                }
+            } else {
+                // 在浏览器环境中，监听窗口获得焦点事件
+                window.addEventListener('focus', () => {
+                    nextTick(() => {
+                        if (searchInput.value && searchInput.value.focus) {
+                            searchInput.value.focus()
+                        }
+                    })
+                })
+            }
         })
 
         return {
@@ -538,9 +696,18 @@ const QuickSearchApp = {
             selectedIndex,
             searchInput,
             resultsContainer,
+            hasHistoryItems,
+            isPinned,
+            currentTheme,
+            effectiveTheme,
             handleSearch,
             handleSearchFocus,
             handleSearchClear,
+            handleSettings,
+            handlePin,
+            handleThemeToggle,
+            getThemeIcon,
+            getThemeButtonTitle,
             handleSearchInput,
             handleKeyNavigation,
             selectResult,
@@ -574,3 +741,106 @@ app.mount('#app')
 // 禁用右键菜单和文本选择
 document.addEventListener('contextmenu', e => e.preventDefault())
 document.addEventListener('selectstart', e => e.preventDefault())
+
+// 窗口管理功能
+class WindowManager {
+    constructor() {
+        this.isPinned = false
+        this.isVisible = true
+        this.init()
+    }
+
+    init() {
+        this.setupPinButton()
+        this.setupFocusHandling()
+    }
+
+    setupPinButton() {
+        const pinButton = document.getElementById('pin-button')
+        if (pinButton) {
+            pinButton.addEventListener('click', () => {
+                this.togglePin()
+            })
+        }
+    }
+
+    setupFocusHandling() {
+        // 监听窗口失焦事件
+        window.addEventListener('blur', () => {
+            if (!this.isPinned && this.isVisible) {
+                this.hideWindow()
+            }
+        })
+
+        // 监听窗口获焦事件
+        window.addEventListener('focus', () => {
+            this.isVisible = true
+        })
+
+        // 监听键盘事件
+        document.addEventListener('keydown', (e) => {
+            // ESC 键隐藏窗口
+            if (e.key === 'Escape') {
+                this.hideWindow()
+            }
+        })
+    }
+
+    togglePin() {
+        this.isPinned = !this.isPinned
+        const pinButton = document.getElementById('pin-button')
+
+        if (pinButton) {
+            if (this.isPinned) {
+                pinButton.classList.add('pinned')
+                pinButton.title = '取消固定'
+            } else {
+                pinButton.classList.remove('pinned')
+                pinButton.title = '固定窗口'
+            }
+        }
+
+        console.log(`窗口${this.isPinned ? '已固定' : '已取消固定'}`)
+    }
+
+    async hideWindow() {
+        return;
+        if (this.isPinned) return
+
+        try {
+            if (window.__TAURI__) {
+                const { webviewWindow } = window.__TAURI__
+                const currentWindow = webviewWindow.getCurrentWebviewWindow()
+                await currentWindow.hide()
+                this.isVisible = false
+                console.log('窗口已隐藏')
+            } else {
+                // 如果不在 Tauri 环境中，最小化到任务栏（备用方案）
+                console.log('非 Tauri 环境，无法隐藏窗口')
+            }
+        } catch (error) {
+            console.error('隐藏窗口失败:', error)
+        }
+    }
+
+    async showWindow() {
+        try {
+            if (window.__TAURI__) {
+                const { webviewWindow } = window.__TAURI__
+                const currentWindow = webviewWindow.getCurrentWebviewWindow()
+                await currentWindow.show()
+                await currentWindow.setFocus()
+                this.isVisible = true
+                console.log('窗口已显示')
+            }
+        } catch (error) {
+            console.error('显示窗口失败:', error)
+        }
+    }
+}
+
+// 初始化窗口管理器
+const windowManager = new WindowManager()
+
+// 导出到全局作用域（如果需要）
+window.windowManager = windowManager

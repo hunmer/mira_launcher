@@ -7,30 +7,34 @@
     <meta name="description" content="快速搜索应用程序、文件和功能">
     <meta name="theme-color" content="#3b82f6">
     <title>快速搜索</title>
-    
+
     <!-- PrimeVue CSS - 仅加载图标 -->
     <link rel="stylesheet" href="https://unpkg.com/primeicons@^7/primeicons.css">
-    
+
     <!-- 新的独立主题系统 -->
     <link rel="stylesheet" href="theme-system.css">
-    
+
     <!-- 组件集成适配器 -->
     <link rel="stylesheet" href="component-integration.css">
-    
+
+    <!-- 组件样式 -->
+    <link rel="stylesheet" href="components/SearchInput.css">
+
     <!-- 预连接优化 -->
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="dns-prefetch" href="https://unpkg.com">
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="app">
+    </div>
 
     <!-- 主题切换按钮（如果需要） -->
     <!-- <div id="theme-toggle"></div> -->
 
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
+
     <!-- 注意：我们只使用 PrimeIcons，不需要 PrimeVue JavaScript -->
 
     <!-- 主题管理系统 -->
@@ -40,7 +44,7 @@
     <script src="components/SearchInput.js"></script>
     <script src="components/ResultList.js"></script>
     <script src="components/HistoryPanel.js"></script>
-    
+
     <!-- 应用脚本 -->
     <script type="module" src="app.js"></script>
 </body>
