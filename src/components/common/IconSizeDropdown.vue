@@ -1,14 +1,24 @@
 <template>
     <div class="icon-size-dropdown">
-        <button ref="menuButton" class="size-trigger-btn" @click="toggleMenu" @wheel="handleWheel"
-            :title="currentSizeLabel">
+        <button
+            ref="menuButton"
+            class="size-trigger-btn"
+            :title="currentSizeLabel"
+            @click="toggleMenu"
+            @wheel="handleWheel"
+        >
             <div class="size-indicator">
                 <div :class="['size-dot', getSizeDotClass(currentSize)]" />
             </div>
             <i class="pi pi-angle-down trigger-icon" />
         </button>
 
-        <Menu ref="menu" :model="menuItems" :popup="true" class="size-menu">
+        <Menu
+            ref="menu"
+            :model="menuItems"
+            :popup="true"
+            class="size-menu"
+        >
             <template #item="{ item }">
                 <div class="flex items-center gap-2 w-full">
                     <div class="size-indicator">
@@ -36,7 +46,7 @@ interface IconSizeDropdownEmits {
 }
 
 const props = withDefaults(defineProps<IconSizeDropdownProps>(), {
-    containerWidth: 1200
+    containerWidth: 1200,
 })
 
 const emit = defineEmits<IconSizeDropdownEmits>()
@@ -63,7 +73,7 @@ const sizeOptions = computed(() => {
         { value: '7', label: '7列', description: '微型图标', size: 'xxxs' },
         { value: '8', label: '8列', description: '极小图标', size: 'xxxxs' },
         { value: '9', label: '9列', description: '紧凑图标', size: 'xxxxxs' },
-        { value: '10', label: '10列', description: '最小图标', size: 'xxxxxxs' }
+        { value: '10', label: '10列', description: '最小图标', size: 'xxxxxxs' },
     ]
 
     // 如果容器宽度不足以容纳某个列数，则添加"自适应"选项
@@ -78,7 +88,7 @@ const sizeOptions = computed(() => {
             value: 'auto',
             label: '自适应',
             description: '根据容器宽度',
-            size: 'auto'
+            size: 'auto',
         })
     }
 
@@ -93,7 +103,7 @@ const menuItems = computed(() => {
         command: () => {
             emit('update:modelValue', option.value)
             emit('change', option.value)
-        }
+        },
     }))
 })
 
@@ -127,7 +137,7 @@ const getSizeDotClass = (value: string) => {
         '8': 'size-dot-xxxxs',
         '9': 'size-dot-xxxxxs',
         '10': 'size-dot-xxxxxxs',
-        'auto': 'size-dot-auto'
+        'auto': 'size-dot-auto',
     }
     return sizeMap[value] || 'size-dot-sm'
 }

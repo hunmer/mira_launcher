@@ -311,8 +311,8 @@ export const highlightText = (
     const range = ranges[i]
     if (range) {
       result = `${result.slice(0, range.start)
-        }<span class="${className}">${result.slice(range.start, range.end)
-        }</span>${result.slice(range.end)}`
+      }<span class="${className}">${result.slice(range.start, range.end)
+      }</span>${result.slice(range.end)}`
     }
   }
 

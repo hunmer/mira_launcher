@@ -75,7 +75,7 @@ class ComponentRegistry {
           pluginId,
           registeredAt: new Date(),
           isRegistered: true,
-          ...(componentDef.metadata && { metadata: componentDef.metadata })
+          ...(componentDef.metadata && { metadata: componentDef.metadata }),
         }
 
         this.dynamicComponents.set(name, dynamicComponent)
@@ -161,7 +161,7 @@ class ComponentRegistry {
     totalDynamicComponents: number
     componentsByPlugin: Record<string, number>
     recentlyRegistered: DynamicComponent[]
-  } {
+    } {
     const componentsByPlugin: Record<string, number> = {}
     
     for (const [pluginId, components] of this.componentsByPlugin) {
@@ -176,7 +176,7 @@ class ComponentRegistry {
     return {
       totalDynamicComponents: this.dynamicComponents.size,
       componentsByPlugin,
-      recentlyRegistered
+      recentlyRegistered,
     }
   }
 
@@ -264,7 +264,7 @@ export function setupComponentDevtools(app: App) {
     app.config.globalProperties['$componentRegistry'] = {
       static: staticComponents,
       dynamic: () => componentRegistry.getAllDynamicComponents().map(c => c.name),
-      stats: () => componentRegistry.getStats()
+      stats: () => componentRegistry.getStats(),
     }
   }
 }
@@ -313,5 +313,5 @@ export const pluginComponentUtils = {
    */
   getStats: () => {
     return componentRegistry.getStats()
-  }
+  },
 }

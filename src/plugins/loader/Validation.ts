@@ -90,7 +90,7 @@ export class PluginValidator {
       allowedPermissions: ['storage', 'notification', 'menu', 'component', 'shortcut'],
       enabledRules: ['*'], // 启用所有规则
       customRules: [],
-      ...config
+      ...config,
     }
 
     this.initializeDefaultRules()
@@ -144,7 +144,7 @@ export class PluginValidator {
       discoveryResult,
       appVersion: this.config.appVersion,
       allowedPermissions: this.config.allowedPermissions,
-      mode: this.config.mode
+      mode: this.config.mode,
     }
 
     const results = await this.runValidationRules(discoveryResult, context)
@@ -163,7 +163,7 @@ export class PluginValidator {
       loadResult,
       appVersion: this.config.appVersion,
       allowedPermissions: this.config.allowedPermissions,
-      mode: this.config.mode
+      mode: this.config.mode,
     }
 
     const results = await this.runValidationRules(loadResult, context)
@@ -193,7 +193,7 @@ export class PluginValidator {
           severity: 'error',
           message: `Validation rule error: ${error instanceof Error ? error.message : 'Unknown error'}`,
           rule: ruleName,
-          details: { error }
+          details: { error },
         })
       }
     }
@@ -224,7 +224,7 @@ export class PluginValidator {
   private buildValidationResult(
     pluginId: string, 
     results: ValidationResult[], 
-    duration: number
+    duration: number,
   ): PluginValidationResult {
     const errors = results.filter(r => r.severity === 'error' && !r.valid)
     const warnings = results.filter(r => r.severity === 'warning' && !r.valid)
@@ -235,7 +235,7 @@ export class PluginValidator {
       errorCount: errors.length,
       warningCount: warnings.length,
       results,
-      duration
+      duration,
     }
   }
 
@@ -251,7 +251,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Plugin metadata is missing',
-        rule: 'metadata.required-fields'
+        rule: 'metadata.required-fields',
       }
     }
 
@@ -264,7 +264,7 @@ export class PluginValidator {
         severity: 'error',
         message: `Missing required fields: ${missingFields.join(', ')}`,
         rule: 'metadata.required-fields',
-        details: { missingFields }
+        details: { missingFields },
       }
     }
 
@@ -272,7 +272,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'All required fields are present',
-      rule: 'metadata.required-fields'
+      rule: 'metadata.required-fields',
     }
   }
 
@@ -287,7 +287,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Plugin metadata must be an object',
-        rule: 'metadata.format'
+        rule: 'metadata.format',
       }
     }
 
@@ -295,7 +295,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Metadata format is valid',
-      rule: 'metadata.format'
+      rule: 'metadata.format',
     }
   }
 
@@ -311,7 +311,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Version is required',
-        rule: 'metadata.version-format'
+        rule: 'metadata.version-format',
       }
     }
 
@@ -323,7 +323,7 @@ export class PluginValidator {
         severity: 'error',
         message: 'Version must follow semantic versioning (x.y.z)',
         rule: 'metadata.version-format',
-        details: { version }
+        details: { version },
       }
     }
 
@@ -331,7 +331,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Version format is valid',
-      rule: 'metadata.version-format'
+      rule: 'metadata.version-format',
     }
   }
 
@@ -347,7 +347,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Plugin ID is required',
-        rule: 'metadata.id-format'
+        rule: 'metadata.id-format',
       }
     }
 
@@ -359,7 +359,7 @@ export class PluginValidator {
         severity: 'error',
         message: 'Plugin ID can only contain lowercase letters, numbers, hyphens, and underscores',
         rule: 'metadata.id-format',
-        details: { id }
+        details: { id },
       }
     }
 
@@ -367,7 +367,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Plugin ID format is valid',
-      rule: 'metadata.id-format'
+      rule: 'metadata.id-format',
     }
   }
 
@@ -383,7 +383,7 @@ export class PluginValidator {
         valid: true,
         severity: 'warning',
         message: 'No minimum app version specified',
-        rule: 'compatibility.app-version'
+        rule: 'compatibility.app-version',
       }
     }
 
@@ -396,7 +396,7 @@ export class PluginValidator {
         severity: 'error',
         message: `Plugin requires app version ${minAppVersion} or higher, but current version is ${context.appVersion}`,
         rule: 'compatibility.app-version',
-        details: { required: minAppVersion, current: context.appVersion }
+        details: { required: minAppVersion, current: context.appVersion },
       }
     }
 
@@ -404,7 +404,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'App version compatibility verified',
-      rule: 'compatibility.app-version'
+      rule: 'compatibility.app-version',
     }
   }
 
@@ -423,7 +423,7 @@ export class PluginValidator {
       severity: 'info',
       message: `Dependencies validated (${dependencies.length} dependencies)`,
       rule: 'compatibility.dependencies',
-      details: { dependencies }
+      details: { dependencies },
     }
   }
 
@@ -441,7 +441,7 @@ export class PluginValidator {
         severity: 'error',
         message: `Invalid permissions requested: ${invalidPermissions.join(', ')}`,
         rule: 'security.permissions',
-        details: { invalidPermissions, allowedPermissions: context.allowedPermissions }
+        details: { invalidPermissions, allowedPermissions: context.allowedPermissions },
       }
     }
 
@@ -449,7 +449,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'All requested permissions are valid',
-      rule: 'security.permissions'
+      rule: 'security.permissions',
     }
   }
 
@@ -468,7 +468,7 @@ export class PluginValidator {
         severity: 'error',
         message: 'Dangerous permissions are not allowed in strict mode',
         rule: 'security.dangerous-permissions',
-        details: { dangerousPermissions: permissions.filter((p: string) => dangerousPermissions.includes(p)) }
+        details: { dangerousPermissions: permissions.filter((p: string) => dangerousPermissions.includes(p)) },
       }
     }
 
@@ -478,7 +478,7 @@ export class PluginValidator {
         severity: 'warning',
         message: 'Plugin requests potentially dangerous permissions',
         rule: 'security.dangerous-permissions',
-        details: { dangerousPermissions: permissions.filter((p: string) => dangerousPermissions.includes(p)) }
+        details: { dangerousPermissions: permissions.filter((p: string) => dangerousPermissions.includes(p)) },
       }
     }
 
@@ -486,7 +486,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'No dangerous permissions requested',
-      rule: 'security.dangerous-permissions'
+      rule: 'security.dangerous-permissions',
     }
   }
 
@@ -501,7 +501,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Plugin class not found or invalid',
-        rule: 'plugin.class-structure'
+        rule: 'plugin.class-structure',
       }
     }
 
@@ -509,7 +509,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Plugin class structure is valid',
-      rule: 'plugin.class-structure'
+      rule: 'plugin.class-structure',
     }
   }
 
@@ -524,7 +524,7 @@ export class PluginValidator {
         valid: false,
         severity: 'error',
         message: 'Cannot validate lifecycle methods: plugin class not available',
-        rule: 'plugin.lifecycle-methods'
+        rule: 'plugin.lifecycle-methods',
       }
     }
 
@@ -539,7 +539,7 @@ export class PluginValidator {
         severity: 'error',
         message: `Missing required lifecycle methods: ${missingMethods.join(', ')}`,
         rule: 'plugin.lifecycle-methods',
-        details: { missingMethods }
+        details: { missingMethods },
       }
     }
 
@@ -547,7 +547,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'All required lifecycle methods are present',
-      rule: 'plugin.lifecycle-methods'
+      rule: 'plugin.lifecycle-methods',
     }
   }
 
@@ -562,7 +562,7 @@ export class PluginValidator {
         valid: true,
         severity: 'info',
         message: 'Entry file validation skipped (no discovery result)',
-        rule: 'files.entry-exists'
+        rule: 'files.entry-exists',
       }
     }
 
@@ -572,7 +572,7 @@ export class PluginValidator {
         severity: 'error',
         message: 'Entry file validation failed during discovery',
         rule: 'files.entry-exists',
-        details: { errors: discoveryResult.errors }
+        details: { errors: discoveryResult.errors },
       }
     }
 
@@ -580,7 +580,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Entry file exists and is accessible',
-      rule: 'files.entry-exists'
+      rule: 'files.entry-exists',
     }
   }
 
@@ -593,7 +593,7 @@ export class PluginValidator {
       valid: true,
       severity: 'info',
       message: 'Manifest integrity check passed',
-      rule: 'files.manifest-integrity'
+      rule: 'files.manifest-integrity',
     }
   }
 
@@ -694,7 +694,7 @@ export const validationUtils = {
     
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     }
   },
 
@@ -736,7 +736,7 @@ export const validationUtils = {
       invalidPlugins,
       totalErrors,
       totalWarnings,
-      commonIssues
+      commonIssues,
     }
-  }
+  },
 }

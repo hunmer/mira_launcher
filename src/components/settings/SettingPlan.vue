@@ -1,7 +1,11 @@
 <!-- SettingPlan 组件 - 包装 PrimeVue Accordion 以支持设置页面的统一样式 -->
 <template>
     <div style="margin-bottom: 50px;">
-        <Accordion v-model:value="accordionValue" v-bind="$attrs" multiple>
+        <Accordion
+            v-model:value="accordionValue"
+            v-bind="$attrs"
+            multiple
+        >
             <slot />
         </Accordion>
     </div>
@@ -22,7 +26,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
     value: () => [],
-    defaultValue: () => ['0']
+    defaultValue: () => ['0'],
 })
 
 const emit = defineEmits<Emits>()

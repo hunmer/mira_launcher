@@ -2,52 +2,106 @@
     <div class="plugin-config-panel">
         <div class="config-header">
             <h3>{{ plugin.name }} 配置</h3>
-            <p class="config-description">{{ plugin.description }}</p>
+            <p class="config-description">
+                {{ plugin.description }}
+            </p>
         </div>
 
         <div class="config-content">
-            <div v-if="!plugin.configs?.properties" class="no-config">
-                <i class="pi pi-info-circle"></i>
+            <div
+                v-if="!plugin.configs?.properties"
+                class="no-config"
+            >
+                <i class="pi pi-info-circle" />
                 <span>此插件没有可配置的选项</span>
             </div>
 
-            <div v-else class="config-form">
-                <div v-for="(property, key) in plugin.configs.properties" :key="key" class="config-item">
-                    <label :for="`config-${key}`" class="config-label">
+            <div
+                v-else
+                class="config-form"
+            >
+                <div
+                    v-for="(property, key) in plugin.configs.properties"
+                    :key="key"
+                    class="config-item"
+                >
+                    <label
+                        :for="`config-${key}`"
+                        class="config-label"
+                    >
                         {{ property.title || key }}
-                        <span v-if="property.description" class="config-hint">
-                            <i class="pi pi-question-circle" v-tooltip="property.description"></i>
+                        <span
+                            v-if="property.description"
+                            class="config-hint"
+                        >
+                            <i
+                                v-tooltip="property.description"
+                                class="pi pi-question-circle"
+                            />
                         </span>
                     </label>
 
                     <!-- Boolean 配置 -->
-                    <div v-if="property.type === 'boolean'" class="config-input">
-                        <InputSwitch :id="`config-${key}`" :model-value="Boolean(configValues[key])"
-                            @update:model-value="onConfigChange(key, $event)" />
+                    <div
+                        v-if="property.type === 'boolean'"
+                        class="config-input"
+                    >
+                        <InputSwitch
+                            :id="`config-${key}`"
+                            :model-value="Boolean(configValues[key])"
+                            @update:model-value="onConfigChange(key, $event)"
+                        />
                     </div>
 
                     <!-- Number 配置 -->
-                    <div v-else-if="property.type === 'number'" class="config-input">
-                        <InputNumber :id="`config-${key}`" :model-value="Number(configValues[key] ?? 0)"
-                            :min="property.minimum" :max="property.maximum"
-                            @update:model-value="onConfigChange(key, $event)" class="w-full" />
+                    <div
+                        v-else-if="property.type === 'number'"
+                        class="config-input"
+                    >
+                        <InputNumber
+                            :id="`config-${key}`"
+                            :model-value="Number(configValues[key] ?? 0)"
+                            :min="property.minimum"
+                            :max="property.maximum"
+                            class="w-full"
+                            @update:model-value="onConfigChange(key, $event)"
+                        />
                     </div>
 
                     <!-- String 配置（枚举选择） -->
-                    <div v-else-if="property.type === 'string' && property.enum" class="config-input">
-                        <Dropdown :id="`config-${key}`" :model-value="String(configValues[key] ?? '')"
-                            :options="getEnumOptions(property.enum)" option-label="label" option-value="value"
-                            @update:model-value="onConfigChange(key, $event)" class="w-full" />
+                    <div
+                        v-else-if="property.type === 'string' && property.enum"
+                        class="config-input"
+                    >
+                        <Dropdown
+                            :id="`config-${key}`"
+                            :model-value="String(configValues[key] ?? '')"
+                            :options="getEnumOptions(property.enum)"
+                            option-label="label"
+                            option-value="value"
+                            class="w-full"
+                            @update:model-value="onConfigChange(key, $event)"
+                        />
                     </div>
 
                     <!-- String 配置（文本输入） -->
-                    <div v-else-if="property.type === 'string'" class="config-input">
-                        <InputText :id="`config-${key}`" :model-value="String(configValues[key] ?? '')"
-                            @update:model-value="onConfigChange(key, $event)" class="w-full" />
+                    <div
+                        v-else-if="property.type === 'string'"
+                        class="config-input"
+                    >
+                        <InputText
+                            :id="`config-${key}`"
+                            :model-value="String(configValues[key] ?? '')"
+                            class="w-full"
+                            @update:model-value="onConfigChange(key, $event)"
+                        />
                     </div>
 
                     <!-- 其他类型显示为只读 -->
-                    <div v-else class="config-input">
+                    <div
+                        v-else
+                        class="config-input"
+                    >
                         <span class="readonly-value">{{ configValues[key] }}</span>
                         <small class="text-muted">({{ property.type }} 类型暂不支持编辑)</small>
                     </div>
@@ -56,22 +110,49 @@
         </div>
 
         <div class="config-actions">
-            <Button label="重置为默认值" severity="secondary" icon="pi pi-refresh" @click="resetToDefaults"
-                :disabled="!hasChanges" />
-            <Button label="保存配置" icon="pi pi-check" @click="saveConfig" :disabled="!hasChanges" />
+            <Button
+                label="重置为默认值"
+                severity="secondary"
+                icon="pi pi-refresh"
+                :disabled="!hasChanges"
+                @click="resetToDefaults"
+            />
+            <Button
+                label="保存配置"
+                icon="pi pi-check"
+                :disabled="!hasChanges"
+                @click="saveConfig"
+            />
         </div>
 
-        <div v-if="showTestSection" class="config-test">
+        <div
+            v-if="showTestSection"
+            class="config-test"
+        >
             <Divider />
             <h4>配置测试</h4>
             <div class="test-actions">
-                <Button label="测试配置" icon="pi pi-play" @click="testConfig" :loading="testing" />
-                <Button label="重置测试" severity="secondary" icon="pi pi-times" @click="resetTest"
-                    :disabled="!testResult" />
+                <Button
+                    label="测试配置"
+                    icon="pi pi-play"
+                    :loading="testing"
+                    @click="testConfig"
+                />
+                <Button
+                    label="重置测试"
+                    severity="secondary"
+                    icon="pi pi-times"
+                    :disabled="!testResult"
+                    @click="resetTest"
+                />
             </div>
 
-            <div v-if="testResult" class="test-result" :class="testResult.success ? 'success' : 'error'">
-                <i :class="testResult.success ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+            <div
+                v-if="testResult"
+                class="test-result"
+                :class="testResult.success ? 'success' : 'error'"
+            >
+                <i :class="testResult.success ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
                 <span>{{ testResult.message }}</span>
             </div>
         </div>
@@ -100,7 +181,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    showTestSection: true
+    showTestSection: true,
 })
 
 const emit = defineEmits<Emits>()
@@ -114,7 +195,7 @@ const testResult = ref<{ success: boolean; message: string } | null>(null)
 // 计算属性
 const hasChanges = computed(() => {
     return Object.keys(configValues.value).some(key =>
-        configValues.value[key] !== originalValues.value[key]
+        configValues.value[key] !== originalValues.value[key],
     )
 })
 
@@ -138,19 +219,19 @@ const initializeConfig = () => {
 
 const getDefaultValueForType = (type: string): unknown => {
     switch (type) {
-        case 'boolean': return false
-        case 'number': return 0
-        case 'string': return ''
-        case 'array': return []
-        case 'object': return {}
-        default: return null
+    case 'boolean': return false
+    case 'number': return 0
+    case 'string': return ''
+    case 'array': return []
+    case 'object': return {}
+    default: return null
     }
 }
 
 const getEnumOptions = (enumValues: unknown[]) => {
     return enumValues.map(value => ({
         label: String(value),
-        value: value
+        value,
     }))
 }
 
@@ -172,7 +253,7 @@ const saveConfig = () => {
     // 显示保存成功提示
     testResult.value = {
         success: true,
-        message: '配置已保存'
+        message: '配置已保存',
     }
 
     setTimeout(() => {
@@ -193,7 +274,7 @@ const testConfig = async () => {
 
         testResult.value = {
             success: isValid,
-            message: isValid ? '配置测试通过' : '配置验证失败'
+            message: isValid ? '配置测试通过' : '配置验证失败',
         }
 
         emit('config-tested', testResult.value)
@@ -201,7 +282,7 @@ const testConfig = async () => {
     } catch (error) {
         testResult.value = {
             success: false,
-            message: `测试失败: ${error}`
+            message: `测试失败: ${error}`,
         }
     } finally {
         testing.value = false

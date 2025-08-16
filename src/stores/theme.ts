@@ -89,7 +89,7 @@ export const useThemeStore = defineStore('theme', () => {
       htmlElement.classList.remove('dark')
     }
 
-    console.log(`[Theme] DOM classes after apply:`, htmlElement.classList.toString())
+    console.log('[Theme] DOM classes after apply:', htmlElement.classList.toString())
 
     // 刷新插件主题
     refreshPluginThemes()
@@ -161,7 +161,7 @@ export const useThemeStore = defineStore('theme', () => {
   // 插件主题管理方法
   const registerPluginTheme = (
     pluginId: string,
-    themeData: Omit<PluginTheme, 'id' | 'pluginId' | 'isActive'>
+    themeData: Omit<PluginTheme, 'id' | 'pluginId' | 'isActive'>,
   ) => {
     if (!pluginThemeConfig.value.allowPluginThemes) {
       throw new Error('Plugin themes are disabled')

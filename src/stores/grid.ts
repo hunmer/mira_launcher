@@ -44,7 +44,7 @@ export const useGridStore = defineStore('grid', () => {
     renderer: any
     validator: (data: any) => boolean
     defaultData: Record<string, any>
-  }>>(new Map())
+      }>>(new Map())
 
   // 拖拽状态
   const dragState = ref<DragState>({
@@ -391,7 +391,7 @@ export const useGridStore = defineStore('grid', () => {
     typeName: string,
     renderer: any,
     validator: (data: any) => boolean,
-    defaultData: Record<string, any> = {}
+    defaultData: Record<string, any> = {},
   ) => {
     const typeKey = `${pluginId}.${typeName}`
     pluginItemTypes.value.set(typeKey, {

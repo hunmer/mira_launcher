@@ -1,13 +1,13 @@
 <!-- ToggleSwitch 组件 - 包装 PrimeVue ToggleSwitch 以支持自定义样式和暗色模式 -->
 <template>
-  <ToggleSwitch
-    v-model="switchValue"
-    v-bind="{
-      ...$attrs,
-      class: switchClass
-    }"
-    @change="handleChange"
-  />
+    <ToggleSwitch
+        v-model="switchValue"
+        v-bind="{
+            ...$attrs,
+            class: switchClass
+        }"
+        @change="handleChange"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,18 +16,18 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  modelValue?: boolean
-  disabled?: boolean
+    modelValue?: boolean
+    disabled?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'change', event: Event): void
+    (e: 'update:modelValue', value: boolean): void
+    (e: 'change', event: Event): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: false,
-  disabled: false,
+    modelValue: false,
+    disabled: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -38,27 +38,27 @@ const switchValue = ref(props.modelValue)
 
 // 监听外部值变化
 watch(() => props.modelValue, (newValue) => {
-  switchValue.value = newValue
+    switchValue.value = newValue
 })
 
 // 监听内部值变化
 watch(switchValue, (newValue) => {
-  emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue)
 })
 
 const handleChange = (event: Event) => {
-  emit('change', event)
+    emit('change', event)
 }
 
 // 计算开关样式类
 const switchClass = computed(() => {
-  const classes = ['custom-toggle-switch']
+    const classes = ['custom-toggle-switch']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

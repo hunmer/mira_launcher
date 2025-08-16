@@ -203,7 +203,7 @@ export class HotReloadManager {
       const needsFullReload = changes.some(change => 
         change.path.includes('metadata.json') || 
         change.path.includes('index.ts') ||
-        change.type === 'deleted'
+        change.type === 'deleted',
       )
       
       if (needsFullReload) {
@@ -290,7 +290,7 @@ export class HotReloadManager {
     for (const element of styleElements) {
       // 重新加载样式内容
       try {
-        const response = await fetch(filePath + '?t=' + Date.now())
+        const response = await fetch(`${filePath}?t=${Date.now()}`)
         const cssContent = await response.text()
         element.textContent = cssContent
       } catch (error) {
@@ -357,7 +357,7 @@ export class HotReloadManager {
    */
   private dispatchReloadEvent(pluginId: string, type: 'full' | 'partial') {
     const event = new CustomEvent('plugin-hot-reload', {
-      detail: { pluginId, type, timestamp: Date.now() }
+      detail: { pluginId, type, timestamp: Date.now() },
     })
     
     window.dispatchEvent(event)
@@ -368,7 +368,7 @@ export class HotReloadManager {
    */
   private dispatchConfigEvent(pluginId: string, config: any) {
     const event = new CustomEvent('plugin-config-reload', {
-      detail: { pluginId, config, timestamp: Date.now() }
+      detail: { pluginId, config, timestamp: Date.now() },
     })
     
     window.dispatchEvent(event)
@@ -449,5 +449,5 @@ export const hotReloadManager = new HotReloadManager()
 // 开发环境下自动启用
 if (import.meta.env.DEV) {
   // 将热重载管理器挂载到全局，方便调试
-  ;(window as any).__hotReloadManager = hotReloadManager
+  (window as any).__hotReloadManager = hotReloadManager
 }

@@ -14,7 +14,7 @@ import type {
   PluginSearchEntry,
   PluginState,
   PluginStorageConfig,
-  PluginSubscription
+  PluginSubscription,
 } from '../../types/plugin'
 
 /**
@@ -396,15 +396,15 @@ export abstract class BasePlugin {
   protected log(level: 'info' | 'warn' | 'error', message: string, ...args: unknown[]): void {
     const prefix = `[Plugin:${this.name}]`
     switch (level) {
-      case 'info':
-        console.log(prefix, message, ...args)
-        break
-      case 'warn':
-        console.warn(prefix, message, ...args)
-        break
-      case 'error':
-        console.error(prefix, message, ...args)
-        break
+    case 'info':
+      console.log(prefix, message, ...args)
+      break
+    case 'warn':
+      console.warn(prefix, message, ...args)
+      break
+    case 'error':
+      console.error(prefix, message, ...args)
+      break
     }
   }
 }

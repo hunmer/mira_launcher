@@ -1,13 +1,13 @@
 <template>
-  <BaseIcon
-    :icon-component="Files"
-    v-bind="{
-      ...(size !== undefined && { size }),
-      ...(color !== undefined && { color }),
-      ...(customClass !== undefined && { class: customClass }),
-      ...$attrs
-    }"
-  />
+    <BaseIcon
+        :icon-component="Files"
+        v-bind="{
+            ...(size !== undefined && { size }),
+            ...(color !== undefined && { color }),
+            ...(customClass !== undefined && { class: customClass }),
+            ...$attrs
+        }"
+    />
 </template>
 
 <script setup lang="ts">
@@ -21,8 +21,8 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  size: 16,
-  color: 'currentColor',
-  customClass: '',
+    size: 16,
+    color: 'currentColor',
+    customClass: '',
 })
 </script>

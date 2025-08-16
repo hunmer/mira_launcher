@@ -1,8 +1,21 @@
 <template>
-  <Teleport to="body">
-    <TieredMenu v-if="show" ref="menu" :model="menuItems" :popup="false" :style="menuPosition"
-      @hide="emit('update:show', false)" />
-  </Teleport>
+    <Teleport to="body">
+        <div
+            v-if="show"
+            class="context-menu-overlay"
+            @click="emit('update:show', false)"
+            @contextmenu.prevent="emit('update:show', false)"
+        >
+            <TieredMenu
+                ref="menu"
+                :model="menuItems"
+                :popup="false"
+                :style="menuPosition"
+                @click.stop
+                @hide="emit('update:show', false)"
+            />
+        </div>
+    </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -10,23 +23,23 @@ import TieredMenu from 'primevue/tieredmenu'
 import { computed } from 'vue'
 
 export interface MenuItem {
-  label: string
-  icon?: string
-  action?: () => void
-  danger?: boolean
-  separator?: boolean
+    label: string
+    icon?: string
+    action?: () => void
+    danger?: boolean
+    separator?: boolean
 }
 
 interface Props {
-  show: boolean
-  x: number
-  y: number
-  items: MenuItem[]
+    show: boolean
+    x: number
+    y: number
+    items: MenuItem[]
 }
 
 interface Emits {
-  (e: 'update:show', value: boolean): void
-  (e: 'select', item: MenuItem): void
+    (e: 'update:show', value: boolean): void
+    (e: 'select', item: MenuItem): void
 }
 
 const props = defineProps<Props>()
@@ -34,78 +47,89 @@ const emit = defineEmits<Emits>()
 
 // 菜单尺寸估算
 const MENU_MIN_WIDTH = 192 // 12rem = 192px
-const MENU_MAX_WIDTH = 320 // 20rem = 320px
 const MENU_ITEM_HEIGHT = 44 // 更精确的菜单项高度（包含padding）
 const MENU_PADDING = 16 // 菜单内边距
 const SCREEN_MARGIN = 10 // 屏幕边距
 
 // 计算菜单位置，确保不超出屏幕边界
 const menuPosition = computed(() => {
-  const screenWidth = window.innerWidth
-  const screenHeight = window.innerHeight
+    const screenWidth = window.innerWidth
+    const screenHeight = window.innerHeight
 
-  // 计算实际的菜单项数量（排除分隔符的高度差异）
-  const actualItems = props.items.filter(item => !item.separator).length
-  const separators = props.items.filter(item => item.separator).length
+    // 计算实际的菜单项数量（排除分隔符的高度差异）
+    const actualItems = props.items.filter(item => !item.separator).length
+    const separators = props.items.filter(item => item.separator).length
 
-  // 估算菜单高度：菜单项 + 分隔符（高度较小）+ 内边距
-  const menuHeight = actualItems * MENU_ITEM_HEIGHT + separators * 9 + MENU_PADDING
+    // 估算菜单高度：菜单项 + 分隔符（高度较小）+ 内边距
+    const menuHeight = actualItems * MENU_ITEM_HEIGHT + separators * 9 + MENU_PADDING
 
-  // 使用最小宽度作为估算宽度
-  const menuWidth = MENU_MIN_WIDTH
+    // 使用最小宽度作为估算宽度
+    const menuWidth = MENU_MIN_WIDTH
 
-  let x = props.x
-  let y = props.y
+    let x = props.x
+    let y = props.y
 
-  // 检查右边界
-  if (x + menuWidth > screenWidth - SCREEN_MARGIN) {
-    x = screenWidth - menuWidth - SCREEN_MARGIN
-  }
+    // 检查右边界
+    if (x + menuWidth > screenWidth - SCREEN_MARGIN) {
+        x = screenWidth - menuWidth - SCREEN_MARGIN
+    }
 
-  // 检查左边界
-  if (x < SCREEN_MARGIN) {
-    x = SCREEN_MARGIN
-  }
+    // 检查左边界
+    if (x < SCREEN_MARGIN) {
+        x = SCREEN_MARGIN
+    }
 
-  // 检查下边界
-  if (y + menuHeight > screenHeight - SCREEN_MARGIN) {
-    y = screenHeight - menuHeight - SCREEN_MARGIN
-  }
+    // 检查下边界
+    if (y + menuHeight > screenHeight - SCREEN_MARGIN) {
+        y = screenHeight - menuHeight - SCREEN_MARGIN
+    }
 
-  // 检查上边界
-  if (y < SCREEN_MARGIN) {
-    y = SCREEN_MARGIN
-  }
+    // 检查上边界
+    if (y < SCREEN_MARGIN) {
+        y = SCREEN_MARGIN
+    }
 
-  return {
-    position: 'fixed',
-    top: y + 'px',
-    left: x + 'px',
-    zIndex: 1000
-  }
+    return {
+        position: 'fixed',
+        top: `${y}px`,
+        left: `${x}px`,
+        zIndex: 1000,
+    }
 })
 
 // 将自定义MenuItem转换为PrimeVue TieredMenu格式
 const menuItems = computed(() => {
-  return props.items.map(item => {
-    if (item.separator) {
-      return { separator: true }
-    }
-    return {
-      label: item.label,
-      icon: item.icon,
-      command: () => {
-        emit('select', item)
-        item.action?.()
-        emit('update:show', false)
-      },
-      style: item.danger ? 'color: #dc2626' : undefined
-    }
-  })
+    return props.items.map(item => {
+        if (item.separator) {
+            return { separator: true }
+        }
+        return {
+            label: item.label,
+            icon: item.icon,
+            command: () => {
+                emit('select', item)
+                item.action?.()
+                emit('update:show', false)
+            },
+            style: item.danger ? 'color: #dc2626' : undefined,
+        }
+    })
 })
 </script>
 
 <style scoped>
+/* 遮罩层样式 */
+.context-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    /* 透明遮罩，用于捕获点击事件 */
+    background-color: transparent;
+}
+
 /* TieredMenu自定义样式 */
 :deep(.p-tieredmenu) {
   min-width: 12rem;
@@ -113,6 +137,9 @@ const menuItems = computed(() => {
   backdrop-filter: blur(8px);
   /* 确保不会超出视口 */
   box-sizing: border-box;
+  /* 确保菜单在遮罩层之上 */
+  position: relative;
+  z-index: 1000;
 }
 
 :deep(.p-tieredmenu .p-menuitem-link) {

@@ -1,11 +1,11 @@
 <!-- ProgressSpinner 组件 - 包装 PrimeVue ProgressSpinner 以支持自定义样式和暗色模式 -->
 <template>
-  <ProgressSpinner
-    v-bind="{
-      ...$attrs,
-      class: spinnerClass
-    }"
-  />
+    <ProgressSpinner
+        v-bind="{
+            ...$attrs,
+            class: spinnerClass
+        }"
+    />
 </template>
 
 <script setup lang="ts">
@@ -17,13 +17,13 @@ const themeStore = useThemeStore()
 
 // 计算加载器样式类
 const spinnerClass = computed(() => {
-  const classes = ['custom-progress-spinner']
+    const classes = ['custom-progress-spinner']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

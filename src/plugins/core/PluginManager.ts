@@ -9,7 +9,7 @@ import type {
   PluginMetadata,
   PluginRegistryEntry,
   PluginState,
-  ShortcutAPI
+  ShortcutAPI,
 } from '@/types/plugin'
 import { reactive, type Ref } from 'vue'
 import { BasePlugin } from './BasePlugin'
@@ -183,7 +183,7 @@ export class PluginManager {
       const loadPromise = this.executeWithTimeout(
         () => entry.instance.onLoad(),
         this.config.loadTimeout,
-        `Plugin ${pluginId} load timeout`
+        `Plugin ${pluginId} load timeout`,
       )
 
       await loadPromise
@@ -715,7 +715,7 @@ export class PluginManager {
       getAll: () => {
         console.log(`[Plugin ${pluginId}] Get all menu items`)
         return []
-      }
+      },
     }
   }
 
@@ -728,14 +728,14 @@ export class PluginManager {
             return this.globalShortcutManager.registerShortcutWithAction(
               shortcut.key,
               shortcut.actionId,
-              { ...shortcut, pluginId }
+              { ...shortcut, pluginId },
             )
           } else {
             // 否则使用传统的registerShortcut
             return this.globalShortcutManager.registerShortcut({
               ...shortcut,
               pluginId,
-              id: shortcut.id || `${pluginId}-${Date.now()}`
+              id: shortcut.id || `${pluginId}-${Date.now()}`,
             })
           }
         } catch (error) {
@@ -764,13 +764,13 @@ export class PluginManager {
           const shortcuts = this.globalShortcutManager.getByPlugin(pluginId)
           return shortcuts.map(shortcut => ({
             shortcut: shortcut.key,
-            description: shortcut.description || ''
+            description: shortcut.description || '',
           }))
         } catch (error) {
           console.error(`[Plugin ${pluginId}] Failed to get shortcuts:`, error)
           return []
         }
-      }
+      },
     } as ShortcutAPI
 
     // 添加扩展方法
@@ -779,7 +779,7 @@ export class PluginManager {
         try {
           this.globalShortcutManager.registerAction({
             ...action,
-            category: action.category || pluginId
+            category: action.category || pluginId,
           })
           console.log(`[Plugin ${pluginId}] Registered action: ${action.id}`)
         } catch (error) {
@@ -793,7 +793,7 @@ export class PluginManager {
           console.error(`[Plugin ${pluginId}] Failed to get available actions:`, error)
           return []
         }
-      }
+      },
     })
   }
 
@@ -819,7 +819,7 @@ export class PluginManager {
       },
       show: (type: string, message: string, title?: string, options?: any) => {
         console.log(`[Plugin ${pluginId}] ${type.toUpperCase()}: ${title || ''} ${message}`)
-      }
+      },
     }
   }
 
@@ -844,7 +844,7 @@ export class PluginManager {
       },
       getAll: () => {
         return []
-      }
+      },
     }
   }
 
@@ -880,7 +880,7 @@ export class PluginManager {
       },
       getCurrentRoute: () => {
         return { path: '/', name: 'home' }
-      }
+      },
     }
   }
 
@@ -902,7 +902,7 @@ export class PluginManager {
               errorCount: 0,
               lastError: undefined,
               memoryUsage: undefined,
-            }
+            },
           }
 
           if (entry.error) {
@@ -935,7 +935,7 @@ export class PluginManager {
             errorCount: 0,
             lastError: undefined,
             memoryUsage: undefined,
-          }
+          },
         }
 
         if (entry.error) {
@@ -958,7 +958,7 @@ export class PluginManager {
       isActive: (id: string) => {
         const entry = this.plugins.get(id)
         return entry?.state === 'active'
-      }
+      },
     }
   }
 
@@ -994,7 +994,7 @@ export class PluginManager {
             fn(...args)
           }
         }) as T
-      }
+      },
     }
   }
 
@@ -1064,7 +1064,7 @@ export class PluginManager {
           console.error(`[PluginManager] Failed to check key for ${pluginId}:`, error)
           return false
         }
-      }
+      },
     }
   }
 
@@ -1087,7 +1087,7 @@ export class PluginManager {
       registerComponent: (name: string, component: unknown) => {
         console.log(`[Plugin ${pluginId}] Register component: ${name}`)
         // TODO: 集成到全局组件注册系统
-      }
+      },
     }
   }
 
@@ -1120,7 +1120,7 @@ export class PluginManager {
       getVersion: () => {
         // TODO: 从 package.json 获取应用版本
         return '1.0.0'
-      }
+      },
     }
   }
 
@@ -1130,7 +1130,7 @@ export class PluginManager {
   private async executeWithTimeout<T>(
     operation: () => Promise<T> | T,
     timeout: number,
-    errorMessage: string
+    errorMessage: string,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -1183,7 +1183,7 @@ export class PluginManager {
   }
 
   private async handleError(event: any): Promise<void> {
-    console.error(`[PluginManager] Plugin error:`, event.data)
+    console.error('[PluginManager] Plugin error:', event.data)
   }
 
   // 公共接口方法
@@ -1291,7 +1291,7 @@ export class PluginManager {
  */
 export function createReactivePluginManager(
   eventBus?: EventBus,
-  config?: PluginManagerConfig
+  config?: PluginManagerConfig,
 ): PluginManager & Ref {
   const manager = new PluginManager(eventBus, config)
   return reactive(manager) as PluginManager & Ref

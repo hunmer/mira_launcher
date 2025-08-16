@@ -1,11 +1,22 @@
 <template>
     <div class="key-capture-input relative w-full">
-        <InputText ref="inputRef" v-model="displayValue" :placeholder="placeholder || ''" :readonly="true"
-            class="w-full" @focus="handleFocus" @blur="handleBlur" @keydown="handleKeyDown" />
+        <InputText
+            ref="inputRef"
+            v-model="displayValue"
+            :placeholder="placeholder || ''"
+            :readonly="true"
+            class="w-full"
+            @focus="handleFocus"
+            @blur="handleBlur"
+            @keydown="handleKeyDown"
+        />
 
         <!-- 冲突提示 -->
-        <div v-if="conflictInfo" class="text-red-500 text-sm mt-1 flex items-center gap-1">
-            <i class="pi pi-exclamation-triangle"></i>
+        <div
+            v-if="conflictInfo"
+            class="text-red-500 text-sm mt-1 flex items-center gap-1"
+        >
+            <i class="pi pi-exclamation-triangle" />
             <span>{{ conflictInfo }}</span>
         </div>
     </div>
@@ -31,7 +42,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
     modelValue: '',
-    placeholder: '点击设置快捷键'
+    placeholder: '点击设置快捷键',
 })
 
 const emit = defineEmits<Emits>()
@@ -164,7 +175,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
             'End': 'End',
             'PageUp': 'PageUp',
             'PageDown': 'PageDown',
-            'Insert': 'Insert'
+            'Insert': 'Insert',
         }
 
         if (keyMap[key]) {
@@ -222,7 +233,7 @@ const clearCapture = () => {
 defineExpose({
     startCapture,
     clearCapture,
-    focus: () => inputRef.value?.focus()
+    focus: () => inputRef.value?.focus(),
 })
 </script>
 

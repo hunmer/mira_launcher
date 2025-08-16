@@ -1,43 +1,43 @@
 <template>
-  <main class="main-content">
-    <RouterView v-slot="{ Component, route }">
-      <Transition
-        :name="transitionName"
-        mode="out-in"
-        appear
-      >
-        <component
-          :is="Component"
-          :key="route.fullPath"
-        />
-      </Transition>
-    </RouterView>
-  </main>
+    <main class="main-content">
+        <RouterView v-slot="{ Component, route }">
+            <Transition
+                :name="transitionName"
+                mode="out-in"
+                appear
+            >
+                <component
+                    :is="Component"
+                    :key="route.fullPath"
+                />
+            </Transition>
+        </RouterView>
+    </main>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 interface Props {
-  transition?: string
+    transition?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  transition: 'fade',
+    transition: 'fade',
 })
 
 const route = useRoute()
 
 // 动态过渡名称
 const transitionName = computed(() => {
-  return route.meta?.['transition'] as string || props.transition
+    return route.meta?.['transition'] as string || props.transition
 })
 </script>
 
 <style scoped>
 .main-content {
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }

@@ -118,7 +118,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       conflictResolution: 'error',
       defaultPriority: 100,
       enableLogging: false,
-      ...config
+      ...config,
     }
 
     this.initializeEventSystem()
@@ -133,7 +133,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       'shortcut:registered',
       'shortcut:unregistered',
       'shortcut:triggered',
-      'shortcut:conflict'
+      'shortcut:conflict',
     ]
 
     for (const eventType of eventTypes) {
@@ -240,7 +240,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       meta: parts.includes('meta') || parts.includes('cmd'),
       alt: parts.includes('alt'),
       shift: parts.includes('shift'),
-      key
+      key,
     }
   }
 
@@ -276,7 +276,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       global: true,
       scope: 'global',
       preventDefault: true,
-      stopPropagation: false
+      stopPropagation: false,
     }
 
     this.registerShortcut(pluginShortcut)
@@ -303,19 +303,19 @@ export class PluginShortcutAPI implements ShortcutAPI {
         this.emit('shortcut:conflict', {
           shortcut: normalizedKey,
           existing: existingShortcut,
-          new: shortcut
+          new: shortcut,
         })
 
         switch (this.config.conflictResolution) {
-          case 'error':
-            throw new Error(`Shortcut '${normalizedKey}' conflicts with existing shortcut '${existingShortcut.id}'`)
-          case 'override':
-            // 移除現有快捷鍵
-            this.unregister(firstExistingId)
-            break
-          case 'priority':
-            // 允許多個快捷鍵共存，按優先級處理
-            break
+        case 'error':
+          throw new Error(`Shortcut '${normalizedKey}' conflicts with existing shortcut '${existingShortcut.id}'`)
+        case 'override':
+          // 移除現有快捷鍵
+          this.unregister(firstExistingId)
+          break
+        case 'priority':
+          // 允許多個快捷鍵共存，按優先級處理
+          break
         }
       }
     }
@@ -328,7 +328,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       global: shortcut.global ?? true,
       scope: shortcut.scope ?? 'global',
       preventDefault: shortcut.preventDefault ?? true,
-      stopPropagation: shortcut.stopPropagation ?? false
+      stopPropagation: shortcut.stopPropagation ?? false,
     }
 
     // 註册快捷鍵
@@ -349,7 +349,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
     // 觸發事件
     this.emit('shortcut:registered', {
       shortcut: normalizedShortcut,
-      pluginId: shortcut.pluginId || 'unknown'
+      pluginId: shortcut.pluginId || 'unknown',
     })
 
     console.log(`[ShortcutAPI] Registered shortcut: ${shortcut.id} (${normalizedKey})`)
@@ -415,7 +415,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
     // 觸發事件
     this.emit('shortcut:unregistered', {
       shortcutId,
-      pluginId: shortcutObj.pluginId || 'unknown'
+      pluginId: shortcutObj.pluginId || 'unknown',
     })
 
     console.log(`[ShortcutAPI] Unregistered shortcut: ${shortcutId} (${shortcutObj.key})`)
@@ -427,7 +427,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
   getAll(): Array<{ shortcut: string; description?: string }> {
     return Array.from(this.shortcuts.values()).map(shortcut => ({
       shortcut: shortcut.key,
-      ...(shortcut.description && { description: shortcut.description })
+      ...(shortcut.description && { description: shortcut.description }),
     }))
   }
 
@@ -494,7 +494,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       ctrlKey: normalizedKey.includes('ctrl'),
       metaKey: normalizedKey.includes('meta'),
       altKey: normalizedKey.includes('alt'),
-      shiftKey: normalizedKey.includes('shift')
+      shiftKey: normalizedKey.includes('shift'),
     })
 
     this.handleKeyEvent(mockEvent)
@@ -508,7 +508,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
     shortcutsByScope: Record<string, number>
     shortcutsByPlugin: Record<string, number>
     conflicts: number
-  } {
+    } {
     const shortcuts = Array.from(this.shortcuts.values())
     const shortcutsByScope: Record<string, number> = {}
     const shortcutsByPlugin: Record<string, number> = {}
@@ -535,7 +535,7 @@ export class PluginShortcutAPI implements ShortcutAPI {
       totalShortcuts: shortcuts.length,
       shortcutsByScope,
       shortcutsByPlugin,
-      conflicts
+      conflicts,
     }
   }
 
@@ -704,29 +704,29 @@ export class DefaultShortcutRegistry {
       actionId: 'system.toggle-window',
       editable: true,
       deletable: false,
-      type: 'global'
+      type: 'global',
     },
     {
       key: 'ctrl+f',
       actionId: 'system.search',
       editable: true,
       deletable: false,
-      type: 'application'
+      type: 'application',
     },
     {
       key: 'ctrl+,',
       actionId: 'system.open-settings',
       editable: true,
       deletable: false,
-      type: 'application'
+      type: 'application',
     },
     {
       key: 'ctrl+q',
       actionId: 'system.exit',
       editable: true,
       deletable: false,
-      type: 'global'
-    }
+      type: 'global',
+    },
   ]
 
   private systemActions: ShortcutAction[] = [
@@ -738,7 +738,7 @@ export class DefaultShortcutRegistry {
       handler: () => {
         // TODO: 實現視窗切換邏輯
         console.log('[SystemAction] Toggle window visibility')
-      }
+      },
     },
     {
       id: 'system.search',
@@ -748,7 +748,7 @@ export class DefaultShortcutRegistry {
       handler: () => {
         // TODO: 實現搜索邏輯
         console.log('[SystemAction] Open search')
-      }
+      },
     },
     {
       id: 'system.open-settings',
@@ -758,7 +758,7 @@ export class DefaultShortcutRegistry {
       handler: () => {
         // TODO: 實現設置頁面跳轉邏輯
         console.log('[SystemAction] Open settings')
-      }
+      },
     },
     {
       id: 'system.exit',
@@ -768,8 +768,8 @@ export class DefaultShortcutRegistry {
       handler: () => {
         // TODO: 實現應用退出邏輯
         console.log('[SystemAction] Exit application')
-      }
-    }
+      },
+    },
   ]
 
   /**
@@ -871,7 +871,7 @@ export class ShortcutManager extends PluginShortcutAPI {
   registerShortcutWithAction(
     key: string,
     actionId: string,
-    options: Partial<PluginShortcut> = {}
+    options: Partial<PluginShortcut> = {},
   ): string {
     const action = this.actions.get(actionId)
     if (!action) {
@@ -885,7 +885,7 @@ export class ShortcutManager extends PluginShortcutAPI {
       handler: (event) => action.handler(event),
       description: action.description || '',
       shortcutType: options.shortcutType || 'application',
-      ...options
+      ...options,
     }
 
     this.registerShortcut(shortcut)
@@ -922,7 +922,7 @@ export class ShortcutManager extends PluginShortcutAPI {
       try {
         this.registerShortcutWithAction(config.key, config.actionId, {
           shortcutType: config.type,
-          priority: 0 // 默認快捷鍵優先級最高
+          priority: 0, // 默認快捷鍵優先級最高
         })
       } catch (error) {
         console.error(`[ShortcutManager] Failed to register default shortcut ${config.key}:`, error)
@@ -952,7 +952,7 @@ export class ShortcutManager extends PluginShortcutAPI {
     shortcutsByType: Record<string, number>
     actionsByCategory: Record<string, number>
     conflicts: number
-  } {
+    } {
     const baseStats = this.getStats()
 
     // 重新統計類型分布（因為基類沒有 shortcutType）
@@ -976,11 +976,11 @@ export class ShortcutManager extends PluginShortcutAPI {
     }
 
     return {
-      totalShortcuts: totalShortcuts,
+      totalShortcuts,
       totalActions: this.actions.size,
       shortcutsByType,
       actionsByCategory,
-      conflicts: baseStats.conflicts
+      conflicts: baseStats.conflicts,
     }
   }
 
@@ -1026,11 +1026,11 @@ export const shortcutUtils = {
       .split('+')
       .map(part => {
         switch (part.toLowerCase()) {
-          case 'ctrl': return 'Ctrl'
-          case 'meta': return navigator.platform.includes('Mac') ? '⌘' : 'Win'
-          case 'alt': return navigator.platform.includes('Mac') ? '⌥' : 'Alt'
-          case 'shift': return '⇧'
-          default: return part.charAt(0).toUpperCase() + part.slice(1)
+        case 'ctrl': return 'Ctrl'
+        case 'meta': return navigator.platform.includes('Mac') ? '⌘' : 'Win'
+        case 'alt': return navigator.platform.includes('Mac') ? '⌥' : 'Alt'
+        case 'shift': return '⇧'
+        default: return part.charAt(0).toUpperCase() + part.slice(1)
         }
       })
       .join(navigator.platform.includes('Mac') ? '' : '+')
@@ -1061,5 +1061,5 @@ export const shortcutUtils = {
    */
   createShortcutHint(shortcut: string, description: string): string {
     return `${this.formatShortcut(shortcut)} - ${description}`
-  }
+  },
 }

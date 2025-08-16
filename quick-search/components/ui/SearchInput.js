@@ -3,8 +3,8 @@
  * 基于 PrimeVue InputText 包装
  */
 const SearchInput = {
-    name: 'SearchInput',
-    template: `
+  name: 'SearchInput',
+  template: `
         <div class="search-input-container w-full">
             <div class="relative" :class="{ 'search-loading': isSearching }">
                 <InputText 
@@ -53,107 +53,107 @@ const SearchInput = {
         </div>
     `,
 
-    props: {
-        modelValue: {
-            type: String,
-            default: ''
-        },
-        placeholder: {
-            type: String,
-            default: '搜索应用程序、插件...'
-        },
-        showClearButton: {
-            type: Boolean,
-            default: true
-        },
-        showHints: {
-            type: Boolean,
-            default: false
-        },
-        hints: {
-            type: Array,
-            default: () => []
-        },
-        autofocus: {
-            type: Boolean,
-            default: false
-        },
-        isSearching: {
-            type: Boolean,
-            default: false
-        }
+  props: {
+    modelValue: {
+      type: String,
+      default: '',
     },
-
-    emits: ['update:modelValue', 'search', 'keydown', 'focus', 'blur', 'clear', 'hint-select'],
-
-    data() {
-        return {
-            internalValue: this.modelValue,
-            isFocused: false
-        };
+    placeholder: {
+      type: String,
+      default: '搜索应用程序、插件...',
     },
-
-    watch: {
-        modelValue(newValue) {
-            this.internalValue = newValue;
-        }
+    showClearButton: {
+      type: Boolean,
+      default: true,
     },
-
-    mounted() {
-        if (this.autofocus) {
-            this.$nextTick(() => {
-                this.$refs.inputRef.$el.focus();
-            });
-        }
+    showHints: {
+      type: Boolean,
+      default: false,
     },
+    hints: {
+      type: Array,
+      default: () => [],
+    },
+    autofocus: {
+      type: Boolean,
+      default: false,
+    },
+    isSearching: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
-    methods: {
-        handleInput(event) {
-            this.internalValue = event.target.value;
-            this.$emit('update:modelValue', this.internalValue);
-            this.$emit('search', this.internalValue);
-        },
+  emits: ['update:modelValue', 'search', 'keydown', 'focus', 'blur', 'clear', 'hint-select'],
 
-        handleKeyDown(event) {
-            this.$emit('keydown', event);
-        },
-
-        handleFocus(event) {
-            this.isFocused = true;
-            this.$emit('focus', event);
-        },
-
-        handleBlur(event) {
-            this.isFocused = false;
-            this.$emit('blur', event);
-        },
-
-        clearInput() {
-            this.internalValue = '';
-            this.$emit('update:modelValue', '');
-            this.$emit('search', '');
-            this.$emit('clear');
-            this.$refs.inputRef.$el.focus();
-        },
-
-        selectHint(hint) {
-            this.internalValue = hint;
-            this.$emit('update:modelValue', hint);
-            this.$emit('search', hint);
-            this.$emit('hint-select', hint);
-        },
-
-        focus() {
-            this.$refs.inputRef.$el.focus();
-        },
-
-        blur() {
-            this.$refs.inputRef.$el.blur();
-        }
+  data() {
+    return {
+      internalValue: this.modelValue,
+      isFocused: false,
     }
-};
+  },
+
+  watch: {
+    modelValue(newValue) {
+      this.internalValue = newValue
+    },
+  },
+
+  mounted() {
+    if (this.autofocus) {
+      this.$nextTick(() => {
+        this.$refs.inputRef.$el.focus()
+      })
+    }
+  },
+
+  methods: {
+    handleInput(event) {
+      this.internalValue = event.target.value
+      this.$emit('update:modelValue', this.internalValue)
+      this.$emit('search', this.internalValue)
+    },
+
+    handleKeyDown(event) {
+      this.$emit('keydown', event)
+    },
+
+    handleFocus(event) {
+      this.isFocused = true
+      this.$emit('focus', event)
+    },
+
+    handleBlur(event) {
+      this.isFocused = false
+      this.$emit('blur', event)
+    },
+
+    clearInput() {
+      this.internalValue = ''
+      this.$emit('update:modelValue', '')
+      this.$emit('search', '')
+      this.$emit('clear')
+      this.$refs.inputRef.$el.focus()
+    },
+
+    selectHint(hint) {
+      this.internalValue = hint
+      this.$emit('update:modelValue', hint)
+      this.$emit('search', hint)
+      this.$emit('hint-select', hint)
+    },
+
+    focus() {
+      this.$refs.inputRef.$el.focus()
+    },
+
+    blur() {
+      this.$refs.inputRef.$el.blur()
+    },
+  },
+}
 
 // 导出组件
 if (typeof window !== 'undefined') {
-    window.SearchInput = SearchInput;
+  window.SearchInput = SearchInput
 }

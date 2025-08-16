@@ -1,37 +1,67 @@
 <template>
-  <div class="navigation-menu-wrapper">
-    <div class="navigation-menu-bar">
-      <!-- 主要导航按钮 -->
-      <Button type="button" label="应用" icon="pi pi-th-large" :class="{ 'active': route.path === '/applications' }"
-        @click="navigateToRoute('/applications')" />
+    <div class="navigation-menu-wrapper">
+        <div class="navigation-menu-bar">
+            <!-- 主要导航按钮 -->
+            <Button
+                type="button"
+                label="应用"
+                icon="pi pi-th-large"
+                :class="{ 'active': route.path === '/applications' }"
+                @click="navigateToRoute('/applications')"
+            />
 
-      <!-- 插件下拉菜单 -->
-      <div class="menu-dropdown">
-        <Button type="button" aria-haspopup="true" aria-controls="plugins_menu" @click="togglePluginsMenu"
-          class="dropdown-button">
-          <i class="pi pi-puzzle-piece" />
-          <span>插件</span>
-          <i class="pi pi-chevron-down dropdown-arrow" />
-        </Button>
-        <TieredMenu id="plugins_menu" ref="pluginsMenu" :model="pluginMenuItems" popup />
-      </div>
+            <!-- 插件下拉菜单 -->
+            <div class="menu-dropdown">
+                <Button
+                    type="button"
+                    aria-haspopup="true"
+                    aria-controls="plugins_menu"
+                    class="dropdown-button"
+                    @click="togglePluginsMenu"
+                >
+                    <i class="pi pi-puzzle-piece" />
+                    <span>插件</span>
+                    <i class="pi pi-chevron-down dropdown-arrow" />
+                </Button>
+                <TieredMenu
+                    id="plugins_menu"
+                    ref="pluginsMenu"
+                    :model="pluginMenuItems"
+                    popup
+                />
+            </div>
 
-      <!-- 开发下拉菜单 -->
-      <div class="menu-dropdown">
-        <Button type="button" aria-haspopup="true" aria-controls="dev_menu" @click="toggleDevMenu"
-          class="dropdown-button">
-          <i class="pi pi-code" />
-          <span>开发</span>
-          <i class="pi pi-chevron-down dropdown-arrow" />
-        </Button>
-        <TieredMenu id="dev_menu" ref="devMenu" :model="devMenuItems" popup />
-      </div>
+            <!-- 开发下拉菜单 -->
+            <div class="menu-dropdown">
+                <Button
+                    type="button"
+                    aria-haspopup="true"
+                    aria-controls="dev_menu"
+                    class="dropdown-button"
+                    @click="toggleDevMenu"
+                >
+                    <i class="pi pi-code" />
+                    <span>开发</span>
+                    <i class="pi pi-chevron-down dropdown-arrow" />
+                </Button>
+                <TieredMenu
+                    id="dev_menu"
+                    ref="devMenu"
+                    :model="devMenuItems"
+                    popup
+                />
+            </div>
 
-      <!-- 设置按钮 -->
-      <Button type="button" label="设置" icon="pi pi-cog" :class="{ 'active': route.path === '/settings' }"
-        @click="navigateToRoute('/settings')" />
+            <!-- 设置按钮 -->
+            <Button
+                type="button"
+                label="设置"
+                icon="pi pi-cog"
+                :class="{ 'active': route.path === '/settings' }"
+                @click="navigateToRoute('/settings')"
+            />
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -41,12 +71,12 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 interface MenuItem {
-  label: string
-  icon?: string
-  route?: string
-  command?: () => void
-  items?: MenuItem[]
-  separator?: boolean
+    label: string
+    icon?: string
+    route?: string
+    command?: () => void
+    items?: MenuItem[]
+    separator?: boolean
 }
 
 const route = useRoute()
@@ -56,75 +86,75 @@ const devMenu = ref()
 
 // 路由导航函数
 const navigateToRoute = (routePath: string) => {
-  router.push(routePath)
+    router.push(routePath)
 }
 
 // 插件菜单项
 const pluginMenuItems: MenuItem[] = [
-  {
-    label: '已安装插件',
-    icon: 'pi pi-puzzle-piece',
-    command: () => navigateToRoute('/plugins'),
-  },
-  {
-    label: '插件商城',
-    icon: 'pi pi-shopping-cart',
-    command: () => navigateToRoute('/plugin-store'),
-  },
+    {
+        label: '已安装插件',
+        icon: 'pi pi-puzzle-piece',
+        command: () => navigateToRoute('/plugins'),
+    },
+    {
+        label: '插件商城',
+        icon: 'pi pi-shopping-cart',
+        command: () => navigateToRoute('/plugin-store'),
+    },
 ]
 
 // 开发菜单项
 const devMenuItems: MenuItem[] = [
-  {
-    label: '打开控制台',
-    icon: 'pi pi-terminal',
-    command: () => openDevConsole(),
-  },
+    {
+        label: '打开控制台',
+        icon: 'pi pi-terminal',
+        command: () => openDevConsole(),
+    },
 ]
 
 // 菜单切换函数
 const togglePluginsMenu = (event: Event) => {
-  pluginsMenu.value.toggle(event)
+    pluginsMenu.value.toggle(event)
 }
 
 const toggleDevMenu = (event: Event) => {
-  devMenu.value.toggle(event)
+    devMenu.value.toggle(event)
 }
 
 // 开发工具函数
 const openDevConsole = async () => {
-  console.log('Opening dev console...')
+    console.log('Opening dev console...')
 
-  try {
-    // 首先检查是否为调试模式
-    const { invoke } = await import('@tauri-apps/api/core')
-    const isDebug = await invoke('is_debug_mode')
+    try {
+        // 首先检查是否为调试模式
+        const { invoke } = await import('@tauri-apps/api/core')
+        const isDebug = await invoke('is_debug_mode')
 
-    if (!isDebug) {
-      alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
-      return
+        if (!isDebug) {
+            alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
+            return
+        }
+
+        // 在调试模式下，调用 Rust 命令打开开发者工具
+        await invoke('open_devtools')
+        console.log('开发者工具已打开')
+
+    } catch (error) {
+        console.error('Failed to open dev tools:', error)
+
+        // 提供备用解决方案
+        const errorMessage = error?.toString() || '未知错误'
+        let fallbackMessage = '无法通过程序打开开发者工具\n\n'
+
+        if (navigator.platform.toLowerCase().includes('mac')) {
+            fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
+        } else {
+            fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
+        }
+
+        fallbackMessage += `\n\n错误信息: ${errorMessage}`
+        alert(fallbackMessage)
     }
-
-    // 在调试模式下，调用 Rust 命令打开开发者工具
-    await invoke('open_devtools')
-    console.log('开发者工具已打开')
-
-  } catch (error) {
-    console.error('Failed to open dev tools:', error)
-
-    // 提供备用解决方案
-    const errorMessage = error?.toString() || '未知错误'
-    let fallbackMessage = '无法通过程序打开开发者工具\n\n'
-
-    if (navigator.platform.toLowerCase().includes('mac')) {
-      fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
-    } else {
-      fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
-    }
-
-    fallbackMessage += `\n\n错误信息: ${errorMessage}`
-    alert(fallbackMessage)
-  }
 }
 </script>
 

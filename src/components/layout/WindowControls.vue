@@ -1,32 +1,56 @@
 <template>
-  <div class="window-controls">
-    <!-- 关闭按钮 (红色) -->
-    <button class="control-dot close-dot" title="关闭" @click="handleClose" @mouseenter="showCloseIcon = true"
-      @mouseleave="showCloseIcon = false">
-      <i v-if="showCloseIcon" class="pi pi-times control-icon" />
-    </button>
+    <div class="window-controls">
+        <!-- 关闭按钮 (红色) -->
+        <button
+            class="control-dot close-dot"
+            title="关闭"
+            @click="handleClose"
+            @mouseenter="showCloseIcon = true"
+            @mouseleave="showCloseIcon = false"
+        >
+            <i
+                v-if="showCloseIcon"
+                class="pi pi-times control-icon"
+            />
+        </button>
 
-    <!-- 最小化按钮 (黄色) -->
-    <button class="control-dot minimize-dot" title="最小化" @click="handleMinimize" @mouseenter="showMinimizeIcon = true"
-      @mouseleave="showMinimizeIcon = false">
-      <i v-if="showMinimizeIcon" class="pi pi-minus control-icon" />
-    </button>
+        <!-- 最小化按钮 (黄色) -->
+        <button
+            class="control-dot minimize-dot"
+            title="最小化"
+            @click="handleMinimize"
+            @mouseenter="showMinimizeIcon = true"
+            @mouseleave="showMinimizeIcon = false"
+        >
+            <i
+                v-if="showMinimizeIcon"
+                class="pi pi-minus control-icon"
+            />
+        </button>
 
-    <!-- 最大化按钮 (绿色) -->
-    <button class="control-dot maximize-dot" title="最大化" @click="handleMaximize" @mouseenter="showMaximizeIcon = true"
-      @mouseleave="showMaximizeIcon = false">
-      <i v-if="showMaximizeIcon" class="pi pi-window-maximize control-icon" />
-    </button>
-  </div>
+        <!-- 最大化按钮 (绿色) -->
+        <button
+            class="control-dot maximize-dot"
+            title="最大化"
+            @click="handleMaximize"
+            @mouseenter="showMaximizeIcon = true"
+            @mouseleave="showMaximizeIcon = false"
+        >
+            <i
+                v-if="showMaximizeIcon"
+                class="pi pi-window-maximize control-icon"
+            />
+        </button>
+    </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 interface Emits {
-  (e: 'minimize'): void
-  (e: 'maximize'): void
-  (e: 'close'): void
+    (e: 'minimize'): void
+    (e: 'maximize'): void
+    (e: 'close'): void
 }
 
 const emit = defineEmits<Emits>()
@@ -38,41 +62,41 @@ const showMaximizeIcon = ref(false)
 
 // 窗口控制函数
 const handleMinimize = async () => {
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    const appWindow = getCurrentWindow()
-    await appWindow.minimize()
-    emit('minimize')
-  } catch (error) {
-    console.error('最小化視窗失敗:', error)
-  }
+    try {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window')
+        const appWindow = getCurrentWindow()
+        await appWindow.minimize()
+        emit('minimize')
+    } catch (error) {
+        console.error('最小化視窗失敗:', error)
+    }
 }
 
 const handleMaximize = async () => {
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    const appWindow = getCurrentWindow()
-    const isMaximized = await appWindow.isMaximized()
-    if (isMaximized) {
-      await appWindow.unmaximize()
-    } else {
-      await appWindow.maximize()
+    try {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window')
+        const appWindow = getCurrentWindow()
+        const isMaximized = await appWindow.isMaximized()
+        if (isMaximized) {
+            await appWindow.unmaximize()
+        } else {
+            await appWindow.maximize()
+        }
+        emit('maximize')
+    } catch (error) {
+        console.error('最大化視窗失敗:', error)
     }
-    emit('maximize')
-  } catch (error) {
-    console.error('最大化視窗失敗:', error)
-  }
 }
 
 const handleClose = async () => {
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    const appWindow = getCurrentWindow()
-    await appWindow.close()
-    emit('close')
-  } catch (error) {
-    console.error('關閉視窗失敗:', error)
-  }
+    try {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window')
+        const appWindow = getCurrentWindow()
+        await appWindow.close()
+        emit('close')
+    } catch (error) {
+        console.error('關閉視窗失敗:', error)
+    }
 }
 </script>
 

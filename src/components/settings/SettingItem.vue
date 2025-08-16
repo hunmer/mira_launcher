@@ -5,96 +5,170 @@
             <!-- 标题部分 -->
             <InputGroupAddon class="bg-gray-50 dark:bg-gray-700 border-0">
                 <div class="flex items-center gap-2 px-3 py-2 min-w-0">
-                    <i v-if="icon" :class="[icon, iconColor]" class="flex-shrink-0" />
+                    <i
+                        v-if="icon"
+                        :class="[icon, iconColor]"
+                        class="flex-shrink-0"
+                    />
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <span class="font-medium text-gray-900 dark:text-white text-sm truncate">
                             {{ title }}
                         </span>
-                        <i v-if="tooltip" v-tooltip.top="tooltip"
+                        <i
+                            v-if="tooltip"
+                            v-tooltip.top="tooltip"
                             class="pi pi-info-circle text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm flex-shrink-0"
-                            style="margin-left: 8px;" />
+                            style="margin-left: 8px;"
+                        />
                     </div>
                 </div>
             </InputGroupAddon>
 
             <!-- 整行控件部分 (text, select, number) - 仅当没有switch作为rightControl时 -->
-            <InputGroupAddon v-if="(type === 'text' || type === 'select' || type === 'number') && !rightControl"
-                class="flex-1 border-0 p-0">
+            <InputGroupAddon
+                v-if="(type === 'text' || type === 'select' || type === 'number') && !rightControl"
+                class="flex-1 border-0 p-0"
+            >
                 <!-- 输入框类型 -->
-                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder || ''"
-                    :readonly="readonly || false" class="w-full border-0 rounded-none"
-                    @update:model-value="handleUpdate" />
+                <InputText
+                    v-if="type === 'text'"
+                    v-model="inputValue"
+                    :placeholder="placeholder || ''"
+                    :readonly="readonly || false"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
 
                 <!-- 下拉选择 -->
-                <Dropdown v-else-if="type === 'select'" v-model="inputValue" :options="options || []"
-                    :option-label="optionLabel || 'label'" :option-value="optionValue || 'value'"
-                    :placeholder="placeholder || ''" class="w-full border-0 rounded-none"
-                    @update:model-value="handleUpdate" />
+                <Dropdown
+                    v-else-if="type === 'select'"
+                    v-model="inputValue"
+                    :options="options || []"
+                    :option-label="optionLabel || 'label'"
+                    :option-value="optionValue || 'value'"
+                    :placeholder="placeholder || ''"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
 
                 <!-- 数字输入 -->
-                <InputNumber v-else-if="type === 'number'" v-model="inputValue" :placeholder="placeholder"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                <InputNumber
+                    v-else-if="type === 'number'"
+                    v-model="inputValue"
+                    :placeholder="placeholder"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
             </InputGroupAddon>
 
             <!-- 带右侧控件的整行元素 (但不包括switch) -->
             <InputGroupAddon
                 v-if="(type === 'text' || type === 'select' || type === 'number') && rightControl && rightControl !== 'switch'"
-                class="flex-1 border-0 p-0">
+                class="flex-1 border-0 p-0"
+            >
                 <!-- 输入框类型 -->
-                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder || ''"
-                    :readonly="readonly || false" class="w-full border-0 rounded-none"
-                    @update:model-value="handleUpdate" />
+                <InputText
+                    v-if="type === 'text'"
+                    v-model="inputValue"
+                    :placeholder="placeholder || ''"
+                    :readonly="readonly || false"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
 
                 <!-- 下拉选择 -->
-                <Dropdown v-else-if="type === 'select'" v-model="inputValue" :options="options || []"
-                    :option-label="optionLabel || 'label'" :option-value="optionValue || 'value'"
-                    :placeholder="placeholder || ''" class="w-full border-0 rounded-none"
-                    @update:model-value="handleUpdate" />
+                <Dropdown
+                    v-else-if="type === 'select'"
+                    v-model="inputValue"
+                    :options="options || []"
+                    :option-label="optionLabel || 'label'"
+                    :option-value="optionValue || 'value'"
+                    :placeholder="placeholder || ''"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
 
                 <!-- 数字输入 -->
-                <InputNumber v-else-if="type === 'number'" v-model="inputValue" :placeholder="placeholder"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                <InputNumber
+                    v-else-if="type === 'number'"
+                    v-model="inputValue"
+                    :placeholder="placeholder"
+                    class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate"
+                />
             </InputGroupAddon>
 
             <!-- 占位空间 (当控件需要右对齐时) -->
-            <InputGroupAddon v-if="type === 'button' || type === 'switch' || rightControl === 'switch'"
-                class="flex-1 border-0 p-0">
-                <div class="w-full bg-white dark:bg-gray-800"></div>
+            <InputGroupAddon
+                v-if="type === 'button' || type === 'switch' || rightControl === 'switch'"
+                class="flex-1 border-0 p-0"
+            >
+                <div class="w-full bg-white dark:bg-gray-800" />
             </InputGroupAddon>
 
             <!-- 右对齐控件部分 (button，优先级高于rightControl) -->
-            <InputGroupAddon v-if="type === 'button'" class="border-0">
+            <InputGroupAddon
+                v-if="type === 'button'"
+                class="border-0"
+            >
                 <div class="px-3 py-2">
-                    <Button :label="buttonLabel" :icon="buttonIcon" :severity="buttonSeverity" :variant="buttonVariant"
-                        @click="handleButtonClick" />
+                    <Button
+                        :label="buttonLabel"
+                        :icon="buttonIcon"
+                        :severity="buttonSeverity"
+                        :variant="buttonVariant"
+                        @click="handleButtonClick"
+                    />
                 </div>
             </InputGroupAddon>
 
             <!-- 右对齐开关控件 -->
-            <InputGroupAddon v-if="type === 'switch'" class="border-0">
+            <InputGroupAddon
+                v-if="type === 'switch'"
+                class="border-0"
+            >
                 <div class="px-3 py-2">
-                    <ToggleSwitch v-model="inputValue" @update:model-value="handleUpdate" />
+                    <ToggleSwitch
+                        v-model="inputValue"
+                        @update:model-value="handleUpdate"
+                    />
                 </div>
             </InputGroupAddon>
 
             <!-- 右侧控件 (复选框、单选按钮等，排除开关) -->
-            <InputGroupAddon v-if="rightControl && rightControl !== 'switch' && type !== 'button' && type !== 'switch'"
-                class="border-0">
+            <InputGroupAddon
+                v-if="rightControl && rightControl !== 'switch' && type !== 'button' && type !== 'switch'"
+                class="border-0"
+            >
                 <div class="px-3 py-2">
                     <!-- 复选框 -->
-                    <Checkbox v-if="rightControl === 'checkbox'" v-model="inputValue" :binary="true"
-                        @update:model-value="handleUpdate" />
+                    <Checkbox
+                        v-if="rightControl === 'checkbox'"
+                        v-model="inputValue"
+                        :binary="true"
+                        @update:model-value="handleUpdate"
+                    />
 
                     <!-- 单选按钮 -->
-                    <RadioButton v-else-if="rightControl === 'radio'" v-model="inputValue" :value="radioValue"
-                        @update:model-value="handleUpdate" />
+                    <RadioButton
+                        v-else-if="rightControl === 'radio'"
+                        v-model="inputValue"
+                        :value="radioValue"
+                        @update:model-value="handleUpdate"
+                    />
                 </div>
             </InputGroupAddon>
 
             <!-- 独立的右侧开关控件 (当rightControl='switch'时) -->
-            <InputGroupAddon v-if="rightControl === 'switch'" class="border-0">
+            <InputGroupAddon
+                v-if="rightControl === 'switch'"
+                class="border-0"
+            >
                 <div class="px-3 py-2">
-                    <ToggleSwitch v-model="inputValue" @update:model-value="handleUpdate" />
+                    <ToggleSwitch
+                        v-model="inputValue"
+                        @update:model-value="handleUpdate"
+                    />
                 </div>
             </InputGroupAddon>
         </InputGroup>
@@ -162,7 +236,7 @@ const props = withDefaults(defineProps<Props>(), {
     buttonLabel: '',
     buttonIcon: '',
     buttonSeverity: 'secondary',
-    buttonVariant: 'outlined'
+    buttonVariant: 'outlined',
 })
 
 const emit = defineEmits<Emits>()

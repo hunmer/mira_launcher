@@ -1,25 +1,32 @@
 <template>
-  <div data-tauri-drag-region class="title-bar">
-    <!-- 应用标题 -->
-    <div class="title-section">
-      <AppTitle />
-    </div>
+    <div
+        data-tauri-drag-region
+        class="title-bar"
+    >
+        <!-- 应用标题 -->
+        <div class="title-section">
+            <AppTitle />
+        </div>
 
-    <!-- 导航菜单 - 靠近标题 -->
-    <div class="no-drag menu-section">
-      <NavigationMenu />
-    </div>
+        <!-- 导航菜单 - 靠近标题 -->
+        <div class="no-drag menu-section">
+            <NavigationMenu />
+        </div>
 
-    <!-- 功能按钮 - 靠近窗口控制按钮 -->
-    <div class="no-drag actions-section">
-      <ActionButtons />
-    </div>
+        <!-- 功能按钮 - 靠近窗口控制按钮 -->
+        <div class="no-drag actions-section">
+            <ActionButtons />
+        </div>
 
-    <!-- 窗口控制按钮 -->
-    <div class="no-drag controls-section">
-      <WindowControls @minimize="handleMinimize" @maximize="handleMaximize" @close="handleClose" />
+        <!-- 窗口控制按钮 -->
+        <div class="no-drag controls-section">
+            <WindowControls
+                @minimize="handleMinimize"
+                @maximize="handleMaximize"
+                @close="handleClose"
+            />
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -29,24 +36,24 @@ import NavigationMenu from './NavigationMenu.vue'
 import WindowControls from './WindowControls.vue'
 
 interface Emits {
-  (e: 'minimize'): void
-  (e: 'maximize'): void
-  (e: 'close'): void
+    (e: 'minimize'): void
+    (e: 'maximize'): void
+    (e: 'close'): void
 }
 
 const emit = defineEmits<Emits>()
 
 // 事件转发
 const handleMinimize = () => {
-  emit('minimize')
+    emit('minimize')
 }
 
 const handleMaximize = () => {
-  emit('maximize')
+    emit('maximize')
 }
 
 const handleClose = () => {
-  emit('close')
+    emit('close')
 }
 </script>
 

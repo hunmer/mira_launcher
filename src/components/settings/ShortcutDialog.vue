@@ -1,5 +1,11 @@
 <template>
-    <Dialog :visible="visible" modal :header="title" class="w-[750px]" @update:visible="handleVisibleChange">
+    <Dialog
+        :visible="visible"
+        modal
+        :header="title"
+        class="w-[750px]"
+        @update:visible="handleVisibleChange"
+    >
         <!-- 主要内容区域 -->
         <div class="space-y-6 p-6">
             <!-- 快捷键输入 -->
@@ -7,10 +13,19 @@
                 <IftaLabel>
                     <IconField class="w-full">
                         <InputIcon class="pi pi-keyboard" />
-                        <KeyCaptureInput v-if="conflictChecker" v-model="formData.key" placeholder="点击此处设置快捷键"
-                            :conflict-checker="conflictChecker" class="w-full key-capture-fixed-width" />
-                        <KeyCaptureInput v-else v-model="formData.key" placeholder="点击此处设置快捷键"
-                            class="w-full key-capture-fixed-width" />
+                        <KeyCaptureInput
+                            v-if="conflictChecker"
+                            v-model="formData.key"
+                            placeholder="点击此处设置快捷键"
+                            :conflict-checker="conflictChecker"
+                            class="w-full key-capture-fixed-width"
+                        />
+                        <KeyCaptureInput
+                            v-else
+                            v-model="formData.key"
+                            placeholder="点击此处设置快捷键"
+                            class="w-full key-capture-fixed-width"
+                        />
                     </IconField>
                     <label for="shortcut-key">快捷键组合</label>
                 </IftaLabel>
@@ -23,16 +38,28 @@
             <div class="space-y-3">
                 <IftaLabel>
                     <IconField class="w-full">
-                        <FilterSelect v-model="formData.actionId" :options="availableActions" option-label="name"
-                            option-value="id" placeholder="选择要执行的动作" :loading="actionsLoading" :show-clear="true"
-                            class="w-full filter-select-full-width">
+                        <FilterSelect
+                            v-model="formData.actionId"
+                            :options="availableActions"
+                            option-label="name"
+                            option-value="id"
+                            placeholder="选择要执行的动作"
+                            :loading="actionsLoading"
+                            :show-clear="true"
+                            class="w-full filter-select-full-width"
+                        >
                             <template #option="{ option }">
                                 <div class="flex items-center gap-2">
-                                    <i class="pi pi-bolt text-orange-500"></i>
+                                    <i class="pi pi-bolt text-orange-500" />
                                     <div>
-                                        <div class="font-medium">{{ option.name }}</div>
-                                        <small class="text-gray-500" v-if="option.description">{{ option.description
-                                            }}</small>
+                                        <div class="font-medium">
+                                            {{ option.name }}
+                                        </div>
+                                        <small
+                                            v-if="option.description"
+                                            class="text-gray-500"
+                                        >{{ option.description
+                                        }}</small>
                                     </div>
                                 </div>
                             </template>
@@ -40,8 +67,11 @@
                     </IconField>
                     <label for="action-select">执行动作</label>
                 </IftaLabel>
-                <small class="text-gray-500 dark:text-gray-400" v-if="availableActions.length === 0">
-                    <i class="pi pi-exclamation-triangle mr-1 text-amber-500"></i>
+                <small
+                    v-if="availableActions.length === 0"
+                    class="text-gray-500 dark:text-gray-400"
+                >
+                    <i class="pi pi-exclamation-triangle mr-1 text-amber-500" />
                     未检测到可用动作，请检查插件状态
                 </small>
             </div>
@@ -50,15 +80,22 @@
             <div class="space-y-3">
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                        <i class="pi pi-globe mr-2 text-purple-500"></i>
+                        <i class="pi pi-globe mr-2 text-purple-500" />
                         快捷键类型
                     </label>
-                    <SelectButton v-model="formData.type" :options="shortcutTypes" option-label="label"
-                        option-value="value" class="w-full">
+                    <SelectButton
+                        v-model="formData.type"
+                        :options="shortcutTypes"
+                        option-label="label"
+                        option-value="value"
+                        class="w-full"
+                    >
                         <template #option="{ option }">
                             <div class="flex items-center gap-2">
-                                <i :class="option.value === 'global' ? 'pi pi-globe text-red-500' : 'pi pi-desktop text-blue-500'"
-                                    style="padding-right: 10px;"></i>
+                                <i
+                                    :class="option.value === 'global' ? 'pi pi-globe text-red-500' : 'pi pi-desktop text-blue-500'"
+                                    style="padding-right: 10px;"
+                                />
                                 <span>{{ option.label }}</span>
                             </div>
                         </template>
@@ -75,8 +112,12 @@
                 <IftaLabel>
                     <IconField class="w-full">
                         <InputIcon class="pi pi-file-edit" />
-                        <InputText v-model="formData.description" placeholder="为这个快捷键添加描述说明" variant="filled"
-                            class="w-full" />
+                        <InputText
+                            v-model="formData.description"
+                            placeholder="为这个快捷键添加描述说明"
+                            variant="filled"
+                            class="w-full"
+                        />
                     </IconField>
                     <label for="description">描述 (可选)</label>
                 </IftaLabel>
@@ -89,9 +130,18 @@
         <template #footer>
             <div class="flex justify-between items-center px-4 py-2">
                 <div class="flex gap-3">
-                    <Button label="取消" icon="pi pi-times" variant="text" @click="handleCancel" />
-                    <Button :label="mode === 'add' ? '添加' : '保存'" :icon="mode === 'add' ? 'pi pi-plus' : 'pi pi-save'"
-                        :disabled="!canSave" @click="handleSave" />
+                    <Button
+                        label="取消"
+                        icon="pi pi-times"
+                        variant="text"
+                        @click="handleCancel"
+                    />
+                    <Button
+                        :label="mode === 'add' ? '添加' : '保存'"
+                        :icon="mode === 'add' ? 'pi pi-plus' : 'pi pi-save'"
+                        :disabled="!canSave"
+                        @click="handleSave"
+                    />
                 </div>
             </div>
         </template>
@@ -142,7 +192,7 @@ const props = withDefaults(defineProps<Props>(), {
     visible: false,
     mode: 'add',
     title: '快捷键设置',
-    initialData: () => ({})
+    initialData: () => ({}),
 })
 
 const emit = defineEmits<Emits>()
@@ -155,19 +205,19 @@ const formData = reactive<ShortcutFormData>({
     key: '',
     actionId: '',
     type: 'application',
-    description: ''
+    description: '',
 })
 
 // 快捷键类型选项 - 用于 SelectButton
 const shortcutTypes = [
     {
         label: '应用内',
-        value: 'application'
+        value: 'application',
     },
     {
         label: '全局',
-        value: 'global'
-    }
+        value: 'global',
+    },
 ]
 
 // 计算属性：是否可以保存

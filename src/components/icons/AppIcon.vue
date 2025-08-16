@@ -1,13 +1,13 @@
 <template>
-  <BaseIcon 
-    :icon-component="Zap" 
-    v-bind="{
-      ...(size !== undefined && { size }),
-      ...(color !== undefined && { color }),
-      ...(iconClass !== undefined && { class: iconClass }),
-      ...$attrs
-    }"
-  />
+    <BaseIcon 
+        :icon-component="Zap" 
+        v-bind="{
+            ...(size !== undefined && { size }),
+            ...(color !== undefined && { color }),
+            ...(iconClass !== undefined && { class: iconClass }),
+            ...$attrs
+        }"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,22 +16,22 @@ import { Zap } from 'lucide-vue-next'
 import BaseIcon from './BaseIcon.vue'
 
 interface Props {
-  size?: string | number
-  color?: string
-  class?: string
+    size?: string | number
+    color?: string
+    class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 16,
-  color: 'currentColor',
-  class: '',
+    size: 16,
+    color: 'currentColor',
+    class: '',
 })
 
 // 样式类
 const iconClass = computed(() => {
-  return [
-    'text-primary-600 dark:text-primary-400',
-    props.class,
-  ].filter(Boolean).join(' ')
+    return [
+        'text-primary-600 dark:text-primary-400',
+        props.class,
+    ].filter(Boolean).join(' ')
 })
 </script>

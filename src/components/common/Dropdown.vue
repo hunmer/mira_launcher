@@ -1,13 +1,13 @@
 <!-- Dropdown 组件 - 包装 PrimeVue Dropdown 以支持自定义样式和暗色模式 -->
 <template>
-  <Dropdown
-    v-model="dropdownValue"
-    v-bind="{
-      ...$attrs,
-      class: dropdownClass
-    }"
-    @change="handleChange"
-  />
+    <Dropdown
+        v-model="dropdownValue"
+        v-bind="{
+            ...$attrs,
+            class: dropdownClass
+        }"
+        @change="handleChange"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,18 +16,18 @@ import Dropdown from 'primevue/dropdown'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  modelValue?: unknown
-  options?: unknown[]
-  optionLabel?: string
-  optionValue?: string
-  placeholder?: string
-  disabled?: boolean
-  readonly?: boolean
+    modelValue?: unknown
+    options?: unknown[]
+    optionLabel?: string
+    optionValue?: string
+    placeholder?: string
+    disabled?: boolean
+    readonly?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: unknown): void
-  (e: 'change', event: { originalEvent: Event; value: unknown }): void
+    (e: 'update:modelValue', value: unknown): void
+    (e: 'change', event: { originalEvent: Event; value: unknown }): void
 }
 
 const props = defineProps<Props>()
@@ -40,27 +40,27 @@ const dropdownValue = ref(props.modelValue)
 
 // 监听外部值变化
 watch(() => props.modelValue, (newValue) => {
-  dropdownValue.value = newValue
+    dropdownValue.value = newValue
 })
 
 // 监听内部值变化
 watch(dropdownValue, (newValue) => {
-  emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue)
 })
 
 const handleChange = (event: { originalEvent: Event; value: unknown }) => {
-  emit('change', event)
+    emit('change', event)
 }
 
 // 计算下拉菜单样式类
 const dropdownClass = computed(() => {
-  const classes = ['custom-dropdown']
+    const classes = ['custom-dropdown']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

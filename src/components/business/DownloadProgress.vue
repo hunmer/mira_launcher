@@ -7,43 +7,104 @@
 <template>
     <div class="download-progress">
         <!-- 下载任务列表 -->
-        <div v-if="downloadTasks.length > 0" class="download-tasks">
+        <div
+            v-if="downloadTasks.length > 0"
+            class="download-tasks"
+        >
             <div class="tasks-header">
                 <h3 class="header-title">
-                    <i class="pi pi-download"></i>
+                    <i class="pi pi-download" />
                     下载管理 ({{ activeTasks.length }}/{{ downloadTasks.length }})
                 </h3>
 
                 <div class="header-actions">
                     <!-- 批量操作模式切换 -->
-                    <Button v-if="!isBatchMode" icon="pi pi-check-square" text @click="enterBatchMode"
-                        :disabled="downloadTasks.length === 0" title="进入批量模式" />
-                    <Button v-else icon="pi pi-times" text @click="exitBatchMode" title="退出批量模式" />
+                    <Button
+                        v-if="!isBatchMode"
+                        icon="pi pi-check-square"
+                        text
+                        :disabled="downloadTasks.length === 0"
+                        title="进入批量模式"
+                        @click="enterBatchMode"
+                    />
+                    <Button
+                        v-else
+                        icon="pi pi-times"
+                        text
+                        title="退出批量模式"
+                        @click="exitBatchMode"
+                    />
 
                     <!-- 批量操作按钮 -->
                     <template v-if="isBatchMode && selectedTasks.length > 0">
-                        <Button icon="pi pi-play" severity="success" text @click="batchResume"
-                            :disabled="!canBatchResume" title="批量恢复" />
-                        <Button icon="pi pi-pause" severity="warning" text @click="batchPause"
-                            :disabled="!canBatchPause" title="批量暂停" />
-                        <Button icon="pi pi-refresh" severity="info" text @click="batchRetry" :disabled="!canBatchRetry"
-                            title="批量重试" />
-                        <Button icon="pi pi-times" severity="danger" text @click="batchCancel" title="批量取消" />
+                        <Button
+                            icon="pi pi-play"
+                            severity="success"
+                            text
+                            :disabled="!canBatchResume"
+                            title="批量恢复"
+                            @click="batchResume"
+                        />
+                        <Button
+                            icon="pi pi-pause"
+                            severity="warning"
+                            text
+                            :disabled="!canBatchPause"
+                            title="批量暂停"
+                            @click="batchPause"
+                        />
+                        <Button
+                            icon="pi pi-refresh"
+                            severity="info"
+                            text
+                            :disabled="!canBatchRetry"
+                            title="批量重试"
+                            @click="batchRetry"
+                        />
+                        <Button
+                            icon="pi pi-times"
+                            severity="danger"
+                            text
+                            title="批量取消"
+                            @click="batchCancel"
+                        />
                     </template>
 
                     <!-- 全局操作 -->
-                    <Button icon="pi pi-pause" text @click="pauseAll" :disabled="activeTasks.length === 0"
-                        title="暂停全部" />
-                    <Button icon="pi pi-play" text @click="resumeAll" :disabled="pausedTasks.length === 0"
-                        title="恢复全部" />
-                    <Button icon="pi pi-trash" text @click="clearCompleted" :disabled="completedTasks.length === 0"
-                        title="清理已完成" />
+                    <Button
+                        icon="pi pi-pause"
+                        text
+                        :disabled="activeTasks.length === 0"
+                        title="暂停全部"
+                        @click="pauseAll"
+                    />
+                    <Button
+                        icon="pi pi-play"
+                        text
+                        :disabled="pausedTasks.length === 0"
+                        title="恢复全部"
+                        @click="resumeAll"
+                    />
+                    <Button
+                        icon="pi pi-trash"
+                        text
+                        :disabled="completedTasks.length === 0"
+                        title="清理已完成"
+                        @click="clearCompleted"
+                    />
                 </div>
             </div>
 
             <!-- 批量模式全选 -->
-            <div v-if="isBatchMode" class="batch-controls">
-                <Checkbox v-model="isAllSelected" @change="toggleSelectAll" binary />
+            <div
+                v-if="isBatchMode"
+                class="batch-controls"
+            >
+                <Checkbox
+                    v-model="isAllSelected"
+                    binary
+                    @change="toggleSelectAll"
+                />
                 <span class="batch-info">
                     已选择 {{ selectedTasks.length }} / {{ downloadTasks.length }} 项
                 </span>
@@ -51,44 +112,94 @@
 
             <!-- 任务列表 -->
             <div class="task-list">
-                <div v-for="task in displayTasks" :key="task.id" class="task-item" :class="{
-                    'task-active': isActiveTask(task),
-                    'task-completed': task.state === 'completed',
-                    'task-failed': task.state === 'failed',
-                    'task-selected': isBatchMode && selectedTaskIds.has(task.id)
-                }">
+                <div
+                    v-for="task in displayTasks"
+                    :key="task.id"
+                    class="task-item"
+                    :class="{
+                        'task-active': isActiveTask(task),
+                        'task-completed': task.state === 'completed',
+                        'task-failed': task.state === 'failed',
+                        'task-selected': isBatchMode && selectedTaskIds.has(task.id)
+                    }"
+                >
                     <!-- 批量模式选择框 -->
-                    <Checkbox v-if="isBatchMode" :model-value="selectedTaskIds.has(task.id)"
-                        @change="toggleTaskSelection(task.id)" binary class="task-checkbox" />
+                    <Checkbox
+                        v-if="isBatchMode"
+                        :model-value="selectedTaskIds.has(task.id)"
+                        binary
+                        class="task-checkbox"
+                        @change="toggleTaskSelection(task.id)"
+                    />
 
                     <!-- 任务信息 -->
                     <div class="task-info">
                         <div class="task-header">
-                            <span class="task-name" :title="task.fileName">
+                            <span
+                                class="task-name"
+                                :title="task.fileName"
+                            >
                                 {{ task.fileName }}
                             </span>
                             <div class="task-actions">
                                 <!-- 任务控制按钮 -->
-                                <Button v-if="task.state === 'downloading' || task.state === 'starting'"
-                                    icon="pi pi-pause" text size="small" @click="pauseTask(task.id)" title="暂停" />
-                                <Button v-else-if="task.state === 'paused'" icon="pi pi-play" text size="small"
-                                    @click="resumeTask(task.id)" title="恢复" />
-                                <Button v-else-if="task.state === 'failed'" icon="pi pi-refresh" text size="small"
-                                    @click="retryTask(task.id)" title="重试" />
-                                <Button v-if="!['completed'].includes(task.state)" icon="pi pi-times" text size="small"
-                                    severity="danger" @click="cancelTask(task.id)" title="取消" />
-                                <Button icon="pi pi-trash" text size="small" severity="danger"
-                                    @click="removeTask(task.id)" :disabled="isActiveTask(task)" title="删除" />
+                                <Button
+                                    v-if="task.state === 'downloading' || task.state === 'starting'"
+                                    icon="pi pi-pause"
+                                    text
+                                    size="small"
+                                    title="暂停"
+                                    @click="pauseTask(task.id)"
+                                />
+                                <Button
+                                    v-else-if="task.state === 'paused'"
+                                    icon="pi pi-play"
+                                    text
+                                    size="small"
+                                    title="恢复"
+                                    @click="resumeTask(task.id)"
+                                />
+                                <Button
+                                    v-else-if="task.state === 'failed'"
+                                    icon="pi pi-refresh"
+                                    text
+                                    size="small"
+                                    title="重试"
+                                    @click="retryTask(task.id)"
+                                />
+                                <Button
+                                    v-if="!['completed'].includes(task.state)"
+                                    icon="pi pi-times"
+                                    text
+                                    size="small"
+                                    severity="danger"
+                                    title="取消"
+                                    @click="cancelTask(task.id)"
+                                />
+                                <Button
+                                    icon="pi pi-trash"
+                                    text
+                                    size="small"
+                                    severity="danger"
+                                    :disabled="isActiveTask(task)"
+                                    title="删除"
+                                    @click="removeTask(task.id)"
+                                />
                             </div>
                         </div>
 
                         <!-- 进度条 -->
                         <div class="task-progress">
-                            <ProgressBar :value="task.progress" :show-value="false" class="progress-bar" :class="{
-                                'progress-success': task.state === 'completed',
-                                'progress-error': task.state === 'failed',
-                                'progress-warning': task.state === 'paused'
-                            }" />
+                            <ProgressBar
+                                :value="task.progress"
+                                :show-value="false"
+                                class="progress-bar"
+                                :class="{
+                                    'progress-success': task.state === 'completed',
+                                    'progress-error': task.state === 'failed',
+                                    'progress-warning': task.state === 'paused'
+                                }"
+                            />
                             <span class="progress-text">
                                 {{ Math.round(task.progress) }}%
                             </span>
@@ -98,8 +209,11 @@
                         <div class="task-details">
                             <div class="detail-row">
                                 <span class="detail-label">状态:</span>
-                                <Tag :value="getStateLabel(task.state)" :severity="getStateSeverity(task.state)"
-                                    size="small" />
+                                <Tag
+                                    :value="getStateLabel(task.state)"
+                                    :severity="getStateSeverity(task.state)"
+                                    size="small"
+                                />
                             </div>
 
                             <div class="detail-row">
@@ -109,19 +223,31 @@
                                 </span>
                             </div>
 
-                            <div v-if="isActiveTask(task)" class="detail-row">
+                            <div
+                                v-if="isActiveTask(task)"
+                                class="detail-row"
+                            >
                                 <span class="detail-label">速度:</span>
                                 <span class="detail-value">{{ formatSpeed(task.speed) }}</span>
                             </div>
 
-                            <div v-if="isActiveTask(task) && task.remainingTime > 0" class="detail-row">
+                            <div
+                                v-if="isActiveTask(task) && task.remainingTime > 0"
+                                class="detail-row"
+                            >
                                 <span class="detail-label">剩余:</span>
                                 <span class="detail-value">{{ formatTime(task.remainingTime) }}</span>
                             </div>
 
-                            <div v-if="task.error" class="detail-row">
+                            <div
+                                v-if="task.error"
+                                class="detail-row"
+                            >
                                 <span class="detail-label">错误:</span>
-                                <span class="detail-value error-text" :title="task.error">
+                                <span
+                                    class="detail-value error-text"
+                                    :title="task.error"
+                                >
                                     {{ task.error }}
                                 </span>
                             </div>
@@ -131,24 +257,43 @@
             </div>
 
             <!-- 分页 -->
-            <Paginator v-if="downloadTasks.length > (props.pageSize || 20)" v-model:first="first"
-                :rows="props.pageSize || 20" :total-records="downloadTasks.length" :rows-per-page-options="[10, 20, 50]"
-                class="task-paginator" />
+            <Paginator
+                v-if="downloadTasks.length > (props.pageSize || 20)"
+                v-model:first="first"
+                :rows="props.pageSize || 20"
+                :total-records="downloadTasks.length"
+                :rows-per-page-options="[10, 20, 50]"
+                class="task-paginator"
+            />
         </div>
 
         <!-- 空状态 -->
-        <div v-else class="empty-state">
-            <i class="pi pi-download empty-icon"></i>
+        <div
+            v-else
+            class="empty-state"
+        >
+            <i class="pi pi-download empty-icon" />
             <h3>暂无下载任务</h3>
             <p>点击"添加下载"开始下载文件</p>
-            <Button label="添加下载" icon="pi pi-plus" @click="$emit('add-download')" />
+            <Button
+                label="添加下载"
+                icon="pi pi-plus"
+                @click="$emit('add-download')"
+            />
         </div>
 
         <!-- 全局统计信息 -->
-        <div v-if="downloadTasks.length > 0" class="global-stats">
+        <div
+            v-if="downloadTasks.length > 0"
+            class="global-stats"
+        >
             <div class="stats-item">
                 <span class="stats-label">总进度:</span>
-                <ProgressBar :value="stats.overallProgress" :show-value="false" class="global-progress" />
+                <ProgressBar
+                    :value="stats.overallProgress"
+                    :show-value="false"
+                    class="global-progress"
+                />
                 <span class="stats-value">{{ Math.round(stats.overallProgress) }}%</span>
             </div>
 
@@ -191,7 +336,7 @@ const props = withDefaults(defineProps<Props>(), {
     showCompleted: true,
     showFailed: true,
     pageSize: 20,
-    maxTasks: 100
+    maxTasks: 100,
 })
 
 // Emits
@@ -234,7 +379,7 @@ const displayTasks = computed(() => {
 
 const activeTasks = computed(() => downloadStore.activeTasks)
 const pausedTasks = computed(() =>
-    downloadTasks.value.filter(task => task.state === 'paused')
+    downloadTasks.value.filter(task => task.state === 'paused'),
 )
 const completedTasks = computed(() => downloadStore.completedTasks)
 const stats = computed(() => downloadStore.stats)
@@ -246,19 +391,19 @@ const selectedTasks = computed(() => downloadStore.selectedTasks)
 
 const isAllSelected = computed({
     get: () => selectedTaskIds.value.size === downloadTasks.value.length && downloadTasks.value.length > 0,
-    set: () => toggleSelectAll()
+    set: () => toggleSelectAll(),
 })
 
 const canBatchPause = computed(() =>
-    selectedTasks.value.some(task => ['downloading', 'starting', 'retrying'].includes(task.state))
+    selectedTasks.value.some(task => ['downloading', 'starting', 'retrying'].includes(task.state)),
 )
 
 const canBatchResume = computed(() =>
-    selectedTasks.value.some(task => task.state === 'paused')
+    selectedTasks.value.some(task => task.state === 'paused'),
 )
 
 const canBatchRetry = computed(() =>
-    selectedTasks.value.some(task => task.state === 'failed')
+    selectedTasks.value.some(task => task.state === 'failed'),
 )
 
 // 方法
@@ -275,7 +420,7 @@ const getStateLabel = (state: string): string => {
         completed: '已完成',
         failed: '已失败',
         cancelled: '已取消',
-        retrying: '重试中'
+        retrying: '重试中',
     }
     return stateLabels[state] || state
 }
@@ -289,7 +434,7 @@ const getStateSeverity = (state: string): string => {
         completed: 'success',
         failed: 'danger',
         cancelled: 'secondary',
-        retrying: 'warning'
+        retrying: 'warning',
     }
     return severities[state] || 'info'
 }
@@ -299,11 +444,11 @@ const formatBytes = (bytes: number): string => {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
 const formatSpeed = (bytesPerSecond: number): string => {
-    return formatBytes(bytesPerSecond) + '/s'
+    return `${formatBytes(bytesPerSecond)}/s`
 }
 
 const formatTime = (seconds: number): string => {

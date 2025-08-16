@@ -1,22 +1,22 @@
 <!-- Toolbar 组件 - 包装 PrimeVue Toolbar 以支持自定义样式和暗色模式 -->
 <template>
-  <Toolbar
-    v-bind="{
-      ...$attrs,
-      class: toolbarClass
-    }"
-  >
-    <template #start>
-      <slot name="start" />
-    </template>
-    <template #center>
-      <slot name="center" />
-    </template>
-    <template #end>
-      <slot name="end" />
-    </template>
-    <slot />
-  </Toolbar>
+    <Toolbar
+        v-bind="{
+            ...$attrs,
+            class: toolbarClass
+        }"
+    >
+        <template #start>
+            <slot name="start" />
+        </template>
+        <template #center>
+            <slot name="center" />
+        </template>
+        <template #end>
+            <slot name="end" />
+        </template>
+        <slot />
+    </Toolbar>
 </template>
 
 <script setup lang="ts">
@@ -28,13 +28,13 @@ const themeStore = useThemeStore()
 
 // 计算工具栏样式类
 const toolbarClass = computed(() => {
-  const classes = ['custom-toolbar']
+    const classes = ['custom-toolbar']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

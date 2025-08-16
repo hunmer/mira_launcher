@@ -2,11 +2,22 @@
     <div class="toolbar">
         <div class="toolbar-left">
             <!-- 分组切换选择器 -->
-            <FilterSelect :model-value="selectedCategory" :options="categories" option-label="label"
-                option-value="value" placeholder="选择分组" :filter="true" :show-clear="true" class="category-selector"
-                @update:model-value="$emit('category-change', $event)">
+            <FilterSelect
+                :model-value="selectedCategory"
+                :options="categories"
+                option-label="label"
+                option-value="value"
+                placeholder="选择分组"
+                :filter="true"
+                :show-clear="true"
+                class="category-selector"
+                @update:model-value="$emit('category-change', $event)"
+            >
                 <template #value="{ value, placeholder }">
-                    <div v-if="value" class="flex items-center gap-3">
+                    <div
+                        v-if="value"
+                        class="flex items-center gap-3"
+                    >
                         <i :class="getCategoryIcon(value)" />
                         <span>{{ getCategoryLabel(value) }}</span>
                     </div>
@@ -23,29 +34,56 @@
 
         <div class="toolbar-right">
             <!-- 添加新项目下拉菜单 -->
-            <div class="add-item-dropdown" ref="addItemDropdownRef">
-                <Button icon="pi pi-plus-circle" class="add-item-btn" size="small" variant="primary"
-                    @click="toggleAddItemDropdown" title="添加新项目" />
-                <TieredMenu v-if="showAddItemDropdown" ref="addItemMenu" :model="addItemMenuItems" :popup="false"
-                    class="dropdown-menu-tiered" @hide="showAddItemDropdown = false" />
+            <div
+                ref="addItemDropdownRef"
+                class="add-item-dropdown"
+            >
+                <Button
+                    icon="pi pi-plus-circle"
+                    class="add-item-btn"
+                    size="small"
+                    variant="primary"
+                    title="添加新项目"
+                    @click="toggleAddItemDropdown"
+                />
+                <TieredMenu
+                    v-if="showAddItemDropdown"
+                    ref="addItemMenu"
+                    :model="addItemMenuItems"
+                    :popup="false"
+                    class="dropdown-menu-tiered"
+                    @hide="showAddItemDropdown = false"
+                />
             </div>
 
             <!-- 视图切换 -->
             <div class="view-controls">
-                <button :class="['view-btn', { active: layoutMode === 'grid' }]" @click="$emit('layout-change', 'grid')"
-                    title="网格视图">
+                <button
+                    :class="['view-btn', { active: layoutMode === 'grid' }]"
+                    title="网格视图"
+                    @click="$emit('layout-change', 'grid')"
+                >
                     <i class="pi pi-th-large" />
                 </button>
-                <button :class="['view-btn', { active: layoutMode === 'list' }]" @click="$emit('layout-change', 'list')"
-                    title="列表视图">
+                <button
+                    :class="['view-btn', { active: layoutMode === 'list' }]"
+                    title="列表视图"
+                    @click="$emit('layout-change', 'list')"
+                >
                     <i class="pi pi-list" />
                 </button>
             </div>
 
             <!-- 图标大小控制 - 仅在网格模式下显示 -->
-            <div v-if="layoutMode === 'grid'" class="size-controls">
-                <IconSizeDropdown :model-value="gridColumns" :container-width="containerWidth"
-                    @update:model-value="$emit('grid-size-change', $event)" />
+            <div
+                v-if="layoutMode === 'grid'"
+                class="size-controls"
+            >
+                <IconSizeDropdown
+                    :model-value="gridColumns"
+                    :container-width="containerWidth"
+                    @update:model-value="$emit('grid-size-change', $event)"
+                />
             </div>
         </div>
     </div>
@@ -98,7 +136,7 @@ const addItemMenuItems = computed(() => [
         command: () => {
             emit('add-file')
             showAddItemDropdown.value = false
-        }
+        },
     },
     {
         label: '添加文件夹',
@@ -106,7 +144,7 @@ const addItemMenuItems = computed(() => [
         command: () => {
             emit('add-folder')
             showAddItemDropdown.value = false
-        }
+        },
     },
     {
         label: '添加网址',
@@ -114,10 +152,10 @@ const addItemMenuItems = computed(() => [
         command: () => {
             emit('add-url')
             showAddItemDropdown.value = false
-        }
+        },
     },
     {
-        separator: true
+        separator: true,
     },
     {
         label: '测试添加',
@@ -125,8 +163,8 @@ const addItemMenuItems = computed(() => [
         command: () => {
             emit('add-test-data')
             showAddItemDropdown.value = false
-        }
-    }
+        },
+    },
 ])
 
 // 获取分组图标

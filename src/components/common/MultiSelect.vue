@@ -1,13 +1,13 @@
 <!-- MultiSelect 组件 - 包装 PrimeVue MultiSelect 以支持自定义样式和暗色模式 -->
 <template>
-  <MultiSelect
-    v-model="multiSelectValue"
-    v-bind="{
-      ...$attrs,
-      class: multiSelectClass
-    }"
-    @change="handleChange"
-  />
+    <MultiSelect
+        v-model="multiSelectValue"
+        v-bind="{
+            ...$attrs,
+            class: multiSelectClass
+        }"
+        @change="handleChange"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,12 +16,12 @@ import MultiSelect from 'primevue/multiselect'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  modelValue?: unknown[]
+    modelValue?: unknown[]
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: unknown[]): void
-  (e: 'change', event: { originalEvent: Event; value: unknown[] }): void
+    (e: 'update:modelValue', value: unknown[]): void
+    (e: 'change', event: { originalEvent: Event; value: unknown[] }): void
 }
 
 const props = defineProps<Props>()
@@ -33,27 +33,27 @@ const multiSelectValue = ref(props.modelValue || [])
 
 // 监听外部值变化
 watch(() => props.modelValue, (newValue) => {
-  multiSelectValue.value = newValue || []
+    multiSelectValue.value = newValue || []
 })
 
 // 监听内部值变化
 watch(multiSelectValue, (newValue) => {
-  emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue)
 })
 
 const handleChange = (event: { originalEvent: Event; value: unknown[] }) => {
-  emit('change', event)
+    emit('change', event)
 }
 
 // 计算多选样式类
 const multiSelectClass = computed(() => {
-  const classes = ['custom-multiselect']
+    const classes = ['custom-multiselect']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

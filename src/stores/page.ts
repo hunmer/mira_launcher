@@ -69,8 +69,8 @@ export const usePageStore = defineStore('page', () => {
       onUnmount?: () => void
       onActivate?: () => void
       onDeactivate?: () => void
-    }
-  }>>(new Map())
+        }
+        }>>(new Map())
 
   // 计算属性
   const currentPage = computed(() => {
@@ -509,7 +509,7 @@ export const usePageStore = defineStore('page', () => {
     pageId: string,
     component: any,
     metadata: Record<string, any> = {},
-    lifecycle: any = {}
+    lifecycle: any = {},
   ) => {
     if (!pluginPageConfig.value.allowPluginPages) {
       throw new Error('Plugin pages are disabled')
@@ -554,7 +554,7 @@ export const usePageStore = defineStore('page', () => {
         try {
           entry.lifecycle.onUnmount()
         } catch (error) {
-          console.error(`[Page] Error in plugin page unmount lifecycle:`, error)
+          console.error('[Page] Error in plugin page unmount lifecycle:', error)
         }
       }
 
@@ -562,7 +562,7 @@ export const usePageStore = defineStore('page', () => {
       
       // 移除页面
       const pageIndex = pages.value.findIndex((page: any) => 
-        page.pluginId === pluginId && page.route.includes(pageId)
+        page.pluginId === pluginId && page.route.includes(pageId),
       )
       if (pageIndex !== -1) {
         removePage(pages.value[pageIndex]!.id)
@@ -585,7 +585,7 @@ export const usePageStore = defineStore('page', () => {
             try {
               entry.lifecycle.onUnmount()
             } catch (error) {
-              console.error(`[Page] Error in plugin page unmount lifecycle:`, error)
+              console.error('[Page] Error in plugin page unmount lifecycle:', error)
             }
           }
           pluginPageComponents.value.delete(key)
@@ -610,7 +610,7 @@ export const usePageStore = defineStore('page', () => {
         entry.lifecycle.onActivate()
         console.log(`[Page] Activated plugin page: ${componentKey}`)
       } catch (error) {
-        console.error(`[Page] Error in plugin page activate lifecycle:`, error)
+        console.error('[Page] Error in plugin page activate lifecycle:', error)
       }
     }
   }
@@ -624,7 +624,7 @@ export const usePageStore = defineStore('page', () => {
         entry.lifecycle.onDeactivate()
         console.log(`[Page] Deactivated plugin page: ${componentKey}`)
       } catch (error) {
-        console.error(`[Page] Error in plugin page deactivate lifecycle:`, error)
+        console.error('[Page] Error in plugin page deactivate lifecycle:', error)
       }
     }
   }

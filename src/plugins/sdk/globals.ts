@@ -16,7 +16,7 @@ declare global {
 
 // Initialize the global SDK
 window.MiraLauncherSDK = {
-    BasePlugin: AppBasePlugin
+  BasePlugin: AppBasePlugin,
 }
 
 export { }

@@ -1,45 +1,93 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+<!-- eslint-disable vue/custom-event-name-casing -->
 <template>
     <div class="app-page" @contextmenu.prevent="$emit('blank-context-menu', $event)">
         <!-- 空白占位网格 -->
-        <div v-if="applications.length === 0" class="empty-grid" @click="$emit('blank-context-menu', $event)">
+        <div
+            v-if="applications.length === 0"
+            class="empty-grid"
+            @click="$emit('blank-context-menu', $event)"
+        >
             <div class="empty-placeholder">
                 <div class="empty-icon">
-                    <i class="pi pi-plus-circle"></i>
+                    <i class="pi pi-plus-circle" />
                 </div>
-                <div class="empty-text">点击添加应用</div>
+                <div class="empty-text">
+                    点击添加应用
+                </div>
             </div>
         </div>
 
         <!-- 应用网格 -->
-        <VueDraggable v-else v-model="modelApplications" animation="200" :delay="100" :delay-on-touch-start="true"
-            :force-fallback="false" :disabled="false" :group="{ name: 'applications' }" :sort="true" :class="[
+        <VueDraggable
+            v-else
+            v-model="modelApplications"
+            animation="150"
+            :delay="0"
+            :delay-on-touch-start="true"
+            :delay-on-touch-only="false"
+            :force-fallback="true"
+            :fallback-on-body="false"
+            :disabled="false"
+            :group="{ name: 'applications' }"
+            :sort="true"
+            :swap-threshold="0.65"
+            :empty-insert-threshold="5"
+            :class="[
                 layoutMode === 'grid' ? 'app-grid' : 'app-list'
-            ]" :style="layoutMode === 'grid' ? {
+            ]"
+            :style="layoutMode === 'grid' ? {
                 gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                 gap: '12px'
-            } : {}" item-key="id" ghost-class="ghost" chosen-class="chosen" drag-class="dragging" @start="onDragStart"
-            @end="onDragEnd" @update="onDragUpdate" @change="onDragChange">
+            } : {}"
+            item-key="id"
+            ghost-class="ghost"
+            chosen-class="chosen"
+            drag-class="dragging"
+            @start="onDragStart"
+            @end="onDragEnd"
+            @update="onDragUpdate"
+            @change="onDragChange"
+        >
             <template #item="{ element: app }">
-                <div :class="[
-                    'app-item-wrapper',
-                    layoutMode === 'list' ? 'list-item' : 'grid-item'
-                ]">
-                    <div :class="[
-                        'app-item',
-                        layoutMode === 'list' ? 'list-layout' : 'grid-layout'
-                    ]" @click.stop="$emit('launch-app', app)"
+                <div
+                    :class="[
+                        'app-item-wrapper',
+                        layoutMode === 'list' ? 'list-item' : 'grid-item'
+                    ]"
+                >
+                    <div
+                        :class="[
+                            'app-item',
+                            layoutMode === 'list' ? 'list-layout' : 'grid-layout'
+                        ]"
+                        style="cursor: grab; user-select: none;"
+                        @click.stop="$emit('launch-app', app)"
                         @contextmenu.prevent.stop="$emit('app-context-menu', app, $event)"
-                        style="cursor: grab; user-select: none;">
+                    >
                         <div class="app-icon">
-                            <img v-if="app.icon" :src="app.icon" :alt="app.name" :style="{
-                                width: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
-                                height: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
-                                maxWidth: '200px',
-                                maxHeight: '200px',
-                            }" class="object-contain" />
-                            <AppIcon v-else name="monitor"
+                            <img
+                                v-if="app.icon"
+                                :src="app.icon"
+                                :alt="app.name"
+                                :style="{
+                                    width: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
+                                    height: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
+                                    maxWidth: '200px',
+                                    maxHeight: '200px',
+                                }"
+                                class="object-contain"
+                                draggable="false"
+                                @dragstart.prevent
+                                @selectstart.prevent
+                            >
+                            <AppIcon
+                                v-else
+                                name="monitor"
                                 :size="layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize"
-                                class="text-gray-400" />
+                                class="text-gray-400"
+                            />
                         </div>
                         <div class="app-info">
                             <div class="app-label">
@@ -69,14 +117,33 @@ interface Props {
     iconSize: number
 }
 
+interface DragEvent {
+    oldIndex?: number
+    newIndex?: number
+    item?: HTMLElement
+    moved?: {
+        element: Application
+        oldIndex: number
+        newIndex: number
+    }
+    added?: {
+        element: Application
+        newIndex: number
+    }
+    removed?: {
+        element: Application
+        oldIndex: number
+    }
+}
+
 interface Emits {
     (e: 'update:applications', apps: Application[]): void
     (e: 'launch-app', app: Application): void
     (e: 'app-context-menu', app: Application, event: MouseEvent): void
     (e: 'blank-context-menu', event: MouseEvent): void
-    (e: 'drag-start', event: any): void
-    (e: 'drag-end', event: any): void
-    (e: 'drag-change', event: any): void
+    (e: 'dragStart', event: DragEvent): void
+    (e: 'dragEnd', event: DragEvent): void
+    (e: 'dragChange', event: DragEvent): void
 }
 
 const props = defineProps<Props>()
@@ -85,29 +152,32 @@ const emit = defineEmits<Emits>()
 // 双向绑定的应用列表
 const modelApplications = computed({
     get: () => props.applications,
-    set: (value) => emit('update:applications', value)
+    set: (value) => {
+        console.log('更新应用列表:', value.map(app => app.name))
+        emit('update:applications', value)
+    },
 })
 
 // 拖拽事件处理
-const onDragStart = (evt: any) => {
+const onDragStart = (evt: DragEvent) => {
     console.log('开始拖拽:', evt)
-    emit('drag-start', evt)
+    emit('dragStart', evt)
 }
 
-const onDragEnd = (evt: any) => {
+const onDragEnd = (evt: DragEvent) => {
     console.log('拖拽结束:', evt)
-    emit('drag-end', evt)
+    emit('dragEnd', evt)
 }
 
-const onDragUpdate = (evt: any) => {
+const onDragUpdate = (evt: DragEvent) => {
     // vuedraggable 在同列表内排序会触发 update 事件
     console.log('拖拽更新:', evt)
-    emit('drag-change', evt)
+    emit('dragChange', evt)
 }
 
-const onDragChange = (evt: any) => {
+const onDragChange = (evt: DragEvent) => {
     console.log('拖拽变化:', evt)
-    emit('drag-change', evt)
+    emit('dragChange', evt)
 }
 </script>
 
@@ -317,24 +387,27 @@ const onDragChange = (evt: any) => {
 
 /* 拖拽状态样式 */
 .ghost {
-    opacity: 0.4;
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    border: 2px dashed rgba(59, 130, 246, 0.6) !important;
+    opacity: 0 !important;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    border: 2px dashed rgba(59, 130, 246, 0.4) !important;
     border-radius: 12px;
     cursor: grabbing !important;
+    transform: scale(0.95) !important;
 }
 
 .ghost .app-item {
     background-color: transparent !important;
     border: none !important;
     cursor: grabbing !important;
+    opacity: 0 !important;
 }
 
 .chosen {
     background-color: rgba(59, 130, 246, 0.15) !important;
     border-color: rgba(59, 130, 246, 0.7) !important;
-    transform: scale(1.02);
+    transform: scale(1.02) !important;
     cursor: grabbing !important;
+    z-index: 1000 !important;
 }
 
 .chosen .app-item {
@@ -344,18 +417,20 @@ const onDragChange = (evt: any) => {
 }
 
 .dragging {
-    opacity: 0.8;
-    transform: rotate(1deg) scale(1.05) !important;
-    z-index: 1000;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    opacity: 0.9 !important;
+    transform: rotate(2deg) scale(1.05) !important;
+    z-index: 2000 !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
     transition: none !important;
     cursor: grabbing !important;
+    pointer-events: none !important;
 }
 
 .dragging .app-item {
-    background-color: rgba(55, 65, 81, 0.9) !important;
-    border-color: rgba(59, 130, 246, 0.8) !important;
+    background-color: rgba(55, 65, 81, 0.95) !important;
+    border-color: rgba(59, 130, 246, 0.9) !important;
     cursor: grabbing !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* 确保拖拽时显示正确的游标 */
@@ -372,6 +447,9 @@ const onDragChange = (evt: any) => {
     transition: transform 0.2s ease-in-out;
     user-select: none;
     -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
     pointer-events: none;
     border-radius: 8px;
 }
@@ -385,6 +463,9 @@ const onDragChange = (evt: any) => {
     transition: transform 0.2s ease-in-out;
     user-select: none;
     -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
     pointer-events: none;
 }
 

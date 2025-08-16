@@ -222,9 +222,9 @@ export abstract class BasePlugin {
 
     // Internal state
     protected _state: PluginState = {
-        loaded: false,
-        activated: false,
-        error: null
+      loaded: false,
+      activated: false,
+      error: null,
     }
 
     protected _api: PluginAPI | null = null
@@ -235,180 +235,180 @@ export abstract class BasePlugin {
      * Get plugin metadata
      */
     get metadata(): PluginMetadata {
-        const metadata: PluginMetadata = {
-            id: this.id,
-            name: this.name,
-            version: this.version,
-            dependencies: this.dependencies || [],
-            permissions: this.permissions || []
-        }
-        if (this.description !== undefined) metadata.description = this.description
-        if (this.author !== undefined) metadata.author = this.author
-        if (this.minAppVersion !== undefined) metadata.minAppVersion = this.minAppVersion
-        return metadata
+      const metadata: PluginMetadata = {
+        id: this.id,
+        name: this.name,
+        version: this.version,
+        dependencies: this.dependencies || [],
+        permissions: this.permissions || [],
+      }
+      if (this.description !== undefined) metadata.description = this.description
+      if (this.author !== undefined) metadata.author = this.author
+      if (this.minAppVersion !== undefined) metadata.minAppVersion = this.minAppVersion
+      return metadata
     }
 
     /**
      * Get plugin state
      */
     get state(): PluginState {
-        return { ...this._state }
+      return { ...this._state }
     }
 
     /**
      * Initialize plugin with API
      */
     initialize(api: PluginAPI): void {
-        this._api = api
-        this._state.loaded = true
+      this._api = api
+      this._state.loaded = true
     }
 
     /**
      * Log a message
      */
     protected log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
-        if (this._api) {
-            this._api.log(level, `[${this.name}] ${message}`, ...args)
-        } else {
-            console[level](`[${this.name}] ${message}`, ...args)
-        }
+      if (this._api) {
+        this._api.log(level, `[${this.name}] ${message}`, ...args)
+      } else {
+        console[level](`[${this.name}] ${message}`, ...args)
+      }
     }
 
     /**
      * Send a notification
      */
     protected sendNotification(type: 'info' | 'success' | 'warning' | 'error', options: any): void {
-        if (this._api) {
-            this._api.sendNotification(type, options)
-        }
+      if (this._api) {
+        this._api.sendNotification(type, options)
+      }
     }
 
     /**
      * Get storage instance
      */
     protected getStorage(): any {
-        return this._api?.getStorage()
+      return this._api?.getStorage()
     }
 
     /**
      * Emit an event
      */
     protected emit(event: string, data?: any): void {
-        if (this._api) {
-            this._api.emit(event, data)
-        }
+      if (this._api) {
+        this._api.emit(event, data)
+      }
     }
 
     /**
      * Listen to an event
      */
     protected on(event: string, handler: (data?: any) => void): void {
-        if (this._api) {
-            this._api.on(event, handler)
-        }
+      if (this._api) {
+        this._api.on(event, handler)
+      }
     }
 
     /**
      * Remove event listener
      */
     protected off(event: string, handler?: (data?: any) => void): void {
-        if (this._api) {
-            this._api.off(event, handler)
-        }
+      if (this._api) {
+        this._api.off(event, handler)
+      }
     }
 
     /**
      * Get plugin configuration
      */
     protected getConfig(): PluginConfig {
-        if (this._api) {
-            return this._api.getConfig()
-        }
-        return this._config
+      if (this._api) {
+        return this._api.getConfig()
+      }
+      return this._config
     }
 
     /**
      * Set plugin configuration
      */
     protected setConfig(config: Partial<PluginConfig>): void {
-        if (this._api) {
-            this._api.setConfig(config)
-        } else {
-            this._config = { ...this._config, ...config }
-        }
+      if (this._api) {
+        this._api.setConfig(config)
+      } else {
+        this._config = { ...this._config, ...config }
+      }
     }
 
     /**
      * Register a component
      */
     protected registerComponent(name: string, component: any): void {
-        if (this._api) {
-            this._api.registerComponent(name, component)
-        } else {
-            this._components[name] = component
-        }
+      if (this._api) {
+        this._api.registerComponent(name, component)
+      } else {
+        this._components[name] = component
+      }
     }
 
     // Lifecycle methods (to be implemented by plugins)
     async onLoad(): Promise<void> {
-        this.log('info', 'Plugin loaded')
-        this._state.loaded = true
+      this.log('info', 'Plugin loaded')
+      this._state.loaded = true
     }
 
     async onActivate(): Promise<void> {
-        this.log('info', 'Plugin activated')
-        this._state.activated = true
+      this.log('info', 'Plugin activated')
+      this._state.activated = true
     }
 
     async onDeactivate(): Promise<void> {
-        this.log('info', 'Plugin deactivated')
-        this._state.activated = false
+      this.log('info', 'Plugin deactivated')
+      this._state.activated = false
     }
 
     async onUnload(): Promise<void> {
-        this.log('info', 'Plugin unloaded')
-        this._state.loaded = false
+      this.log('info', 'Plugin unloaded')
+      this._state.loaded = false
     }
 
     /**
      * Get plugin metadata
      */
     getMetadata(): PluginMetadata {
-        return this.metadata
+      return this.metadata
     }
 
     /**
      * Update plugin state
      */
     protected setState(updates: Partial<PluginState>): void {
-        this._state = { ...this._state, ...updates }
+      this._state = { ...this._state, ...updates }
     }
 
     /**
      * Check if plugin is loaded
      */
     isLoaded(): boolean {
-        return this._state.loaded
+      return this._state.loaded
     }
 
     /**
      * Check if plugin is activated
      */
     isActivated(): boolean {
-        return this._state.activated
+      return this._state.activated
     }
 
     /**
      * Get plugin error if any
      */
     getError(): string | null {
-        return this._state.error
+      return this._state.error
     }
 
     /**
      * Set plugin error
      */
     protected setError(error: string | null): void {
-        this._state.error = error
+      this._state.error = error
     }
 }

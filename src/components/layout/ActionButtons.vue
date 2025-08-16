@@ -1,17 +1,38 @@
 <template>
-  <div class="action-buttons">
-    <!-- 搜索按钮 -->
-    <Button v-tooltip.bottom="'搜索'" icon="pi pi-search" severity="secondary" text rounded size="small"
-      @click="toggleSearch" />
+    <div class="action-buttons">
+        <!-- 搜索按钮 -->
+        <Button
+            v-tooltip.bottom="'搜索'"
+            icon="pi pi-search"
+            severity="secondary"
+            text
+            rounded
+            size="small"
+            @click="toggleSearch"
+        />
 
-    <!-- 通知按钮 -->
-    <Button v-tooltip.bottom="'通知'" icon="pi pi-bell" severity="secondary" text rounded size="small"
-      @click="showNotifications" />
+        <!-- 通知按钮 -->
+        <Button
+            v-tooltip.bottom="'通知'"
+            icon="pi pi-bell"
+            severity="secondary"
+            text
+            rounded
+            size="small"
+            @click="showNotifications"
+        />
 
-    <!-- 主题切换按钮 -->
-    <Button v-tooltip.bottom="isDarkMode ? '切换到浅色模式' : '切换到深色模式'" :icon="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
-      severity="secondary" text rounded size="small" @click="toggleTheme" />
-  </div>
+        <!-- 主题切换按钮 -->
+        <Button
+            v-tooltip.bottom="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
+            :icon="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
+            severity="secondary"
+            text
+            rounded
+            size="small"
+            @click="toggleTheme"
+        />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -26,16 +47,16 @@ const isDarkMode = computed(() => themeStore.currentTheme === 'dark')
 
 // 功能按钮事件处理
 const toggleSearch = async () => {
-  await openQuickSearchWindow()
+    await openQuickSearchWindow()
 }
 
 const showNotifications = () => {
-  console.log('Show notifications')
-  // 显示通知
+    console.log('Show notifications')
+    // 显示通知
 }
 
 const toggleTheme = () => {
-  themeStore.toggleTheme()
+    themeStore.toggleTheme()
 }
 </script>
 

@@ -82,7 +82,7 @@ export class PluginStorageAPIImpl {
       cleanupInterval: 5 * 60 * 1000, // 5分鐘
       maxStorageSize: 10 * 1024 * 1024, // 10MB
       enableWatcher: true,
-      ...config
+      ...config,
     }
 
     this.initializeEventSystem()
@@ -103,7 +103,7 @@ export class PluginStorageAPIImpl {
       'storage:remove',
       'storage:clear',
       'storage:expired',
-      'storage:quota-exceeded'
+      'storage:quota-exceeded',
     ]
 
     for (const eventType of eventTypes) {
@@ -168,7 +168,7 @@ export class PluginStorageAPIImpl {
 
     return {
       pluginId,
-      key: parts.slice(1).join(':')
+      key: parts.slice(1).join(':'),
     }
   }
 
@@ -187,7 +187,7 @@ export class PluginStorageAPIImpl {
       updatedAt: now,
       ...(options?.expiresIn && { expiresAt: new Date(now.getTime() + options.expiresIn) }),
       ...(options?.encrypted && { encrypted: options.encrypted }),
-      ...(options?.metadata && { metadata: options.metadata })
+      ...(options?.metadata && { metadata: options.metadata }),
     }
 
     let serialized = JSON.stringify(item)
@@ -266,7 +266,7 @@ export class PluginStorageAPIImpl {
       this.emit('storage:quota-exceeded', {
         pluginId,
         size: totalSize,
-        limit: this.config.maxStorageSize
+        limit: this.config.maxStorageSize,
       })
       return false
     }
@@ -306,7 +306,7 @@ export class PluginStorageAPIImpl {
       expiresIn?: number
       encrypted?: boolean
       metadata?: Record<string, any>
-    }
+    },
   ): void {
     const namespacedKey = this.getNamespacedKey(pluginId, key)
     const serialized = this.serializeItem(value, options)
@@ -495,20 +495,20 @@ export class PluginStorageAPIImpl {
     for (const op of operations) {
       try {
         switch (op.operation) {
-          case 'set':
-            this.set(op.key, op.value, pluginId, op.options)
-            results.push({ success: true, key: op.key })
-            break
-          case 'remove':
-            this.remove(op.key, pluginId)
-            results.push({ success: true, key: op.key })
-            break
+        case 'set':
+          this.set(op.key, op.value, pluginId, op.options)
+          results.push({ success: true, key: op.key })
+          break
+        case 'remove':
+          this.remove(op.key, pluginId)
+          results.push({ success: true, key: op.key })
+          break
         }
       } catch (error) {
         results.push({ 
           success: false, 
           key: op.key, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+          error: error instanceof Error ? error.message : 'Unknown error', 
         })
       }
     }
@@ -543,7 +543,7 @@ export class PluginStorageAPIImpl {
       if (keyInfo) {
         this.emit('storage:expired', { 
           key: keyInfo.key, 
-          pluginId: keyInfo.pluginId 
+          pluginId: keyInfo.pluginId, 
         })
       }
     }
@@ -593,7 +593,7 @@ export class PluginStorageAPIImpl {
       totalItems,
       usedSize,
       expiredItems,
-      byPlugin
+      byPlugin,
     }
   }
 
@@ -836,6 +836,6 @@ export const storageUtils = {
    */
   sanitizeKey(key: string): string {
     return key.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 250)
-  }
+  },
 }
   

@@ -1,11 +1,19 @@
 <template>
     <div class="page-controls">
         <!-- 页面指示器容器 - 支持滚轮滚动 -->
-        <div class="page-indicators-container" @wheel="handleWheel" ref="indicatorsContainer">
+        <div
+            ref="indicatorsContainer"
+            class="page-indicators-container"
+            @wheel="handleWheel"
+        >
             <div class="page-indicators">
-                <button v-for="(page, index) in totalPages" :key="index"
+                <button
+                    v-for="(page, index) in totalPages"
+                    :key="index"
                     :class="['page-indicator', { active: index === currentPageIndex }]"
-                    @click="$emit('page-change', index)" :title="`第 ${index + 1} 页`">
+                    :title="`第 ${index + 1} 页`"
+                    @click="$emit('page-change', index)"
+                >
                     {{ index + 1 }}
                 </button>
             </div>
@@ -13,8 +21,14 @@
 
         <!-- 添加页面按钮 -->
         <div class="add-page-container">
-            <Button icon="pi pi-plus" class="add-page-btn" size="small" variant="secondary" @click="$emit('add-page')"
-                title="添加新页面" />
+            <Button
+                icon="pi pi-plus"
+                class="add-page-btn"
+                size="small"
+                variant="secondary"
+                title="添加新页面"
+                @click="$emit('add-page')"
+            />
         </div>
     </div>
 </template>

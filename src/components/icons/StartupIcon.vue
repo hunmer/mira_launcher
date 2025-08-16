@@ -1,13 +1,13 @@
 <template>
-  <BaseIcon 
-    :icon-component="Rocket" 
-    v-bind="{
-      ...(size !== undefined && { size }),
-      ...(color !== undefined && { color }),
-      ...(iconClass !== undefined && { class: iconClass }),
-      ...$attrs
-    }"
-  />
+    <BaseIcon 
+        :icon-component="Rocket" 
+        v-bind="{
+            ...(size !== undefined && { size }),
+            ...(color !== undefined && { color }),
+            ...(iconClass !== undefined && { class: iconClass }),
+            ...$attrs
+        }"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,15 +16,15 @@ import { Rocket } from 'lucide-vue-next'
 import BaseIcon from './BaseIcon.vue'
 
 interface Props {
-  size?: string | number
-  color?: string
-  class?: string
+    size?: string | number
+    color?: string
+    class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 16,
-  color: 'currentColor',
-  class: '',
+    size: 16,
+    color: 'currentColor',
+    class: '',
 })
 
 // 样式类

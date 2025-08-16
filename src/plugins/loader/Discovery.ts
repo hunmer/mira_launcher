@@ -49,7 +49,7 @@ export class PluginDiscovery {
       supportedExtensions: ['.js', '.ts', '.vue'],
       maxDepth: 3,
       validate: true,
-      ...config
+      ...config,
     }
   }
 
@@ -223,7 +223,7 @@ export class PluginDiscovery {
         pluginPath,
         entryPath,
         isValid: errors.length === 0,
-        errors
+        errors,
       }
 
       if (this.config.validate && !result.isValid) {
@@ -345,7 +345,7 @@ export class PluginDiscovery {
     return {
       satisfied: missing.length === 0 && circular.length === 0,
       missing,
-      circular
+      circular,
     }
   }
 
@@ -369,7 +369,7 @@ export class PluginDiscovery {
       valid: valid.length,
       invalid: invalid.length,
       directories: this.config.pluginDirectories,
-      errors: invalid.flatMap(p => p.errors)
+      errors: invalid.flatMap(p => p.errors),
     }
   }
 }
@@ -441,5 +441,5 @@ export const discoveryUtils = {
    */
   isVersionCompatible(required: string, available: string): boolean {
     return this.compareVersions(available, required) >= 0
-  }
+  },
 }

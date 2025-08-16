@@ -1,6 +1,4 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
 
 /* 全局樣式重置和基礎設定 */
 @layer base {
@@ -16,14 +14,15 @@
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overflow: hidden;
     }
 
     body {
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        background-color: theme('colors.gray.50');
-        color: theme('colors.gray.900');
+        background-color: #f9fafb;
+        color: #111827;
         transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
         user-select: none;
         /* 防止全局文字选中 */
@@ -31,10 +30,19 @@
         /* 防止窗口滚动 */
     }
 
+    /* 应用根元素样式 */
+    #app {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
     /* 深色模式 */
     .dark body {
-        background-color: theme('colors.gray.900');
-        color: theme('colors.gray.100');
+        background-color: #111827;
+        color: #f3f4f6;
     }
 
     /* Tauri 窗口拖拽区域样式 */
@@ -54,47 +62,47 @@
     }
 
     ::-webkit-scrollbar-track {
-        background: theme('colors.gray.100');
+        background: #f3f4f6;
         border-radius: 4px;
     }
 
     .dark ::-webkit-scrollbar-track {
-        background: theme('colors.gray.800');
+        background: #1f2937;
     }
 
     ::-webkit-scrollbar-thumb {
-        background: theme('colors.gray.300');
+        background: #d1d5db;
         border-radius: 4px;
         transition: background-color 0.2s ease-in-out;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: theme('colors.gray.400');
+        background: #9ca3af;
     }
 
     .dark ::-webkit-scrollbar-thumb {
-        background: theme('colors.gray.600');
+        background: #4b5563;
     }
 
     .dark ::-webkit-scrollbar-thumb:hover {
-        background: theme('colors.gray.500');
+        background: #6b7280;
     }
 
     /* 聚焦樣式 */
     :focus-visible {
-        outline: 2px solid theme('colors.primary.500');
+        outline: 2px solid #3b82f6;
         outline-offset: 2px;
     }
 
     /* 選擇文字樣式 */
     ::selection {
-        background-color: theme('colors.primary.200');
-        color: theme('colors.primary.900');
+        background-color: #bfdbfe;
+        color: #1e3a8a;
     }
 
     .dark ::selection {
-        background-color: theme('colors.primary.800');
-        color: theme('colors.primary.100');
+        background-color: #1e40af;
+        color: #dbeafe;
     }
 }
 
@@ -103,75 +111,213 @@
 
     /* 按鈕基礎樣式 */
     .btn {
-        @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        border: 1px solid;
+        transition: all 0.2s ease-in-out;
+        outline: none;
+    }
+
+    .btn:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .btn-primary {
-        @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700 focus:ring-primary-500;
+        background-color: #2563eb;
+        color: white;
+        border-color: #2563eb;
+    }
+
+    .btn-primary:hover {
+        background-color: #1d4ed8;
+    }
+
+    .btn-primary:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     .btn-secondary {
-        @apply bg-gray-100 text-gray-900 border-gray-300 hover:bg-gray-200 focus:ring-gray-500;
+        background-color: #f3f4f6;
+        color: #111827;
+        border-color: #d1d5db;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e5e7eb;
+    }
+
+    .btn-secondary:focus {
+        box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
     }
 
     .dark .btn-secondary {
-        @apply bg-gray-800 text-gray-100 border-gray-600 hover:bg-gray-700;
+        background-color: #1f2937;
+        color: #f3f4f6;
+        border-color: #4b5563;
+    }
+
+    .dark .btn-secondary:hover {
+        background-color: #374151;
     }
 
     .btn-outline {
-        @apply bg-transparent text-primary-600 border-primary-300 hover:bg-primary-50 focus:ring-primary-500;
+        background-color: transparent;
+        color: #2563eb;
+        border-color: #93c5fd;
+    }
+
+    .btn-outline:hover {
+        background-color: #eff6ff;
+    }
+
+    .btn-outline:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     .dark .btn-outline {
-        @apply text-primary-400 border-primary-500 hover:bg-primary-900/20;
+        color: #60a5fa;
+        border-color: #3b82f6;
+    }
+
+    .dark .btn-outline:hover {
+        background-color: rgba(59, 130, 246, 0.1);
     }
 
     /* 輸入框樣式 */
     .input {
-        @apply block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200;
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background-color: white;
+        color: #111827;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .input::placeholder {
+        color: #6b7280;
+    }
+
+    .input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     .dark .input {
-        @apply bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-primary-400 focus:border-primary-400;
+        background-color: #1f2937;
+        border-color: #4b5563;
+        color: #f3f4f6;
+    }
+
+    .dark .input::placeholder {
+        color: #9ca3af;
+    }
+
+    .dark .input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
     }
 
     /* 卡片樣式 */
     .card {
-        @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+        background-color: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     }
 
     .dark .card {
-        @apply bg-gray-800 border-gray-700;
+        background-color: #1f2937;
+        border-color: #374151;
     }
 
     /* 圖標按鈕 */
     .icon-btn {
-        @apply inline-flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        color: #6b7280;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+        outline: none;
+    }
+
+    .icon-btn:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    .icon-btn:focus {
+        outline: 2px solid #6b7280;
+        outline-offset: 2px;
     }
 
     .dark .icon-btn {
-        @apply text-gray-400 hover:bg-gray-700 hover:text-gray-200 focus:ring-gray-400;
+        color: #9ca3af;
+    }
+
+    .dark .icon-btn:hover {
+        background-color: #374151;
+        color: #e5e7eb;
+    }
+
+    .dark .icon-btn:focus {
+        outline-color: #9ca3af;
     }
 
     /* 導航樣式 */
     .nav-item {
-        @apply flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200;
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
     }
 
     .nav-item.active {
-        @apply bg-primary-100 text-primary-700;
+        background-color: #dbeafe;
+        color: #1d4ed8;
     }
 
     .dark .nav-item.active {
-        @apply bg-primary-900/20 text-primary-300;
+        background-color: rgba(59, 130, 246, 0.1);
+        color: #93c5fd;
     }
 
     .nav-item:not(.active) {
-        @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+        color: #4b5563;
+    }
+
+    .nav-item:not(.active):hover {
+        background-color: #f3f4f6;
+        color: #111827;
     }
 
     .dark .nav-item:not(.active) {
-        @apply text-gray-400 hover:bg-gray-700 hover:text-gray-100;
+        color: #9ca3af;
+    }
+
+    .dark .nav-item:not(.active):hover {
+        background-color: #374151;
+        color: #f3f4f6;
     }
 }
 

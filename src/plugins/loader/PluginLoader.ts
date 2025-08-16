@@ -64,7 +64,7 @@ export class PluginLoader {
       validatePluginClass: true,
       allowedPermissions: ['storage', 'notification', 'menu', 'component'],
       sandboxMode: true,
-      ...config
+      ...config,
     }
   }
 
@@ -110,7 +110,7 @@ export class PluginLoader {
           metadata: cached.metadata,
           success: true,
           loadTime: performance.now() - startTime,
-          module: cached.module
+          module: cached.module,
         }
       }
 
@@ -130,7 +130,7 @@ export class PluginLoader {
       if (this.config.validatePluginClass && !pluginClass) {
         if (isDev) {
           console.warn(`[PluginLoader] Plugin class validation failed for ${metadata.id}, but continuing in dev mode`)
-          console.log(`[PluginLoader] Module structure:`, module)
+          console.log('[PluginLoader] Module structure:', module)
         } else {
           throw new Error('Plugin module does not export a valid plugin class')
         }
@@ -141,7 +141,7 @@ export class PluginLoader {
         this.moduleCache.set(metadata.id, {
           module,
           loadTime: Date.now(),
-          metadata
+          metadata,
         })
       }
 
@@ -153,7 +153,7 @@ export class PluginLoader {
         metadata,
         success: true,
         loadTime,
-        module
+        module,
       }
 
       if (pluginClass) {
@@ -172,7 +172,7 @@ export class PluginLoader {
         metadata,
         success: false,
         error: errorMessage,
-        loadTime
+        loadTime,
       }
     }
   }
@@ -247,7 +247,7 @@ export class PluginLoader {
 
           // 确保路径以 ./ 开头
           if (!importPath.startsWith('./')) {
-            importPath = './' + importPath
+            importPath = `./${importPath}`
           }
         }
       }
@@ -269,11 +269,11 @@ export class PluginLoader {
         try {
           return await import(/* @vite-ignore */ entryPath)
         } catch (originalError) {
-          console.error(`[PluginLoader] Both import methods failed:`, {
+          console.error('[PluginLoader] Both import methods failed:', {
             relativePath: importPath,
             relativeError: importError,
             originalPath: entryPath,
-            originalError: originalError
+            originalError,
           })
           throw originalError
         }
@@ -282,21 +282,21 @@ export class PluginLoader {
 
     // 生产环境或其他情况的处理
     switch (ext) {
-      case '.js':
-      case '.mjs':
-        return await import(/* @vite-ignore */ entryPath)
+    case '.js':
+    case '.mjs':
+      return await import(/* @vite-ignore */ entryPath)
 
-      case '.ts':
-        // TypeScript 文件需要先编译
-        console.warn(`[PluginLoader] Loading TypeScript files directly is not recommended: ${entryPath}`)
-        return await import(/* @vite-ignore */ entryPath)
+    case '.ts':
+      // TypeScript 文件需要先编译
+      console.warn(`[PluginLoader] Loading TypeScript files directly is not recommended: ${entryPath}`)
+      return await import(/* @vite-ignore */ entryPath)
 
-      case '.vue':
-        // Vue 单文件组件
-        return await import(/* @vite-ignore */ entryPath)
+    case '.vue':
+      // Vue 单文件组件
+      return await import(/* @vite-ignore */ entryPath)
 
-      default:
-        throw new Error(`Unsupported file type: ${ext}`)
+    default:
+      throw new Error(`Unsupported file type: ${ext}`)
     }
   }
 
@@ -315,8 +315,8 @@ export class PluginLoader {
       module[metadata.id],
       module[metadata.id.replace(/-/g, '')], // 移除连字符
       ...Object.values(module).filter(value =>
-        typeof value === 'function'
-      )
+        typeof value === 'function',
+      ),
     ]
 
     // 移除重复项和undefined
@@ -325,7 +325,7 @@ export class PluginLoader {
     console.log(`[PluginLoader] Found ${uniqueCandidates.length} plugin class candidates`)
 
     for (const candidate of uniqueCandidates) {
-      console.log(`[PluginLoader] Testing candidate:`, candidate.name || 'unnamed')
+      console.log('[PluginLoader] Testing candidate:', candidate.name || 'unnamed')
       if (this.isValidPluginClass(candidate)) {
         console.log(`[PluginLoader] Valid plugin class found: ${candidate.name}`)
         return candidate as new () => BasePlugin
@@ -341,7 +341,7 @@ export class PluginLoader {
    */
   private isValidPluginClass(candidate: any): boolean {
     if (typeof candidate !== 'function') {
-      console.log(`[PluginLoader] Candidate is not a function:`, typeof candidate)
+      console.log('[PluginLoader] Candidate is not a function:', typeof candidate)
       return false
     }
 
@@ -428,7 +428,7 @@ export class PluginLoader {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     }
   }
 
@@ -456,7 +456,7 @@ export class PluginLoader {
           metadata,
           success: false,
           error: result.reason instanceof Error ? result.reason.message : 'Unknown error',
-          loadTime: 0
+          loadTime: 0,
         }
       }
     })
@@ -505,8 +505,8 @@ export class PluginLoader {
         id: cache.metadata.id,
         name: cache.metadata.name,
         version: cache.metadata.version,
-        loadTime: cache.loadTime
-      }))
+        loadTime: cache.loadTime,
+      })),
     }
   }
 
@@ -583,7 +583,7 @@ export const loaderUtils = {
       module.Plugin ||
       Object.values(module).some(value =>
         typeof value === 'function' &&
-        value.prototype instanceof BasePlugin
+        value.prototype instanceof BasePlugin,
       )
     )
 
@@ -602,8 +602,8 @@ export const loaderUtils = {
       classes: Object.keys(module).filter(key =>
         typeof module[key] === 'function' &&
         module[key].prototype &&
-        module[key].prototype.constructor === module[key]
-      )
+        module[key].prototype.constructor === module[key],
+      ),
     }
   },
 
@@ -617,8 +617,8 @@ export const loaderUtils = {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new Error('Unknown execution error')
+        error: error instanceof Error ? error : new Error('Unknown execution error'),
       }
     }
-  }
+  },
 }

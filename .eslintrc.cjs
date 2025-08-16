@@ -42,6 +42,32 @@ module.exports = {
       svg: 'always',
       math: 'always',
     }],
+    // Vue 属性换行规则
+    'vue/max-attributes-per-line': ['error', {
+      singleline: {
+        max: 2,
+      },
+      multiline: {
+        max: 1,
+      },
+    }],
+    'vue/first-attribute-linebreak': ['error', {
+      singleline: 'ignore',
+      multiline: 'below',
+    }],
+    'vue/html-closing-bracket-newline': ['error', {
+      singleline: 'never',
+      multiline: 'always',
+    }],
+    'vue/html-closing-bracket-spacing': ['error', {
+      startTag: 'never',
+      endTag: 'never',
+      selfClosingTag: 'always',
+    }],
+    'vue/multiline-html-element-content-newline': ['error', {
+      ignoreWhenEmpty: true,
+      allowEmptyLines: false,
+    }],
 
     // TypeScript 規則
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
@@ -69,6 +95,14 @@ module.exports = {
       files: ['**/__tests__/**/*', '**/*.{test,spec}.*'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+    {
+      files: ['*.vue'],
+      rules: {
+        'indent': ['error', 4],
+        'vue/html-indent': ['error', 4],
+        'vue/script-indent': ['error', 4],
       },
     },
   ],

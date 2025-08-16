@@ -1,25 +1,60 @@
 <template>
-    <Select v-model="selectedValue" :options="options" :optionLabel="optionLabel" :optionValue="optionValue"
-        :placeholder="placeholder" :filter="filter" :showClear="showClear" :loading="loading" :disabled="disabled"
-        :class="customClass" @change="$emit('change', $event)" @filter="$emit('filter', $event)" @wheel="handleWheel"
-        ref="selectRef">
-        <template v-if="$slots['value']" #value="slotProps">
-            <slot name="value" :value="slotProps.value" :placeholder="slotProps.placeholder" />
+    <Select
+        ref="selectRef"
+        v-model="selectedValue"
+        :options="options"
+        :option-label="optionLabel"
+        :option-value="optionValue"
+        :placeholder="placeholder"
+        :filter="filter"
+        :show-clear="showClear"
+        :loading="loading"
+        :disabled="disabled"
+        :class="customClass"
+        @change="$emit('change', $event)"
+        @filter="$emit('filter', $event)"
+        @wheel="handleWheel"
+    >
+        <template
+            v-if="$slots['value']"
+            #value="slotProps"
+        >
+            <slot
+                name="value"
+                :value="slotProps.value"
+                :placeholder="slotProps.placeholder"
+            />
         </template>
 
-        <template v-if="$slots['option']" #option="slotProps">
-            <slot name="option" :option="slotProps.option" :index="slotProps.index" />
+        <template
+            v-if="$slots['option']"
+            #option="slotProps"
+        >
+            <slot
+                name="option"
+                :option="slotProps.option"
+                :index="slotProps.index"
+            />
         </template>
 
-        <template v-if="$slots['header']" #header>
+        <template
+            v-if="$slots['header']"
+            #header
+        >
             <slot name="header" />
         </template>
 
-        <template v-if="$slots['footer']" #footer>
+        <template
+            v-if="$slots['footer']"
+            #footer
+        >
             <slot name="footer" />
         </template>
 
-        <template v-if="$slots['dropdownicon']" #dropdownicon>
+        <template
+            v-if="$slots['dropdownicon']"
+            #dropdownicon
+        >
             <slot name="dropdownicon" />
         </template>
     </Select>
@@ -56,7 +91,7 @@ const props = withDefaults(defineProps<FilterSelectProps>(), {
     showClear: false,
     loading: false,
     disabled: false,
-    class: ''
+    class: '',
 })
 
 const emit = defineEmits<FilterSelectEmits>()
@@ -65,7 +100,7 @@ const selectRef = ref()
 
 const selectedValue = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value)
+    set: (value) => emit('update:modelValue', value),
 })
 
 const customClass = computed(() => {

@@ -1,126 +1,126 @@
 <template>
-  <div
-    :class="gridItemClass"
-    @click="handleClick"
-    @contextmenu.prevent="handleContextMenu"
-  >
-    <slot>
-      <!-- 默认内容结构 -->
-      <div class="grid-item-content">
-        <div class="grid-item-icon">
-          <slot name="icon">
-            <!-- 默认图标插槽 -->
-          </slot>
-        </div>
-        <div class="grid-item-label">
-          <slot name="label">
-            <!-- 默认标签插槽 -->
-          </slot>
-        </div>
-      </div>
-    </slot>
-  </div>
+    <div
+        :class="gridItemClass"
+        @click="handleClick"
+        @contextmenu.prevent="handleContextMenu"
+    >
+        <slot>
+            <!-- 默认内容结构 -->
+            <div class="grid-item-content">
+                <div class="grid-item-icon">
+                    <slot name="icon">
+                        <!-- 默认图标插槽 -->
+                    </slot>
+                </div>
+                <div class="grid-item-label">
+                    <slot name="label">
+                        <!-- 默认标签插槽 -->
+                    </slot>
+                </div>
+            </div>
+        </slot>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 
 export interface GridItemProps {
-  size?: '1x1' | '1x2' | '2x1' | '2x2'
-  selected?: boolean
-  disabled?: boolean
-  hoverable?: boolean
-  draggable?: boolean
-  class?: string
-  iconSize?: number
-  maxIconSize?: number
+    size?: '1x1' | '1x2' | '2x1' | '2x2'
+    selected?: boolean
+    disabled?: boolean
+    hoverable?: boolean
+    draggable?: boolean
+    class?: string
+    iconSize?: number
+    maxIconSize?: number
 }
 
 interface Emits {
-  (e: 'click', event: MouseEvent): void
-  (e: 'contextmenu', event: MouseEvent): void
+    (e: 'click', event: MouseEvent): void
+    (e: 'contextmenu', event: MouseEvent): void
 }
 
 const props = withDefaults(defineProps<GridItemProps>(), {
-  size: '1x1',
-  selected: false,
-  disabled: false,
-  hoverable: true,
-  draggable: false,
-  class: '',
-  iconSize: 48,
-  maxIconSize: 200,
+    size: '1x1',
+    selected: false,
+    disabled: false,
+    hoverable: true,
+    draggable: false,
+    class: '',
+    iconSize: 48,
+    maxIconSize: 200,
 })
 
 const emit = defineEmits<Emits>()
 
 // 计算图标尺寸样式
 const iconSizeStyle = computed(() => {
-  const size = Math.min(props.iconSize, props.maxIconSize)
-  return {
-    width: `${size}px`,
-    height: `${size}px`,
-    maxWidth: `${props.maxIconSize}px`,
-    maxHeight: `${props.maxIconSize}px`,
-  }
+    const size = Math.min(props.iconSize, props.maxIconSize)
+    return {
+        width: `${size}px`,
+        height: `${size}px`,
+        maxWidth: `${props.maxIconSize}px`,
+        maxHeight: `${props.maxIconSize}px`,
+    }
 })
 
 // 样式类计算
 const gridItemClass = computed(() => {
-  const classes = ['grid-item-base']
+    const classes = ['grid-item-base']
 
-  // 尺寸配置
-  const sizeMap = {
-    '1x1': 'col-span-1 row-span-1',
-    '1x2': 'col-span-1 row-span-2',
-    '2x1': 'col-span-2 row-span-1',
-    '2x2': 'col-span-2 row-span-2',
-  }
-  classes.push(sizeMap[props.size])
-
-  // 状态类
-  if (props.selected) {
-    classes.push('grid-item-selected')
-  }
-
-  if (props.disabled) {
-    classes.push('grid-item-disabled')
-  } else {
-    if (props.hoverable) {
-      classes.push('grid-item-hoverable')
+    // 尺寸配置
+    const sizeMap = {
+        '1x1': 'col-span-1 row-span-1',
+        '1x2': 'col-span-1 row-span-2',
+        '2x1': 'col-span-2 row-span-1',
+        '2x2': 'col-span-2 row-span-2',
     }
-    classes.push('cursor-pointer')
-  }
+    classes.push(sizeMap[props.size])
 
-  // 拖拽支持
-  if (props.draggable) {
-    classes.push('cursor-grab')
-  }
+    // 状态类
+    if (props.selected) {
+        classes.push('grid-item-selected')
+    }
 
-  // 自定义类名
-  if (props.class) {
-    classes.push(props.class)
-  }
+    if (props.disabled) {
+        classes.push('grid-item-disabled')
+    } else {
+        if (props.hoverable) {
+            classes.push('grid-item-hoverable')
+        }
+        classes.push('cursor-pointer')
+    }
 
-  return classes.filter(Boolean).join(' ')
+    // 拖拽支持
+    if (props.draggable) {
+        classes.push('cursor-grab')
+    }
+
+    // 自定义类名
+    if (props.class) {
+        classes.push(props.class)
+    }
+
+    return classes.filter(Boolean).join(' ')
 })
 
 // 事件处理
 const handleClick = (event: MouseEvent) => {
-  if (!props.disabled) {
-    emit('click', event)
-  }
+    if (!props.disabled) {
+        emit('click', event)
+    }
 }
 
 const handleContextMenu = (event: MouseEvent) => {
-  if (!props.disabled) {
-    emit('contextmenu', event)
-  }
+    if (!props.disabled) {
+        emit('contextmenu', event)
+    }
 }
 
 // 暴露图标尺寸样式给父组件使用
 defineExpose({
-  iconSizeStyle,
+    iconSizeStyle,
 })
 </script>
 

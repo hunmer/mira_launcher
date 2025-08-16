@@ -1,21 +1,21 @@
 <!-- DataTable 组件 - 包装 PrimeVue DataTable 以支持自定义样式和暗色模式 -->
 <template>
-  <DataTable
-    v-bind="$attrs"
-    :class="computedClass"
-  >
-    <template 
-      v-for="name in Object.keys($slots)" 
-      #[name]="slotProps"
-      :key="name"
+    <DataTable
+        v-bind="$attrs"
+        :class="computedClass"
     >
-      <slot 
-        v-if="$slots[name]"
-        :name="name" 
-        v-bind="slotProps || {}" 
-      />
-    </template>
-  </DataTable>
+        <template 
+            v-for="name in Object.keys($slots)" 
+            #[name]="slotProps"
+            :key="name"
+        >
+            <slot 
+                v-if="$slots[name]"
+                :name="name" 
+                v-bind="slotProps || {}" 
+            />
+        </template>
+    </DataTable>
 </template>
 
 <script setup lang="ts">
@@ -25,20 +25,20 @@ import { useThemeStore } from '@/stores/theme'
 
 // 启用透传所有属性
 defineOptions({
-  inheritAttrs: false,
+    inheritAttrs: false,
 })
 
 const themeStore = useThemeStore()
 
 // 计算表格样式类
 const computedClass = computed(() => {
-  const classes = ['custom-datatable']
+    const classes = ['custom-datatable']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

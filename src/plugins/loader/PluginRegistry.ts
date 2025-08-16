@@ -107,7 +107,7 @@ export class PluginRegistry {
       persistenceKey: 'mira-plugin-registry',
       cleanupInterval: 5 * 60 * 1000, // 5分钟
       enableStats: true,
-      ...config
+      ...config,
     }
 
     this.initializeEventSystem()
@@ -128,7 +128,7 @@ export class PluginRegistry {
       'plugin:unregistered', 
       'plugin:state-changed',
       'plugin:error',
-      'dependency:changed'
+      'dependency:changed',
     ]
 
     for (const eventType of eventTypes) {
@@ -198,8 +198,8 @@ export class PluginRegistry {
         avgLoadTime: loadResult.loadTime || 0,
         errorCount: 0,
         lastErrorAt: null,
-        lastError: null
-      }
+        lastError: null,
+      },
     }
 
     // 注册插件
@@ -433,7 +433,7 @@ export class PluginRegistry {
       this.emit('dependency:changed', {
         pluginId,
         dependencies: plugin.dependencies,
-        dependents: plugin.dependents
+        dependents: plugin.dependents,
       })
     }
   }
@@ -560,10 +560,10 @@ export class PluginRegistry {
           dependents: plugin.dependents,
           stats: {
             ...plugin.stats,
-            lastErrorAt: plugin.stats.lastErrorAt?.toISOString()
-          }
+            lastErrorAt: plugin.stats.lastErrorAt?.toISOString(),
+          },
         })),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       }
 
       localStorage.setItem(this.config.persistenceKey, JSON.stringify(state))
@@ -634,7 +634,7 @@ export class PluginRegistry {
     totalActivations: number
     totalRuntime: number
     avgLoadTime: number
-  } {
+    } {
     const plugins = this.getAllPlugins()
     
     return {
@@ -646,7 +646,7 @@ export class PluginRegistry {
       totalRuntime: plugins.reduce((sum, p) => sum + p.stats.totalRuntime, 0),
       avgLoadTime: plugins.length > 0 
         ? plugins.reduce((sum, p) => sum + p.stats.avgLoadTime, 0) / plugins.length 
-        : 0
+        : 0,
     }
   }
 
@@ -659,7 +659,7 @@ export class PluginRegistry {
       plugin.id.toLowerCase().includes(lowerQuery) ||
       plugin.metadata.name.toLowerCase().includes(lowerQuery) ||
       plugin.metadata.description?.toLowerCase().includes(lowerQuery) ||
-      plugin.metadata.keywords?.some(keyword => keyword.toLowerCase().includes(lowerQuery))
+      plugin.metadata.keywords?.some(keyword => keyword.toLowerCase().includes(lowerQuery)),
     )
   }
 

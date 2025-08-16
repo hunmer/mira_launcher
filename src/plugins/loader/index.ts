@@ -14,7 +14,7 @@ export type {
   ValidationContext, 
   ValidationResult, 
   PluginValidationResult, 
-  ValidatorConfig 
+  ValidatorConfig, 
 } from './Validation'
 
 export { PluginRegistry, createPluginRegistry, globalPluginRegistry } from './PluginRegistry'
@@ -22,5 +22,5 @@ export type {
   RegisteredPlugin, 
   PluginStats as RegistryPluginStats, 
   RegistryEvents, 
-  RegistryConfig 
+  RegistryConfig, 
 } from './PluginRegistry'

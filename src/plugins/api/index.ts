@@ -5,64 +5,64 @@
 export {
   createMenuAPI,
   globalMenuAPI,
-  menuUtils, PluginMenuAPI, type MenuEvents, type MenuRegistrationConfig, type PluginMenuItem
+  menuUtils, PluginMenuAPI, type MenuEvents, type MenuRegistrationConfig, type PluginMenuItem,
 } from './MenuAPI'
 
 // 快捷鍵 API
 export {
   createShortcutManager,
-  globalShortcutAPI, PluginShortcutAPI, shortcutUtils
+  globalShortcutAPI, PluginShortcutAPI, shortcutUtils,
 } from './ShortcutAPI'
 
 // 存儲 API
 export {
   createStorageAPI,
   globalStorageAPI, PluginStorageAPI,
-  PluginStorageAPIImpl, storageUtils
+  PluginStorageAPIImpl, storageUtils,
 } from './StorageAPI'
 
 // 通知 API
 export {
   createNotificationAPI,
   globalNotificationAPI,
-  notificationUtils, PluginNotificationAPI
+  notificationUtils, PluginNotificationAPI,
 } from './NotificationAPI'
 
 // 沙箱環境
 export {
   createSandbox,
-  globalSandbox, PluginSandbox, sandboxUtils
+  globalSandbox, PluginSandbox, sandboxUtils,
 } from './Sandbox'
 
 // 進一步導入以供內部使用
 import {
   createMenuAPI,
   globalMenuAPI,
-  menuUtils
+  menuUtils,
 } from './MenuAPI'
 
 import {
   createShortcutManager,
   globalShortcutAPI,
-  shortcutUtils
+  shortcutUtils,
 } from './ShortcutAPI'
 
 import {
   createStorageAPI,
   globalStorageAPI,
-  storageUtils
+  storageUtils,
 } from './StorageAPI'
 
 import {
   createNotificationAPI,
   globalNotificationAPI,
-  notificationUtils
+  notificationUtils,
 } from './NotificationAPI'
 
 import {
   createSandbox,
   globalSandbox,
-  sandboxUtils
+  sandboxUtils,
 } from './Sandbox'
 
 /**
@@ -90,12 +90,12 @@ export function createPluginAPIs(pluginId: string) {
     'notification:show',
     'ui:component',
     'ui:route',
-    'system:info'
+    'system:info',
   ], {
     menu: menuAPI,
     shortcut: shortcutAPI,
     storage: storageAPI,
-    notification: notificationAPI
+    notification: notificationAPI,
   })
 
   return {
@@ -111,8 +111,8 @@ export function createPluginAPIs(pluginId: string) {
       shortcut: shortcutUtils,
       storage: storageUtils,
       notification: notificationUtils,
-      sandbox: sandboxUtils
-    }
+      sandbox: sandboxUtils,
+    },
   }
 }
 
@@ -124,7 +124,7 @@ export const pluginAPIs = {
   shortcut: globalShortcutAPI,
   storage: globalStorageAPI,
   notification: globalNotificationAPI,
-  sandbox: globalSandbox
+  sandbox: globalSandbox,
 }
 
 /**
@@ -140,7 +140,7 @@ export const SUPPORTED_APIS = [
   'shortcut',
   'storage',
   'notification',
-  'sandbox'
+  'sandbox',
 ] as const
 
 export type SupportedAPI = typeof SUPPORTED_APIS[number]
@@ -148,21 +148,21 @@ export type SupportedAPI = typeof SUPPORTED_APIS[number]
 // 類型重新導出
 export type {
   ShortcutConfig,
-  ShortcutEvents
+  ShortcutEvents,
 } from './ShortcutAPI'
 
 export type {
   StorageConfig,
-  StorageEvents, StorageItem, StorageStats
+  StorageEvents, StorageItem, StorageStats,
 } from './StorageAPI'
 
 export type {
   NotificationConfig,
-  NotificationEvents, NotificationItem, NotificationStats, NotificationType
+  NotificationEvents, NotificationItem, NotificationStats, NotificationType,
 } from './NotificationAPI'
 
 export type {
   APICallRecord, SandboxContext,
-  SandboxEvents, SandboxPermission, SandboxPolicy, SandboxStats
+  SandboxEvents, SandboxPermission, SandboxPolicy, SandboxStats,
 } from './Sandbox'
 

@@ -1,13 +1,13 @@
 <!-- Accordion 组件 - 包装 PrimeVue Accordion 以支持自定义样式和暗色模式 -->
 <template>
-  <Accordion
-    v-bind="{
-      ...$attrs,
-      class: accordionClass
-    }"
-  >
-    <slot />
-  </Accordion>
+    <Accordion
+        v-bind="{
+            ...$attrs,
+            class: accordionClass
+        }"
+    >
+        <slot />
+    </Accordion>
 </template>
 
 <script setup lang="ts">
@@ -19,13 +19,13 @@ const themeStore = useThemeStore()
 
 // 计算手风琴样式类
 const accordionClass = computed(() => {
-  const classes = ['custom-accordion']
+    const classes = ['custom-accordion']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

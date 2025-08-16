@@ -3,8 +3,8 @@
  * 基于 PrimeVue Card 包装
  */
 const ResultItem = {
-    name: 'ResultItem',
-    template: `
+  name: 'ResultItem',
+  template: `
         <Card 
             :class="[
                 'result-item cursor-pointer transition-all duration-200 border border-surface-200',
@@ -104,75 +104,75 @@ const ResultItem = {
         </Card>
     `,
 
-    props: {
-        result: {
-            type: Object,
-            required: true
-        },
-        isSelected: {
-            type: Boolean,
-            default: false
-        },
-        showScore: {
-            type: Boolean,
-            default: false
-        },
-        index: {
-            type: Number,
-            default: 0
-        }
+  props: {
+    result: {
+      type: Object,
+      required: true,
+    },
+    isSelected: {
+      type: Boolean,
+      default: false,
+    },
+    showScore: {
+      type: Boolean,
+      default: false,
+    },
+    index: {
+      type: Number,
+      default: 0,
+    },
+  },
+
+  emits: ['click', 'mouseenter', 'mouseleave', 'select'],
+
+  methods: {
+    handleClick() {
+      this.$emit('click', this.result, this.index)
+      this.$emit('select', this.result, this.index)
     },
 
-    emits: ['click', 'mouseenter', 'mouseleave', 'select'],
+    handleMouseEnter() {
+      this.$emit('mouseenter', this.result, this.index)
+    },
 
-    methods: {
-        handleClick() {
-            this.$emit('click', this.result, this.index);
-            this.$emit('select', this.result, this.index);
-        },
+    handleMouseLeave() {
+      this.$emit('mouseleave', this.result, this.index)
+    },
 
-        handleMouseEnter() {
-            this.$emit('mouseenter', this.result, this.index);
-        },
+    getIconFallback(result) {
+      const name = result.title || result.name || ''
+      return name.charAt(0).toUpperCase() || '?'
+    },
 
-        handleMouseLeave() {
-            this.$emit('mouseleave', this.result, this.index);
-        },
+    getTypeBadgeText(result) {
+      const typeMap = {
+        'system': '系统',
+        'page': '页面',
+        'plugin': '插件',
+        'plugin_entry': '入口',
+        'application': '应用',
+        'file': '文件',
+        'function': '功能',
+      }
+      return typeMap[result.type] || result.type || '未知'
+    },
 
-        getIconFallback(result) {
-            const name = result.title || result.name || '';
-            return name.charAt(0).toUpperCase() || '?';
-        },
-
-        getTypeBadgeText(result) {
-            const typeMap = {
-                'system': '系统',
-                'page': '页面',
-                'plugin': '插件',
-                'plugin_entry': '入口',
-                'application': '应用',
-                'file': '文件',
-                'function': '功能'
-            };
-            return typeMap[result.type] || result.type || '未知';
-        },
-
-        getTypeBadgeSeverity(result) {
-            const severityMap = {
-                'system': 'info',
-                'page': 'success',
-                'plugin': 'warning',
-                'plugin_entry': 'secondary',
-                'application': 'primary',
-                'file': 'help',
-                'function': 'contrast'
-            };
-            return severityMap[result.type] || 'secondary';
-        }
-    }
-};
+    getTypeBadgeSeverity(result) {
+      const severityMap = {
+        'system': 'info',
+        'page': 'success',
+        'plugin': 'warning',
+        'plugin_entry': 'secondary',
+        'application': 'primary',
+        'file': 'help',
+        'function': 'contrast',
+      }
+      return severityMap[result.type] || 'secondary'
+    },
+  },
+}
 
 // 导出组件
 if (typeof window !== 'undefined') {
-    window.ResultItem = ResultItem;
+  window.ResultItem = ResultItem
 }

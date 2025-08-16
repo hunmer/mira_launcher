@@ -139,15 +139,15 @@ app.get('/api/plugins', async (req, res) => {
     // 排序
     filteredPlugins.sort((a, b) => {
       switch (sort) {
-        case 'rating':
-          return b.rating - a.rating
-        case 'name':
-          return a.name.localeCompare(b.name)
-        case 'updated':
-          return new Date(b.updatedAt) - new Date(a.updatedAt)
-        case 'downloads':
-        default:
-          return b.downloads - a.downloads
+      case 'rating':
+        return b.rating - a.rating
+      case 'name':
+        return a.name.localeCompare(b.name)
+      case 'updated':
+        return new Date(b.updatedAt) - new Date(a.updatedAt)
+      case 'downloads':
+      default:
+        return b.downloads - a.downloads
       }
     })
 

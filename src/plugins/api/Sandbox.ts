@@ -164,23 +164,23 @@ export class PluginSandbox {
       permissions: [],
       rateLimit: {
         windowMs: 60000, // 1分鐘
-        maxCalls: 100
+        maxCalls: 100,
       },
       resourceLimits: {
         maxMemory: 50 * 1024 * 1024, // 50MB
         maxStorage: 10 * 1024 * 1024, // 10MB
-        maxNotifications: 20
+        maxNotifications: 20,
       },
       networkPolicy: {
         allowedDomains: [],
         allowLocalhost: false,
-        allowHttp: false
+        allowHttp: false,
       },
       timePolicy: {
         maxExecutionTime: 5000, // 5秒
-        idleTimeout: 300000 // 5分鐘
+        idleTimeout: 300000, // 5分鐘
       },
-      ...policy
+      ...policy,
     }
 
     this.initializeEventSystem()
@@ -198,7 +198,7 @@ export class PluginSandbox {
       'sandbox:rate-limit-exceeded',
       'sandbox:resource-limit-exceeded',
       'sandbox:api-call',
-      'sandbox:error'
+      'sandbox:error',
     ]
 
     for (const eventType of eventTypes) {
@@ -228,7 +228,7 @@ export class PluginSandbox {
       shortcut?: any
       storage?: any
       notification?: any
-    }
+    },
   ): SandboxContext {
     if (this.contexts.has(pluginId)) {
       throw new Error(`Sandbox already exists for plugin: ${pluginId}`)
@@ -250,9 +250,9 @@ export class PluginSandbox {
         memoryUsage: 0,
         storageUsage: 0,
         startTime: new Date(),
-        lastActivity: new Date()
+        lastActivity: new Date(),
       },
-      destroyed: false
+      destroyed: false,
     }
 
     this.contexts.set(pluginId, context)
@@ -292,7 +292,7 @@ export class PluginSandbox {
                   pluginId,
                   permission: requiredPermission,
                   api: apiName,
-                  method: methodName
+                  method: methodName,
                 })
                 throw new Error(`Permission denied: ${requiredPermission} required for ${apiName}.${methodName}`)
               }
@@ -303,7 +303,7 @@ export class PluginSandbox {
                   pluginId,
                   api: apiName,
                   method: methodName,
-                  limit: this.policy.rateLimit.maxCalls
+                  limit: this.policy.rateLimit.maxCalls,
                 })
                 throw new Error(`Rate limit exceeded for ${apiName}.${methodName}`)
               }
@@ -329,13 +329,13 @@ export class PluginSandbox {
               this.emit('sandbox:error', {
                 pluginId,
                 error: error instanceof Error ? error : new Error(String(error)),
-                context: { api: apiName, method: methodName, args }
+                context: { api: apiName, method: methodName, args },
               })
 
               throw error
             }
           }
-        }
+        },
       })
     }
 
@@ -362,13 +362,13 @@ export class PluginSandbox {
         register: 'menu:write',
         unregister: 'menu:write',
         update: 'menu:write',
-        getAll: 'menu:read'
+        getAll: 'menu:read',
       },
       shortcut: {
         register: 'shortcut:write',
         unregister: 'shortcut:write',
         getAll: 'shortcut:read',
-        hasConflict: 'shortcut:read'
+        hasConflict: 'shortcut:read',
       },
       storage: {
         get: 'storage:read',
@@ -376,15 +376,15 @@ export class PluginSandbox {
         remove: 'storage:write',
         clear: 'storage:write',
         has: 'storage:read',
-        keys: 'storage:read'
+        keys: 'storage:read',
       },
       notification: {
         info: 'notification:show',
         success: 'notification:show',
         warn: 'notification:show',
         error: 'notification:show',
-        show: 'notification:show'
-      }
+        show: 'notification:show',
+      },
     }
 
     return permissionMap[apiName]?.[methodName] || 'system:info'
@@ -402,7 +402,7 @@ export class PluginSandbox {
       // 重置或初始化
       this.rateLimitTracking.set(key, {
         calls: 1,
-        resetTime: now + this.policy.rateLimit.windowMs
+        resetTime: now + this.policy.rateLimit.windowMs,
       })
       return true
     }
@@ -441,7 +441,7 @@ export class PluginSandbox {
         pluginId,
         resource: 'memory',
         usage: context.stats.memoryUsage,
-        limit: limits.maxMemory
+        limit: limits.maxMemory,
       })
     }
 
@@ -451,7 +451,7 @@ export class PluginSandbox {
         pluginId,
         resource: 'storage',
         usage: context.stats.storageUsage,
-        limit: limits.maxStorage
+        limit: limits.maxStorage,
       })
     }
   }
@@ -466,7 +466,7 @@ export class PluginSandbox {
     args: any[],
     duration: number,
     success: boolean,
-    error?: string
+    error?: string,
   ): void {
     const record: APICallRecord = {
       pluginId,
@@ -476,7 +476,7 @@ export class PluginSandbox {
       timestamp: new Date(),
       duration,
       success,
-      ...(error && { error })
+      ...(error && { error }),
     }
 
     this.apiCallHistory.push(record)
@@ -581,7 +581,7 @@ export class PluginSandbox {
       permissionDenials: 0,
       rateLimitHits: 0,
       resourceLimitHits: 0,
-      byPlugin: {}
+      byPlugin: {},
     }
 
     // 統計各種事件
@@ -592,7 +592,7 @@ export class PluginSandbox {
           memoryUsage: 0,
           storageUsage: 0,
           permissionDenials: 0,
-          rateLimitHits: 0
+          rateLimitHits: 0,
         }
       }
       const pluginStats = stats.byPlugin[record.pluginId]!
@@ -607,7 +607,7 @@ export class PluginSandbox {
           memoryUsage: 0,
           storageUsage: 0,
           permissionDenials: 0,
-          rateLimitHits: 0
+          rateLimitHits: 0,
         }
       }
       const pluginStats = stats.byPlugin[context.pluginId]!
@@ -646,7 +646,7 @@ export class PluginSandbox {
     const cutoff = new Date(Date.now() - maxAge)
 
     this.apiCallHistory = this.apiCallHistory.filter(
-      record => record.timestamp > cutoff
+      record => record.timestamp > cutoff,
     )
   }
 
@@ -750,7 +750,7 @@ export const sandboxUtils = {
       'ui:component', 'ui:route',
       'system:info',
       'network:fetch',
-      'file:read', 'file:write'
+      'file:read', 'file:write',
     ]
     return validPermissions.includes(permission as SandboxPermission)
   },
@@ -799,5 +799,5 @@ export const sandboxUtils = {
       }
       return domain === allowed
     })
-  }
+  },
 }

@@ -1,13 +1,13 @@
 <template>
-  <BaseIcon 
-    :icon-component="Minus" 
-    v-bind="{
-      ...(size !== undefined && { size }),
-      ...(color !== undefined && { color }),
-      ...(iconClass !== undefined && { class: iconClass }),
-      ...$attrs
-    }"
-  />
+    <BaseIcon 
+        :icon-component="Minus" 
+        v-bind="{
+            ...(size !== undefined && { size }),
+            ...(color !== undefined && { color }),
+            ...(iconClass !== undefined && { class: iconClass }),
+            ...$attrs
+        }"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,22 +16,22 @@ import { Minus } from 'lucide-vue-next'
 import BaseIcon from './BaseIcon.vue'
 
 interface Props {
-  size?: string | number
-  color?: string
-  class?: string
+    size?: string | number
+    color?: string
+    class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 12,
-  color: 'currentColor',
-  class: '',
+    size: 12,
+    color: 'currentColor',
+    class: '',
 })
 
 // 样式类
 const iconClass = computed(() => {
-  return [
-    'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors',
-    props.class,
-  ].filter(Boolean).join(' ')
+    return [
+        'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors',
+        props.class,
+    ].filter(Boolean).join(' ')
 })
 </script>

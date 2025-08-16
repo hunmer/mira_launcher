@@ -1,24 +1,24 @@
 declare class MinimalTestPlugin {
-    id: string
-    name: string
-    version: string
-    description: string
-    author: string
-    dependencies: any[]
-    minAppVersion: string
-    permissions: string[]
+  id: string
+  name: string
+  version: string
+  description: string
+  author: string
+  dependencies: any[]
+  minAppVersion: string
+  permissions: string[]
 
-    constructor()
+  constructor()
 
-    get metadata(): any
+  get metadata(): any
 
-    onLoad(): Promise<void>
-    onActivate(): Promise<void>
-    onDeactivate(): Promise<void>
-    onUnload(): Promise<void>
+  onLoad(): Promise<void>
+  onActivate(): Promise<void>
+  onDeactivate(): Promise<void>
+  onUnload(): Promise<void>
 
-    getMetadata(): any
-    _setAPI(api: any): void
+  getMetadata(): any
+  _setAPI(api: any): void
 }
 
 export default MinimalTestPlugin

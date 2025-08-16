@@ -1,338 +1,338 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <template>
-  <div class="plugins-page flex flex-col h-screen">
-    <Container class="max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden">
-      <!-- 工具栏 -->
-      <Toolbar class="mb-6">
-        <template #start>
-          <div class="flex gap-2">
-            <Button
-              v-tooltip="'刷新插件列表'"
-              icon="pi pi-refresh"
-              text
-              @click="refreshPlugins"
-            />
-            <Button
-              v-tooltip="'安装插件'"
-              icon="pi pi-plus"
-              severity="success"
-              text
-              @click="showInstallModal = true"
-            />
-            <Button
-              v-tooltip="'插件商城'"
-              icon="pi pi-shopping-cart"
-              severity="primary"
-              text
-              @click="navigateToPluginStore"
-            />
-            <Button 
-              v-tooltip="'系统信息'" 
-              icon="pi pi-info-circle"
-              severity="info"
-              text
-              @click="showSystemInfo = true" 
-            />
-            <Button
-              v-tooltip="`性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`"
-              icon="pi pi-chart-line"
-              severity="warning"
-              text
-              @click="togglePerformanceDetails"
-            />
-            <Button
-              v-if="isDev"
-              v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
-              :icon="hotReloadStatus.isReloading ? 'pi pi-spin pi-spinner' : 'pi pi-replay'"
-              severity="secondary"
-              text
-              :disabled="hotReloadStatus.isReloading"
-              @click="manualReload"
-            />
-            <Button
-              v-tooltip="'设置'"
-              icon="pi pi-cog"
-              severity="secondary"
-              text
-              @click="navigateToSettings"
-            />
-          </div>
-        </template>
-        <template #end>
-          <IconField icon-position="left">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText
-              v-model="searchQuery"
-              placeholder="搜索插件..."
-              class="w-64"
-            />
-          </IconField>
-        </template>
-      </Toolbar>
+    <div class="plugins-page flex flex-col h-screen">
+        <Container class="max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden">
+            <!-- 工具栏 -->
+            <Toolbar class="mb-6">
+                <template #start>
+                    <div class="flex gap-2">
+                        <Button
+                            v-tooltip="'刷新插件列表'"
+                            icon="pi pi-refresh"
+                            text
+                            @click="refreshPlugins"
+                        />
+                        <Button
+                            v-tooltip="'安装插件'"
+                            icon="pi pi-plus"
+                            severity="success"
+                            text
+                            @click="showInstallModal = true"
+                        />
+                        <Button
+                            v-tooltip="'插件商城'"
+                            icon="pi pi-shopping-cart"
+                            severity="primary"
+                            text
+                            @click="navigateToPluginStore"
+                        />
+                        <Button 
+                            v-tooltip="'系统信息'" 
+                            icon="pi pi-info-circle"
+                            severity="info"
+                            text
+                            @click="showSystemInfo = true" 
+                        />
+                        <Button
+                            v-tooltip="`性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`"
+                            icon="pi pi-chart-line"
+                            severity="warning"
+                            text
+                            @click="togglePerformanceDetails"
+                        />
+                        <Button
+                            v-if="isDev"
+                            v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
+                            :icon="hotReloadStatus.isReloading ? 'pi pi-spin pi-spinner' : 'pi pi-replay'"
+                            severity="secondary"
+                            text
+                            :disabled="hotReloadStatus.isReloading"
+                            @click="manualReload"
+                        />
+                        <Button
+                            v-tooltip="'设置'"
+                            icon="pi pi-cog"
+                            severity="secondary"
+                            text
+                            @click="navigateToSettings"
+                        />
+                    </div>
+                </template>
+                <template #end>
+                    <IconField icon-position="left">
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText
+                            v-model="searchQuery"
+                            placeholder="搜索插件..."
+                            class="w-64"
+                        />
+                    </IconField>
+                </template>
+            </Toolbar>
 
-      <!-- 插件列表 -->
-      <div class="flex-1 overflow-hidden">
-        <DataTable
-          :value="filteredPlugins"
-          paginator
-          :rows="20"
-          :rows-per-page-options="[10, 20, 50, 100]"
-          current-page-report-template="显示 {first} 到 {last} 条，共 {totalRecords} 条记录"
-          paginator-template="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          :loading="isLoading"
-          data-key="id"
-          class="plugin-table h-full"
-          striped-rows
-          scrollable
-          scroll-height="flex"
-          :pt="{
-            table: { style: 'min-width: 50rem' },
-            paginator: {
-              root: { class: 'border-t-1 border-gray-300 px-6 py-3' }
-            }
-          }"
-        >
-          <template #empty>
-            <div class="text-center py-8">
-              <i class="pi pi-box text-4xl text-gray-400 mb-4" />
-              <p class="text-gray-500">
-                暂无插件 (数据数量: {{ filteredPlugins.length }})
-              </p>
-              <p class="text-xs text-gray-400 mt-2">
-                原始数据: {{ plugins.length }} 项
-              </p>
-              <Button 
-                label="安装第一个插件" 
-                severity="secondary" 
-                class="mt-3"
-                @click="showInstallModal = true"
-              />
+            <!-- 插件列表 -->
+            <div class="flex-1 overflow-hidden">
+                <DataTable
+                    :value="filteredPlugins"
+                    paginator
+                    :rows="20"
+                    :rows-per-page-options="[10, 20, 50, 100]"
+                    current-page-report-template="显示 {first} 到 {last} 条，共 {totalRecords} 条记录"
+                    paginator-template="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                    :loading="isLoading"
+                    data-key="id"
+                    class="plugin-table h-full"
+                    striped-rows
+                    scrollable
+                    scroll-height="flex"
+                    :pt="{
+                        table: { style: 'min-width: 50rem' },
+                        paginator: {
+                            root: { class: 'border-t-1 border-gray-300 px-6 py-3' }
+                        }
+                    }"
+                >
+                    <template #empty>
+                        <div class="text-center py-8">
+                            <i class="pi pi-box text-4xl text-gray-400 mb-4" />
+                            <p class="text-gray-500">
+                                暂无插件 (数据数量: {{ filteredPlugins.length }})
+                            </p>
+                            <p class="text-xs text-gray-400 mt-2">
+                                原始数据: {{ plugins.length }} 项
+                            </p>
+                            <Button 
+                                label="安装第一个插件" 
+                                severity="secondary" 
+                                class="mt-3"
+                                @click="showInstallModal = true"
+                            />
+                        </div>
+                    </template>
+
+                    <template #loading>
+                        <div class="text-center py-8">
+                            <ProgressSpinner
+                                style="width: 50px; height: 50px"
+                                stroke-width="8"
+                            />
+                            <p class="text-gray-500 mt-4">
+                                加载插件列表...
+                            </p>
+                        </div>
+                    </template>
+
+                    <Column
+                        field="name"
+                        header="插件名称"
+                        sortable
+                        class="min-w-0"
+                    >
+                        <template #body="{ data }">
+                            <div class="flex items-center gap-3">
+                                <Avatar 
+                                    :label="data.name.charAt(0).toUpperCase()" 
+                                    shape="circle" 
+                                    size="normal"
+                                    :style="{ backgroundColor: getPluginColor(data.id), color: 'white' }"
+                                />
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                        {{ data.name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                        {{ data.description }}
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </Column>
+
+                    <Column
+                        field="version"
+                        header="版本"
+                        sortable
+                        style="width: 120px"
+                    >
+                        <template #body="{ data }">
+                            <Tag
+                                :value="data.version"
+                                severity="info"
+                                rounded
+                            />
+                        </template>
+                    </Column>
+
+                    <Column
+                        field="author"
+                        header="作者"
+                        sortable
+                        style="width: 150px"
+                    >
+                        <template #body="{ data }">
+                            <span class="text-gray-700 dark:text-gray-300">{{ data.author }}</span>
+                        </template>
+                    </Column>
+
+                    <Column
+                        field="state"
+                        header="状态"
+                        sortable
+                        style="width: 120px"
+                    >
+                        <template #body="{ data }">
+                            <Tag 
+                                :value="getStatusText(data.state)" 
+                                :severity="getStatusSeverity(data.state)"
+                                rounded
+                            />
+                        </template>
+                    </Column>
+
+                    <Column
+                        field="enabled"
+                        header="启用"
+                        style="width: 80px"
+                    >
+                        <template #body="{ data }">
+                            <ToggleSwitch 
+                                :model-value="data.state === 'active'"
+                                :disabled="isLoading"
+                                @update:model-value="togglePlugin(data)"
+                            />
+                        </template>
+                    </Column>
+
+                    <Column
+                        header="操作"
+                        style="width: 150px"
+                    >
+                        <template #body="{ data }">
+                            <div class="flex gap-1">
+                                <Button
+                                    v-tooltip="'配置'"
+                                    icon="pi pi-cog"
+                                    size="small"
+                                    severity="secondary"
+                                    text
+                                    @click="configurePlugin(data)"
+                                />
+                                <Button
+                                    v-tooltip="'详情'"
+                                    icon="pi pi-eye"
+                                    size="small"
+                                    severity="info"
+                                    text
+                                    @click="viewPluginDetails(data)"
+                                />
+                                <Button
+                                    v-tooltip="'移除'"
+                                    icon="pi pi-trash"
+                                    size="small"
+                                    severity="danger"
+                                    text
+                                    @click="removePlugin(data)"
+                                />
+                            </div>
+                        </template>
+                    </Column>
+                </DataTable>
             </div>
-          </template>
 
-          <template #loading>
-            <div class="text-center py-8">
-              <ProgressSpinner
-                style="width: 50px; height: 50px"
-                stroke-width="8"
-              />
-              <p class="text-gray-500 mt-4">
-                加载插件列表...
-              </p>
-            </div>
-          </template>
-
-          <Column
-            field="name"
-            header="插件名称"
-            sortable
-            class="min-w-0"
-          >
-            <template #body="{ data }">
-              <div class="flex items-center gap-3">
-                <Avatar 
-                  :label="data.name.charAt(0).toUpperCase()" 
-                  shape="circle" 
-                  size="normal"
-                  :style="{ backgroundColor: getPluginColor(data.id), color: 'white' }"
-                />
-                <div class="min-w-0 flex-1">
-                  <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {{ data.name }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {{ data.description }}
-                  </div>
+            <!-- 安装插件模态框 -->
+            <Dialog
+                v-model:visible="showInstallModal"
+                header="安装插件"
+                :style="{ width: '600px' }"
+                modal
+            >
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">插件包路径或URL</label>
+                        <InputText
+                            v-model="installPath"
+                            placeholder="输入插件包路径或下载链接"
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        支持 .zip 文件或 GitHub 仓库链接
+                    </div>
                 </div>
-              </div>
-            </template>
-          </Column>
+                <template #footer>
+                    <div class="flex justify-end gap-2">
+                        <Button 
+                            label="取消" 
+                            severity="secondary" 
+                            @click="showInstallModal = false" 
+                        />
+                        <Button 
+                            label="安装" 
+                            :disabled="!installPath.trim()" 
+                            @click="installPlugin"
+                        />
+                    </div>
+                </template>
+            </Dialog>
 
-          <Column
-            field="version"
-            header="版本"
-            sortable
-            style="width: 120px"
-          >
-            <template #body="{ data }">
-              <Tag
-                :value="data.version"
-                severity="info"
-                rounded
-              />
-            </template>
-          </Column>
-
-          <Column
-            field="author"
-            header="作者"
-            sortable
-            style="width: 150px"
-          >
-            <template #body="{ data }">
-              <span class="text-gray-700 dark:text-gray-300">{{ data.author }}</span>
-            </template>
-          </Column>
-
-          <Column
-            field="state"
-            header="状态"
-            sortable
-            style="width: 120px"
-          >
-            <template #body="{ data }">
-              <Tag 
-                :value="getStatusText(data.state)" 
-                :severity="getStatusSeverity(data.state)"
-                rounded
-              />
-            </template>
-          </Column>
-
-          <Column
-            field="enabled"
-            header="启用"
-            style="width: 80px"
-          >
-            <template #body="{ data }">
-              <ToggleSwitch 
-                :model-value="data.state === 'active'"
-                :disabled="isLoading"
-                @update:model-value="togglePlugin(data)"
-              />
-            </template>
-          </Column>
-
-          <Column
-            header="操作"
-            style="width: 150px"
-          >
-            <template #body="{ data }">
-              <div class="flex gap-1">
-                <Button
-                  v-tooltip="'配置'"
-                  icon="pi pi-cog"
-                  size="small"
-                  severity="secondary"
-                  text
-                  @click="configurePlugin(data)"
-                />
-                <Button
-                  v-tooltip="'详情'"
-                  icon="pi pi-eye"
-                  size="small"
-                  severity="info"
-                  text
-                  @click="viewPluginDetails(data)"
-                />
-                <Button
-                  v-tooltip="'移除'"
-                  icon="pi pi-trash"
-                  size="small"
-                  severity="danger"
-                  text
-                  @click="removePlugin(data)"
-                />
-              </div>
-            </template>
-          </Column>
-        </DataTable>
-      </div>
-
-      <!-- 安装插件模态框 -->
-      <Dialog
-        v-model:visible="showInstallModal"
-        header="安装插件"
-        :style="{ width: '600px' }"
-        modal
-      >
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-2">插件包路径或URL</label>
-            <InputText
-              v-model="installPath"
-              placeholder="输入插件包路径或下载链接"
-              class="w-full"
-            />
-          </div>
-          <div class="text-sm text-gray-500">
-            支持 .zip 文件或 GitHub 仓库链接
-          </div>
-        </div>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <Button 
-              label="取消" 
-              severity="secondary" 
-              @click="showInstallModal = false" 
-            />
-            <Button 
-              label="安装" 
-              :disabled="!installPath.trim()" 
-              @click="installPlugin"
-            />
-          </div>
-        </template>
-      </Dialog>
-
-      <!-- 系统信息模态框 -->
-      <Dialog
-        v-model:visible="showSystemInfo"
-        header="系统信息"
-        :style="{ width: '800px' }"
-        modal
-      >
-        <div class="space-y-4">
-          <Card title="插件统计">
-            <template #content>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <span class="text-sm text-gray-500">总计插件:</span>
-                  <span class="ml-2 font-semibold">{{ pluginCount }}</span>
+            <!-- 系统信息模态框 -->
+            <Dialog
+                v-model:visible="showSystemInfo"
+                header="系统信息"
+                :style="{ width: '800px' }"
+                modal
+            >
+                <div class="space-y-4">
+                    <Card title="插件统计">
+                        <template #content>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-sm text-gray-500">总计插件:</span>
+                                    <span class="ml-2 font-semibold">{{ pluginCount }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-500">已启用:</span>
+                                    <span class="ml-2 font-semibold">{{ activePluginCount }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-500">系统版本:</span>
+                                    <span class="ml-2 font-semibold">{{ appVersion }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-500">插件 API 版本:</span>
+                                    <span class="ml-2 font-semibold">{{ pluginApiVersion }}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </Card>
                 </div>
-                <div>
-                  <span class="text-sm text-gray-500">已启用:</span>
-                  <span class="ml-2 font-semibold">{{ activePluginCount }}</span>
-                </div>
-                <div>
-                  <span class="text-sm text-gray-500">系统版本:</span>
-                  <span class="ml-2 font-semibold">{{ appVersion }}</span>
-                </div>
-                <div>
-                  <span class="text-sm text-gray-500">插件 API 版本:</span>
-                  <span class="ml-2 font-semibold">{{ pluginApiVersion }}</span>
-                </div>
-              </div>
-            </template>
-          </Card>
-        </div>
-        <template #footer>
-          <Button 
-            label="关闭" 
-            @click="showSystemInfo = false" 
-          />
-        </template>
-      </Dialog>
-    </Container>
-  </div>
+                <template #footer>
+                    <Button 
+                        label="关闭" 
+                        @click="showSystemInfo = false" 
+                    />
+                </template>
+            </Dialog>
+        </Container>
+    </div>
 </template>
 
 <script setup lang="ts">
 import {
-  Button,
-  DataTable,
-  Column,
-  Toolbar,
-  Tag,
-  ToggleSwitch,
-  Input as InputText,
-  IconField,
-  InputIcon,
-  Dialog,
-  Avatar,
-  ProgressSpinner,
+    Button,
+    DataTable,
+    Column,
+    Toolbar,
+    Tag,
+    ToggleSwitch,
+    Input as InputText,
+    IconField,
+    InputIcon,
+    Dialog,
+    Avatar,
+    ProgressSpinner,
 } from '@/components/common'
 import Card from '@/components/common/Card.vue'
 import Container from '@/components/layout/Container.vue'
@@ -374,278 +374,278 @@ const pluginApiVersion = ref('1.0.0')
 
 // 系统整合状态
 const gridIntegration = ref({
-  count: 0,
-  types: 0,
-  status: 'healthy' as 'healthy' | 'warning',
+    count: 0,
+    types: 0,
+    status: 'healthy' as 'healthy' | 'warning',
 })
 
 const pageIntegration = ref({
-  count: 0,
-  routes: 0,
-  status: 'healthy' as 'healthy' | 'warning',
+    count: 0,
+    routes: 0,
+    status: 'healthy' as 'healthy' | 'warning',
 })
 
 const themeIntegration = ref({
-  count: 0,
-  active: 0,
-  status: 'healthy' as 'healthy' | 'warning',
+    count: 0,
+    active: 0,
+    status: 'healthy' as 'healthy' | 'warning',
 })
 
 const performanceStats = ref({
-  plugins: 0,
-  memory: 0,
-  status: 'good' as 'good' | 'warning' | 'error',
+    plugins: 0,
+    memory: 0,
+    status: 'good' as 'good' | 'warning' | 'error',
 })
 
 const hotReloadStatus = ref({
-  isReloading: false,
-  stats: {
-    totalReloads: 0,
-    successfulReloads: 0,
-    failedReloads: 0,
-    lastReloadTime: null as Date | null,
-  },
+    isReloading: false,
+    stats: {
+        totalReloads: 0,
+        successfulReloads: 0,
+        failedReloads: 0,
+        lastReloadTime: null as Date | null,
+    },
 })
 
 // 过滤后的插件列表
 const filteredPlugins = computed(() => {
-  if (!searchQuery.value) return plugins.value
-  const query = searchQuery.value.toLowerCase()
-  return plugins.value.filter(plugin =>
-    plugin.metadata.name.toLowerCase().includes(query) ||
-    (plugin.metadata.description?.toLowerCase().includes(query)) ||
-    (plugin.metadata.author?.toLowerCase().includes(query)),
-  )
+    if (!searchQuery.value) return plugins.value
+    const query = searchQuery.value.toLowerCase()
+    return plugins.value.filter(plugin =>
+        plugin.metadata.name.toLowerCase().includes(query) ||
+        (plugin.metadata.description?.toLowerCase().includes(query)) ||
+        (plugin.metadata.author?.toLowerCase().includes(query)),
+    )
 })
 
 // 工具函数
 const getPluginColor = (pluginId: string): string => {
-  const colors = [
-    '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
-    '#8B5CF6', '#06B6D4', '#84CC16', '#F97316',
-  ]
-  let hash = 0
-  for (let i = 0; i < pluginId.length; i++) {
-    hash = pluginId.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return colors[Math.abs(hash) % colors.length] || '#3B82F6'
+    const colors = [
+        '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
+        '#8B5CF6', '#06B6D4', '#84CC16', '#F97316',
+    ]
+    let hash = 0
+    for (let i = 0; i < pluginId.length; i++) {
+        hash = pluginId.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length] || '#3B82F6'
 }
 
 const getStatusText = (state: PluginState): string => {
-  const statusMap: Partial<Record<PluginState, string>> = {
-    'registered': '已注册',
-    'loaded': '已加载',
-    'loading': '加载中',
-    'active': '已启用',
-    'activating': '启用中',
-    'inactive': '已禁用',
-    'deactivating': '禁用中',
-    'error': '错误',
-    'unloaded': '已卸载',
-    'unloading': '卸载中',
-  }
-  return statusMap[state] || '未知'
+    const statusMap: Partial<Record<PluginState, string>> = {
+        'registered': '已注册',
+        'loaded': '已加载',
+        'loading': '加载中',
+        'active': '已启用',
+        'activating': '启用中',
+        'inactive': '已禁用',
+        'deactivating': '禁用中',
+        'error': '错误',
+        'unloaded': '已卸载',
+        'unloading': '卸载中',
+    }
+    return statusMap[state] || '未知'
 }
 
 const getStatusSeverity = (state: PluginState): 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast' => {
-  const severityMap: Partial<Record<PluginState, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'>> = {
-    'registered': 'info',
-    'loaded': 'warn',
-    'loading': 'info',
-    'active': 'success',
-    'activating': 'info',
-    'inactive': 'secondary',
-    'deactivating': 'warn',
-    'error': 'danger',
-    'unloaded': 'secondary',
-    'unloading': 'warn',
-  }
-  return severityMap[state] || 'secondary'
+    const severityMap: Partial<Record<PluginState, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'>> = {
+        'registered': 'info',
+        'loaded': 'warn',
+        'loading': 'info',
+        'active': 'success',
+        'activating': 'info',
+        'inactive': 'secondary',
+        'deactivating': 'warn',
+        'error': 'danger',
+        'unloaded': 'secondary',
+        'unloading': 'warn',
+    }
+    return severityMap[state] || 'secondary'
 }
 
 // 更新系统整合状态
 const updateIntegrationStatus = () => {
-  // 更新 Grid 集成状态
-  const pluginGridItems = gridStore.getPluginItems?.() || []
-  gridIntegration.value = {
-    count: pluginGridItems.length,
-    types: gridStore.pluginItemTypes?.size || 0,
-    status: pluginGridItems.length > 50 ? 'warning' : 'healthy',
-  }
-
-  // 更新 Page 集成状态  
-  const pluginPages = pageStore.getPluginPages?.() || []
-  pageIntegration.value = {
-    count: pluginPages.length,
-    routes: pluginPages.length,
-    status: pluginPages.length > (pageStore.pluginPageConfig?.maxPluginPages || 20) * 0.8 ? 'warning' : 'healthy',
-  }
-
-  // 更新 Theme 集成状态
-  const pluginThemes = themeStore.getPluginThemes?.() || []
-  const activeThemes = themeStore.getActivePluginThemes?.() || []
-  themeIntegration.value = {
-    count: pluginThemes.length,
-    active: activeThemes.length,
-    status: pluginThemes.length > 20 ? 'warning' : 'healthy',
-  }
-
-  // 更新性能状态
-  performanceStats.value = {
-    plugins: pluginCount.value,
-    memory: Math.round(Math.random() * 100), // 模拟内存使用
-    status: pluginCount.value > 20 ? 'warning' : pluginCount.value > 50 ? 'error' : 'good',
-  }
-
-  // 更新热重载状态
-  if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
-    const hotReloadManager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
-      getReloadStatus: () => typeof hotReloadStatus.value
+    // 更新 Grid 集成状态
+    const pluginGridItems = gridStore.getPluginItems?.() || []
+    gridIntegration.value = {
+        count: pluginGridItems.length,
+        types: gridStore.pluginItemTypes?.size || 0,
+        status: pluginGridItems.length > 50 ? 'warning' : 'healthy',
     }
-    const status = hotReloadManager.getReloadStatus()
-    hotReloadStatus.value = status
-  }
+
+    // 更新 Page 集成状态  
+    const pluginPages = pageStore.getPluginPages?.() || []
+    pageIntegration.value = {
+        count: pluginPages.length,
+        routes: pluginPages.length,
+        status: pluginPages.length > (pageStore.pluginPageConfig?.maxPluginPages || 20) * 0.8 ? 'warning' : 'healthy',
+    }
+
+    // 更新 Theme 集成状态
+    const pluginThemes = themeStore.getPluginThemes?.() || []
+    const activeThemes = themeStore.getActivePluginThemes?.() || []
+    themeIntegration.value = {
+        count: pluginThemes.length,
+        active: activeThemes.length,
+        status: pluginThemes.length > 20 ? 'warning' : 'healthy',
+    }
+
+    // 更新性能状态
+    performanceStats.value = {
+        plugins: pluginCount.value,
+        memory: Math.round(Math.random() * 100), // 模拟内存使用
+        status: pluginCount.value > 20 ? 'warning' : pluginCount.value > 50 ? 'error' : 'good',
+    }
+
+    // 更新热重载状态
+    if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
+        const hotReloadManager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
+            getReloadStatus: () => typeof hotReloadStatus.value
+        }
+        const status = hotReloadManager.getReloadStatus()
+        hotReloadStatus.value = status
+    }
 }
 
 // 手动重载
 const manualReload = async () => {
-  if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
-    try {
-      const manager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
-        manualReload: (pluginId: string) => Promise<void>
-      }
-      const pluginIds = plugins.value.filter(p => p.state === 'active').map(p => p.metadata.id)
+    if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
+        try {
+            const manager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
+                manualReload: (pluginId: string) => Promise<void>
+            }
+            const pluginIds = plugins.value.filter(p => p.state === 'active').map(p => p.metadata.id)
 
-      for (const pluginId of pluginIds) {
-        await manager.manualReload(pluginId)
-      }
+            for (const pluginId of pluginIds) {
+                await manager.manualReload(pluginId)
+            }
 
-      updateIntegrationStatus()
-    } catch (error) {
-      console.error('Manual reload failed:', error)
+            updateIntegrationStatus()
+        } catch (error) {
+            console.error('Manual reload failed:', error)
+        }
     }
-  }
 }
 
 // 切换性能详情显示
 const showPerformanceDetails = ref(false)
 const togglePerformanceDetails = () => {
-  showPerformanceDetails.value = !showPerformanceDetails.value
+    showPerformanceDetails.value = !showPerformanceDetails.value
 }
 
 // 导航到设置页面
 const navigateToSettings = () => {
-  router.push('/settings')
+    router.push('/settings')
 }
 
 // 导航到插件商城
 const navigateToPluginStore = () => {
-  router.push('/plugin-store')
+    router.push('/plugin-store')
 }
 
 // 切换插件状态
 const togglePlugin = async (plugin: PluginRegistryEntry) => {
-  try {
-    if (plugin.state === 'active') {
-      await pluginStore.deactivatePlugin(plugin.metadata.id)
-    } else {
-      await pluginStore.activatePlugin(plugin.metadata.id)
+    try {
+        if (plugin.state === 'active') {
+            await pluginStore.deactivatePlugin(plugin.metadata.id)
+        } else {
+            await pluginStore.activatePlugin(plugin.metadata.id)
+        }
+        updateIntegrationStatus()
+    } catch (error) {
+        console.error('Failed to toggle plugin:', error)
     }
-    updateIntegrationStatus()
-  } catch (error) {
-    console.error('Failed to toggle plugin:', error)
-  }
 }
 
 // 配置插件
 const configurePlugin = (plugin: PluginRegistryEntry) => {
-  console.log(`配置插件: ${plugin.metadata.name}`)
-  // TODO: 实现插件配置界面
+    console.log(`配置插件: ${plugin.metadata.name}`)
+    // TODO: 实现插件配置界面
 }
 
 // 查看插件详情
 const viewPluginDetails = (plugin: PluginRegistryEntry) => {
-  console.log(`查看插件详情: ${plugin.metadata.name}`)
-  // TODO: 实现插件详情界面
+    console.log(`查看插件详情: ${plugin.metadata.name}`)
+    // TODO: 实现插件详情界面
 }
 
 // 移除插件
 const removePlugin = async (plugin: PluginRegistryEntry) => {
-  if (confirm(`确定要移除插件 "${plugin.metadata.name}" 吗？`)) {
-    try {
-      await pluginStore.unloadPlugin(plugin.metadata.id)
-      updateIntegrationStatus()
-    } catch (error) {
-      console.error('Failed to remove plugin:', error)
+    if (confirm(`确定要移除插件 "${plugin.metadata.name}" 吗？`)) {
+        try {
+            await pluginStore.unloadPlugin(plugin.metadata.id)
+            updateIntegrationStatus()
+        } catch (error) {
+            console.error('Failed to remove plugin:', error)
+        }
     }
-  }
 }
 
 // 刷新插件列表
 const refreshPlugins = () => {
-  console.log('刷新插件列表')
-  updateIntegrationStatus()
+    console.log('刷新插件列表')
+    updateIntegrationStatus()
 }
 
 // 安装插件
 const installPlugin = async () => {
-  if (!installPath.value.trim()) {
-    alert('请输入插件路径或URL')
-    return
-  }
+    if (!installPath.value.trim()) {
+        alert('请输入插件路径或URL')
+        return
+    }
 
-  console.log(`安装插件: ${installPath.value}`)
-  // TODO: 实现插件安装逻辑
+    console.log(`安装插件: ${installPath.value}`)
+    // TODO: 实现插件安装逻辑
 
-  showInstallModal.value = false
-  installPath.value = ''
-  updateIntegrationStatus()
+    showInstallModal.value = false
+    installPath.value = ''
+    updateIntegrationStatus()
 }
 
 // 状态更新定时器
 let statusInterval: number | null = null
 
 onMounted(async () => {
-  document.title = 'Mira Launcher - 插件管理'
+    document.title = 'Mira Launcher - 插件管理'
 
-  // 初始化插件系统
-  if (!pluginStore.isInitialized) {
-    await pluginStore.initialize()
-  }
+    // 初始化插件系统
+    if (!pluginStore.isInitialized) {
+        await pluginStore.initialize()
+    }
 
-  // 初始化状态
-  updateIntegrationStatus()
+    // 初始化状态
+    updateIntegrationStatus()
 
-  // 定期更新状态 (每5秒)
-  statusInterval = window.setInterval(updateIntegrationStatus, 5000)
+    // 定期更新状态 (每5秒)
+    statusInterval = window.setInterval(updateIntegrationStatus, 5000)
 
-  // 监听性能和重载事件
-  if (isDev.value) {
-    window.addEventListener('performance-event', updateIntegrationStatus)
-    window.addEventListener('plugin-hot-reload', updateIntegrationStatus)
-    window.addEventListener('plugin-config-reload', updateIntegrationStatus)
-  }
+    // 监听性能和重载事件
+    if (isDev.value) {
+        window.addEventListener('performance-event', updateIntegrationStatus)
+        window.addEventListener('plugin-hot-reload', updateIntegrationStatus)
+        window.addEventListener('plugin-config-reload', updateIntegrationStatus)
+    }
 })
 
 // 清理资源
 const cleanup = () => {
-  if (statusInterval) {
-    clearInterval(statusInterval)
-    statusInterval = null
-  }
+    if (statusInterval) {
+        clearInterval(statusInterval)
+        statusInterval = null
+    }
 
-  if (isDev.value) {
-    window.removeEventListener('performance-event', updateIntegrationStatus)
-    window.removeEventListener('plugin-hot-reload', updateIntegrationStatus)
-    window.removeEventListener('plugin-config-reload', updateIntegrationStatus)
-  }
+    if (isDev.value) {
+        window.removeEventListener('performance-event', updateIntegrationStatus)
+        window.removeEventListener('plugin-hot-reload', updateIntegrationStatus)
+        window.removeEventListener('plugin-config-reload', updateIntegrationStatus)
+    }
 }
 
 onUnmounted(cleanup)
 
 // 页面卸载时清理
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', cleanup)
+    window.addEventListener('beforeunload', cleanup)
 }
 </script>
 

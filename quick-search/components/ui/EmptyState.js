@@ -3,8 +3,8 @@
  * 显示无结果、默认状态等
  */
 const EmptyState = {
-    name: 'EmptyState',
-    template: `
+  name: 'EmptyState',
+  template: `
         <Card class="text-center py-8 border border-surface-200 empty-state" :class="'empty-state-' + type">
             <template #content>
                 <div class="text-surface-500">
@@ -49,84 +49,84 @@ const EmptyState = {
         </Card>
     `,
 
-    props: {
-        type: {
-            type: String,
-            default: 'no-results',
-            validator: value => ['no-results', 'default', 'error', 'loading', 'empty'].includes(value)
-        },
-        customTitle: String,
-        customSubtitle: String,
-        customIcon: String,
-        showActions: {
-            type: Boolean,
-            default: false
-        },
-        actions: {
-            type: Array,
-            default: () => []
-        },
-        hints: {
-            type: Array,
-            default: () => []
-        }
+  props: {
+    type: {
+      type: String,
+      default: 'no-results',
+      validator: value => ['no-results', 'default', 'error', 'loading', 'empty'].includes(value),
+    },
+    customTitle: String,
+    customSubtitle: String,
+    customIcon: String,
+    showActions: {
+      type: Boolean,
+      default: false,
+    },
+    actions: {
+      type: Array,
+      default: () => [],
+    },
+    hints: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
+  emits: ['action', 'hint-select'],
+
+  computed: {
+    iconClass() {
+      if (this.customIcon) return this.customIcon
+
+      const iconMap = {
+        'no-results': 'pi pi-search',
+        'default': 'pi pi-bolt',
+        'error': 'pi pi-exclamation-triangle',
+        'loading': 'pi pi-spin pi-spinner',
+        'empty': 'pi pi-inbox',
+      }
+      return iconMap[this.type] || 'pi pi-info-circle'
     },
 
-    emits: ['action', 'hint-select'],
+    title() {
+      if (this.customTitle) return this.customTitle
 
-    computed: {
-        iconClass() {
-            if (this.customIcon) return this.customIcon;
-
-            const iconMap = {
-                'no-results': 'pi pi-search',
-                'default': 'pi pi-bolt',
-                'error': 'pi pi-exclamation-triangle',
-                'loading': 'pi pi-spin pi-spinner',
-                'empty': 'pi pi-inbox'
-            };
-            return iconMap[this.type] || 'pi pi-info-circle';
-        },
-
-        title() {
-            if (this.customTitle) return this.customTitle;
-
-            const titleMap = {
-                'no-results': '未找到匹配结果',
-                'default': '快速搜索',
-                'error': '搜索出错',
-                'loading': '搜索中...',
-                'empty': '暂无数据'
-            };
-            return titleMap[this.type] || '信息';
-        },
-
-        subtitle() {
-            if (this.customSubtitle) return this.customSubtitle;
-
-            const subtitleMap = {
-                'no-results': '尝试不同的关键词或检查拼写',
-                'default': '输入关键词搜索应用程序、插件和功能',
-                'error': '请稍后重试或联系管理员',
-                'loading': '正在搜索相关内容...',
-                'empty': '没有可显示的内容'
-            };
-            return subtitleMap[this.type] || '';
-        }
+      const titleMap = {
+        'no-results': '未找到匹配结果',
+        'default': '快速搜索',
+        'error': '搜索出错',
+        'loading': '搜索中...',
+        'empty': '暂无数据',
+      }
+      return titleMap[this.type] || '信息'
     },
 
-    methods: {
-        handleAction(action) {
-            this.$emit('action', action);
-        },
+    subtitle() {
+      if (this.customSubtitle) return this.customSubtitle
 
-        selectHint(hint) {
-            this.$emit('hint-select', hint);
-        }
-    }
-};
+      const subtitleMap = {
+        'no-results': '尝试不同的关键词或检查拼写',
+        'default': '输入关键词搜索应用程序、插件和功能',
+        'error': '请稍后重试或联系管理员',
+        'loading': '正在搜索相关内容...',
+        'empty': '没有可显示的内容',
+      }
+      return subtitleMap[this.type] || ''
+    },
+  },
+
+  methods: {
+    handleAction(action) {
+      this.$emit('action', action)
+    },
+
+    selectHint(hint) {
+      this.$emit('hint-select', hint)
+    },
+  },
+}
 
 // 导出组件
 if (typeof window !== 'undefined') {
-    window.EmptyState = EmptyState;
+  window.EmptyState = EmptyState
 }

@@ -4,7 +4,7 @@ import type {
   PluginMetadata,
   PluginState,
   PluginRegistryEntry,
-  PluginConfiguration
+  PluginConfiguration,
 } from '@/types/plugin'
 import { PluginManager } from '@/plugins/core/PluginManager'
 import { EventBus } from '@/plugins/core/EventBus'
@@ -120,7 +120,7 @@ export const usePluginStore = defineStore('plugin', () => {
   // 注册插件
   const registerPlugin = async (
     pluginClass: new () => any,
-    metadata: PluginMetadata
+    metadata: PluginMetadata,
   ): Promise<boolean> => {
     if (!pluginManager.value) {
       throw new Error('Plugin system not initialized')
@@ -251,7 +251,7 @@ export const usePluginStore = defineStore('plugin', () => {
   // 配置插件
   const configurePlugin = async (
     pluginId: string,
-    configuration: PluginConfiguration
+    configuration: PluginConfiguration,
   ): Promise<boolean> => {
     if (!pluginManager.value) {
       throw new Error('Plugin system not initialized')
@@ -305,7 +305,7 @@ export const usePluginStore = defineStore('plugin', () => {
   // 保存插件配置
   const savePluginConfiguration = async (
     pluginId: string,
-    configuration: PluginConfiguration
+    configuration: PluginConfiguration,
   ): Promise<void> => {
     try {
       const configs = getStoredConfigurations()
@@ -319,7 +319,7 @@ export const usePluginStore = defineStore('plugin', () => {
   // 保存插件激活状态
   const savePluginActivationState = async (
     pluginId: string,
-    isActive: boolean
+    isActive: boolean,
   ): Promise<void> => {
     try {
       const activations = getStoredActivations()

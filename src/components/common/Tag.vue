@@ -1,14 +1,14 @@
 <!-- Tag 组件 - 包装 PrimeVue Tag 以支持自定义样式和暗色模式 -->
 <template>
-  <Tag
-    v-bind="{
-      ...$attrs,
-      severity: mappedSeverity,
-      class: tagClass
-    }"
-  >
-    <slot />
-  </Tag>
+    <Tag
+        v-bind="{
+            ...$attrs,
+            severity: mappedSeverity,
+            class: tagClass
+        }"
+    >
+        <slot />
+    </Tag>
 </template>
 
 <script setup lang="ts">
@@ -17,35 +17,35 @@ import Tag from 'primevue/tag'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  severity?: 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'
-  variant?: 'default' | 'outlined'
+    severity?: 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'
+    variant?: 'default' | 'outlined'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  severity: 'secondary',
-  variant: 'default',
+    severity: 'secondary',
+    variant: 'default',
 })
 
 const themeStore = useThemeStore()
 
 // 映射 severity 到 PrimeVue 的格式
 const mappedSeverity = computed(() => {
-  return props.severity
+    return props.severity
 })
 
 // 计算标签样式类
 const tagClass = computed(() => {
-  const classes = ['custom-tag']
+    const classes = ['custom-tag']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  if (props.variant === 'outlined') {
-    classes.push('outlined')
-  }
+    if (props.variant === 'outlined') {
+        classes.push('outlined')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

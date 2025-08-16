@@ -100,7 +100,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       enableAnimation: true,
       autoCleanup: true,
       cleanupInterval: 30000, // 30秒
-      ...config
+      ...config,
     }
 
     this.initializeEventSystem()
@@ -120,7 +120,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       'notification:click',
       'notification:timeout',
       'notification:clear',
-      'notification:limit-exceeded'
+      'notification:limit-exceeded',
     ]
 
     for (const eventType of eventTypes) {
@@ -159,7 +159,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       this.emit('notification:limit-exceeded', {
         pluginId,
         count: pluginNotifications.length,
-        limit: this.config.maxNotifications
+        limit: this.config.maxNotifications,
       })
       return false
     }
@@ -175,13 +175,13 @@ export class PluginNotificationAPI implements NotificationAPI {
     message: string,
     title?: string,
     options?: NotificationOptions,
-    pluginId: string = 'system'
+    pluginId: string = 'system',
   ): NotificationItem {
     const id = this.generateId()
     const finalOptions: NotificationOptions = {
       duration: this.config.defaultDuration,
       closable: true,
-      ...options
+      ...options,
     }
 
     const notification: NotificationItem = {
@@ -193,7 +193,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       pluginId,
       shown: false,
       closed: false,
-      ...(title && { title })
+      ...(title && { title }),
     }
 
     return notification
@@ -349,7 +349,7 @@ export class PluginNotificationAPI implements NotificationAPI {
     type: NotificationType,
     message: string,
     title?: string,
-    options?: NotificationOptions
+    options?: NotificationOptions,
   ): string {
     const notification = this.createNotification(type, message, title, options, pluginId)
     this.showNotification(notification)
@@ -451,7 +451,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       total: notifications.length,
       byType: { info: 0, success: 0, warn: 0, error: 0 },
       byPlugin: {},
-      active: 0
+      active: 0,
     }
 
     for (const notification of notifications) {
@@ -462,7 +462,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       if (!stats.byPlugin[notification.pluginId]) {
         stats.byPlugin[notification.pluginId] = {
           total: 0,
-          byType: { info: 0, success: 0, warn: 0, error: 0 }
+          byType: { info: 0, success: 0, warn: 0, error: 0 },
         }
       }
       const pluginStats = stats.byPlugin[notification.pluginId]!
@@ -579,7 +579,7 @@ export class PluginNotificationAPI implements NotificationAPI {
       tag?: string
       data?: any
       requireInteraction?: boolean
-    }
+    },
   ): Notification | null {
     if (!('Notification' in window) || Notification.permission !== 'granted') {
       console.warn('[NotificationAPI] Native notifications not available')
@@ -703,7 +703,7 @@ export const notificationUtils = {
       info: 'ℹ️',
       success: '✅',
       warn: '⚠️',
-      error: '❌'
+      error: '❌',
     }
     return icons[type] || icons.info
   },
@@ -716,8 +716,8 @@ export const notificationUtils = {
       info: '#3b82f6',
       success: '#10b981',
       warn: '#f59e0b',
-      error: '#ef4444'
+      error: '#ef4444',
     }
     return colors[type] || colors.info
-  }
+  },
 }

@@ -3,8 +3,8 @@
  * 包含拖动区域和控制按钮
  */
 const HeaderBar = {
-    name: 'HeaderBar',
-    template: `
+  name: 'HeaderBar',
+  template: `
         <div class="header-bar bg-white/10 backdrop-blur-md border-b border-white/20 pt-4 pb-2 pl-2 pr-2">
             <div class="flex items-center justify-between">
                 <!-- 左侧占位 -->
@@ -54,67 +54,67 @@ const HeaderBar = {
         </div>
     `,
 
-    props: {
-        connectionStatus: {
-            type: String,
-            default: 'disconnected',
-            validator: (value) => ['connected', 'disconnected', 'error'].includes(value)
-        },
-        currentTheme: {
-            type: String,
-            default: 'light'
-        }
+  props: {
+    connectionStatus: {
+      type: String,
+      default: 'disconnected',
+      validator: (value) => ['connected', 'disconnected', 'error'].includes(value),
+    },
+    currentTheme: {
+      type: String,
+      default: 'light',
+    },
+  },
+
+  emits: ['theme-toggle', 'settings-open'],
+
+  computed: {
+    statusClass() {
+      const statusMap = {
+        'connected': 'status-connected',
+        'disconnected': 'status-disconnected',
+        'error': 'status-error',
+      }
+      return statusMap[this.connectionStatus] || 'status-disconnected'
     },
 
-    emits: ['theme-toggle', 'settings-open'],
-
-    computed: {
-        statusClass() {
-            const statusMap = {
-                'connected': 'status-connected',
-                'disconnected': 'status-disconnected',
-                'error': 'status-error'
-            };
-            return statusMap[this.connectionStatus] || 'status-disconnected';
-        },
-
-        statusText() {
-            const statusMap = {
-                'connected': '已连接',
-                'disconnected': '未连接',
-                'error': '连接错误'
-            };
-            return statusMap[this.connectionStatus] || '未知';
-        },
-
-        statusTooltip() {
-            const statusMap = {
-                'connected': '与主应用连接正常',
-                'disconnected': '与主应用断开连接',
-                'error': '连接出现错误'
-            };
-            return statusMap[this.connectionStatus] || '连接状态未知';
-        }
+    statusText() {
+      const statusMap = {
+        'connected': '已连接',
+        'disconnected': '未连接',
+        'error': '连接错误',
+      }
+      return statusMap[this.connectionStatus] || '未知'
     },
 
-    methods: {
-        /**
+    statusTooltip() {
+      const statusMap = {
+        'connected': '与主应用连接正常',
+        'disconnected': '与主应用断开连接',
+        'error': '连接出现错误',
+      }
+      return statusMap[this.connectionStatus] || '连接状态未知'
+    },
+  },
+
+  methods: {
+    /**
          * 切换主题
          */
-        toggleTheme() {
-            this.$emit('theme-toggle');
-        },
+    toggleTheme() {
+      this.$emit('theme-toggle')
+    },
 
-        /**
+    /**
          * 打开设置
          */
-        openSettings() {
-            this.$emit('settings-open');
-        }
-    }
-};
+    openSettings() {
+      this.$emit('settings-open')
+    },
+  },
+}
 
 // 导出组件
 if (typeof window !== 'undefined') {
-    window.HeaderBar = HeaderBar;
+  window.HeaderBar = HeaderBar
 }

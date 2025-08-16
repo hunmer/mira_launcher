@@ -9,7 +9,7 @@
         <div class="page-header">
             <div class="header-content">
                 <h1 class="page-title">
-                    <i class="pi pi-download"></i>
+                    <i class="pi pi-download" />
                     下载管理
                 </h1>
                 <p class="page-description">
@@ -18,8 +18,18 @@
             </div>
 
             <div class="header-actions">
-                <Button label="添加下载" icon="pi pi-plus" @click="showAddDialog = true" severity="primary" />
-                <Button label="设置" icon="pi pi-cog" @click="showSettingsDialog = true" outlined />
+                <Button
+                    label="添加下载"
+                    icon="pi pi-plus"
+                    severity="primary"
+                    @click="showAddDialog = true"
+                />
+                <Button
+                    label="设置"
+                    icon="pi pi-cog"
+                    outlined
+                    @click="showSettingsDialog = true"
+                />
             </div>
         </div>
 
@@ -27,7 +37,7 @@
         <div class="stats-cards">
             <div class="stat-card">
                 <div class="stat-icon downloading">
-                    <i class="pi pi-download"></i>
+                    <i class="pi pi-download" />
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ downloadStore.activeTasks.length }}</span>
@@ -37,7 +47,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon completed">
-                    <i class="pi pi-check-circle"></i>
+                    <i class="pi pi-check-circle" />
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ downloadStore.completedTasks.length }}</span>
@@ -47,7 +57,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon failed">
-                    <i class="pi pi-exclamation-triangle"></i>
+                    <i class="pi pi-exclamation-triangle" />
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ downloadStore.failedTasks.length }}</span>
@@ -57,7 +67,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon total">
-                    <i class="pi pi-list"></i>
+                    <i class="pi pi-list" />
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ downloadStore.tasks.length }}</span>
@@ -67,39 +77,87 @@
         </div>
 
         <!-- 下载进度组件 -->
-        <DownloadProgress :show-completed="showCompleted" :show-failed="showFailed" :page-size="pageSize"
-            @add-download="showAddDialog = true" @task-click="handleTaskClick" />
+        <DownloadProgress
+            :show-completed="showCompleted"
+            :show-failed="showFailed"
+            :page-size="pageSize"
+            @add-download="showAddDialog = true"
+            @task-click="handleTaskClick"
+        />
 
         <!-- 添加下载对话框 -->
-        <Dialog v-model:visible="showAddDialog" header="添加下载" :modal="true" :style="{ width: '500px' }"
-            class="add-download-dialog">
+        <Dialog
+            v-model:visible="showAddDialog"
+            header="添加下载"
+            :modal="true"
+            :style="{ width: '500px' }"
+            class="add-download-dialog"
+        >
             <div class="dialog-content">
                 <div class="form-field">
-                    <label for="download-url" class="field-label">下载链接</label>
-                    <InputText id="download-url" v-model="newDownload.url" placeholder="请输入下载链接" class="w-full"
-                        :invalid="urlError !== ''" />
-                    <small v-if="urlError" class="error-message">{{ urlError }}</small>
+                    <label
+                        for="download-url"
+                        class="field-label"
+                    >下载链接</label>
+                    <InputText
+                        id="download-url"
+                        v-model="newDownload.url"
+                        placeholder="请输入下载链接"
+                        class="w-full"
+                        :invalid="urlError !== ''"
+                    />
+                    <small
+                        v-if="urlError"
+                        class="error-message"
+                    >{{ urlError }}</small>
                 </div>
 
                 <div class="form-field">
-                    <label for="download-filename" class="field-label">文件名（可选）</label>
-                    <InputText id="download-filename" v-model="newDownload.fileName" placeholder="自动从链接中提取"
-                        class="w-full" />
+                    <label
+                        for="download-filename"
+                        class="field-label"
+                    >文件名（可选）</label>
+                    <InputText
+                        id="download-filename"
+                        v-model="newDownload.fileName"
+                        placeholder="自动从链接中提取"
+                        class="w-full"
+                    />
                 </div>
 
                 <div class="form-field">
-                    <label for="download-path" class="field-label">保存路径</label>
+                    <label
+                        for="download-path"
+                        class="field-label"
+                    >保存路径</label>
                     <div class="path-input">
-                        <InputText id="download-path" v-model="newDownload.savePath" placeholder="选择保存位置" readonly
-                            class="flex-1" />
-                        <Button label="浏览" icon="pi pi-folder-open" @click="browseSavePath" outlined />
+                        <InputText
+                            id="download-path"
+                            v-model="newDownload.savePath"
+                            placeholder="选择保存位置"
+                            readonly
+                            class="flex-1"
+                        />
+                        <Button
+                            label="浏览"
+                            icon="pi pi-folder-open"
+                            outlined
+                            @click="browseSavePath"
+                        />
                     </div>
                 </div>
 
                 <div class="form-field">
                     <div class="checkbox-field">
-                        <Checkbox id="start-immediately" v-model="newDownload.startImmediately" binary />
-                        <label for="start-immediately" class="checkbox-label">
+                        <Checkbox
+                            id="start-immediately"
+                            v-model="newDownload.startImmediately"
+                            binary
+                        />
+                        <label
+                            for="start-immediately"
+                            class="checkbox-label"
+                        >
                             立即开始下载
                         </label>
                     </div>
@@ -107,23 +165,46 @@
             </div>
 
             <template #footer>
-                <Button label="取消" severity="secondary" @click="showAddDialog = false" text />
-                <Button label="添加" @click="addDownload" :disabled="!isValidDownload" autofocus />
+                <Button
+                    label="取消"
+                    severity="secondary"
+                    text
+                    @click="showAddDialog = false"
+                />
+                <Button
+                    label="添加"
+                    :disabled="!isValidDownload"
+                    autofocus
+                    @click="addDownload"
+                />
             </template>
         </Dialog>
 
         <!-- 设置对话框 -->
-        <Dialog v-model:visible="showSettingsDialog" header="下载设置" :modal="true" :style="{ width: '600px' }"
-            class="settings-dialog">
+        <Dialog
+            v-model:visible="showSettingsDialog"
+            header="下载设置"
+            :modal="true"
+            :style="{ width: '600px' }"
+            class="settings-dialog"
+        >
             <div class="settings-content">
                 <div class="settings-section">
                     <h3>显示选项</h3>
                     <div class="setting-item">
-                        <Checkbox id="show-completed" v-model="showCompleted" binary />
+                        <Checkbox
+                            id="show-completed"
+                            v-model="showCompleted"
+                            binary
+                        />
                         <label for="show-completed">显示已完成的任务</label>
                     </div>
                     <div class="setting-item">
-                        <Checkbox id="show-failed" v-model="showFailed" binary />
+                        <Checkbox
+                            id="show-failed"
+                            v-model="showFailed"
+                            binary
+                        />
                         <label for="show-failed">显示失败的任务</label>
                     </div>
                 </div>
@@ -132,8 +213,14 @@
                     <h3>分页设置</h3>
                     <div class="setting-item">
                         <label for="page-size">每页显示数量</label>
-                        <Dropdown id="page-size" v-model="pageSize" :options="pageSizeOptions" option-label="label"
-                            option-value="value" class="w-full" />
+                        <Dropdown
+                            id="page-size"
+                            v-model="pageSize"
+                            :options="pageSizeOptions"
+                            option-label="label"
+                            option-value="value"
+                            class="w-full"
+                        />
                     </div>
                 </div>
 
@@ -141,22 +228,46 @@
                     <h3>下载设置</h3>
                     <div class="setting-item">
                         <label for="max-concurrent">最大并发下载</label>
-                        <InputNumber id="max-concurrent" v-model="maxConcurrentDownloads" :min="1" :max="10"
-                            show-buttons class="w-full" />
+                        <InputNumber
+                            id="max-concurrent"
+                            v-model="maxConcurrentDownloads"
+                            :min="1"
+                            :max="10"
+                            show-buttons
+                            class="w-full"
+                        />
                     </div>
                     <div class="setting-item">
                         <label for="default-path">默认保存路径</label>
                         <div class="path-input">
-                            <InputText id="default-path" v-model="defaultSavePath" readonly class="flex-1" />
-                            <Button label="浏览" icon="pi pi-folder-open" @click="browseDefaultPath" outlined />
+                            <InputText
+                                id="default-path"
+                                v-model="defaultSavePath"
+                                readonly
+                                class="flex-1"
+                            />
+                            <Button
+                                label="浏览"
+                                icon="pi pi-folder-open"
+                                outlined
+                                @click="browseDefaultPath"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
             <template #footer>
-                <Button label="取消" severity="secondary" @click="showSettingsDialog = false" text />
-                <Button label="保存" @click="saveSettings" />
+                <Button
+                    label="取消"
+                    severity="secondary"
+                    text
+                    @click="showSettingsDialog = false"
+                />
+                <Button
+                    label="保存"
+                    @click="saveSettings"
+                />
             </template>
         </Dialog>
     </div>
@@ -193,7 +304,7 @@ const newDownload = reactive({
     url: '',
     fileName: '',
     savePath: '',
-    startImmediately: true
+    startImmediately: true,
 })
 
 const urlError = ref('')
@@ -209,7 +320,7 @@ const pageSizeOptions = [
     { label: '10 项', value: 10 },
     { label: '20 项', value: 20 },
     { label: '50 项', value: 50 },
-    { label: '100 项', value: 100 }
+    { label: '100 项', value: 100 },
 ]
 
 // 方法
@@ -242,19 +353,19 @@ const addDownload = async () => {
         // 添加下载任务
         const taskId = downloadStore.addTask({
             url: newDownload.url,
-            fileName: fileName,
+            fileName,
             savePath: newDownload.savePath,
             fileSize: 0,
             state: newDownload.startImmediately ? 'pending' : 'paused',
             priority: 1,
-            maxRetries: 3
+            maxRetries: 3,
         })
 
         toast.add({
             severity: 'success',
             summary: '下载已添加',
             detail: `任务 "${fileName}" 已成功添加到下载队列`,
-            life: 3000
+            life: 3000,
         })
 
         // 重置表单
@@ -262,7 +373,7 @@ const addDownload = async () => {
             url: '',
             fileName: '',
             savePath: defaultSavePath.value,
-            startImmediately: true
+            startImmediately: true,
         })
 
         showAddDialog.value = false
@@ -271,7 +382,7 @@ const addDownload = async () => {
             severity: 'error',
             summary: '添加失败',
             detail: error instanceof Error ? error.message : '添加下载任务时发生错误',
-            life: 5000
+            life: 5000,
         })
     }
 }
@@ -287,7 +398,7 @@ const browseSavePath = async () => {
         severity: 'info',
         summary: '提示',
         detail: '文件选择器功能需要 Tauri 支持',
-        life: 3000
+        life: 3000,
     })
 }
 
@@ -299,7 +410,7 @@ const browseDefaultPath = async () => {
         severity: 'info',
         summary: '提示',
         detail: '文件夹选择器功能需要 Tauri 支持',
-        life: 3000
+        life: 3000,
     })
 }
 
@@ -310,14 +421,14 @@ const saveSettings = () => {
         showFailed: showFailed.value,
         pageSize: pageSize.value,
         maxConcurrentDownloads: maxConcurrentDownloads.value,
-        defaultSavePath: defaultSavePath.value
+        defaultSavePath: defaultSavePath.value,
     }))
 
     toast.add({
         severity: 'success',
         summary: '设置已保存',
         detail: '下载设置已成功保存',
-        life: 3000
+        life: 3000,
     })
 
     showSettingsDialog.value = false

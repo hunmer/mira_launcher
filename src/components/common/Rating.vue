@@ -1,13 +1,13 @@
 <!-- Rating 组件 - 包装 PrimeVue Rating 以支持自定义样式和暗色模式 -->
 <template>
-  <Rating
-    v-model="ratingValue"
-    v-bind="{
-      ...$attrs,
-      class: ratingClass
-    }"
-    @change="handleChange"
-  />
+    <Rating
+        v-model="ratingValue"
+        v-bind="{
+            ...$attrs,
+            class: ratingClass
+        }"
+        @change="handleChange"
+    />
 </template>
 
 <script setup lang="ts">
@@ -16,24 +16,24 @@ import Rating from 'primevue/rating'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  modelValue?: number
-  stars?: number
-  readonly?: boolean
-  disabled?: boolean
-  cancel?: boolean
+    modelValue?: number
+    stars?: number
+    readonly?: boolean
+    disabled?: boolean
+    cancel?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: number): void
-  (e: 'change', event: { originalEvent: Event; value: number }): void
+    (e: 'update:modelValue', value: number): void
+    (e: 'change', event: { originalEvent: Event; value: number }): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: 0,
-  stars: 5,
-  readonly: false,
-  disabled: false,
-  cancel: true,
+    modelValue: 0,
+    stars: 5,
+    readonly: false,
+    disabled: false,
+    cancel: true,
 })
 
 const emit = defineEmits<Emits>()
@@ -44,27 +44,27 @@ const ratingValue = ref(props.modelValue)
 
 // 监听外部值变化
 watch(() => props.modelValue, (newValue) => {
-  ratingValue.value = newValue
+    ratingValue.value = newValue
 })
 
 // 监听内部值变化
 watch(ratingValue, (newValue) => {
-  emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue)
 })
 
 const handleChange = (event: { originalEvent: Event; value: number }) => {
-  emit('change', event)
+    emit('change', event)
 }
 
 // 计算评分样式类
 const ratingClass = computed(() => {
-  const classes = ['custom-rating']
+    const classes = ['custom-rating']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

@@ -85,7 +85,7 @@ const defaultSettings: AppSettings = {
     windowSize: 'medium',
     autoStart: false,
     minimizeToTray: true,
-    showInTaskbar: true
+    showInTaskbar: true,
   },
   shortcuts: {
     globalHotkey: 'Ctrl+Space',
@@ -95,7 +95,7 @@ const defaultSettings: AppSettings = {
     homeHotkey: 'Ctrl+1',
     applicationsHotkey: 'Ctrl+2',
     pluginsHotkey: 'Ctrl+3',
-    exitHotkey: 'Ctrl+Q'
+    exitHotkey: 'Ctrl+Q',
   },
   customShortcuts: [],
   shortcutPreferences: {
@@ -104,27 +104,27 @@ const defaultSettings: AppSettings = {
     captureTimeout: 5000,
     showConflictWarnings: true,
     autoSaveChanges: true,
-    exportFormat: 'json'
+    exportFormat: 'json',
   },
   startup: {
     autoStart: false,
     startMinimized: false,
     checkUpdates: true,
-    loadPluginsOnStart: true
+    loadPluginsOnStart: true,
   },
   plugins: {
     autoUpdate: true,
     allowBeta: false,
     pluginPath: './plugins',
-    maxCacheSize: 100
+    maxCacheSize: 100,
   },
   advanced: {
     debugMode: false,
     logLevel: 'info',
     maxLogFiles: 10,
     performanceMode: false,
-    enableTelemetry: false
-  }
+    enableTelemetry: false,
+  },
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -202,7 +202,7 @@ export const useSettingsStore = defineStore('settings', () => {
         { baseDir: BaseDirectory.AppConfig, path: 'settings.json' },
         { baseDir: BaseDirectory.AppData, path: 'settings.json' },
         { baseDir: BaseDirectory.AppData, path: 'com.miralauncher.app/settings.json' },
-        { baseDir: BaseDirectory.Config, path: 'mira-launcher/settings.json' }
+        { baseDir: BaseDirectory.Config, path: 'mira-launcher/settings.json' },
       ]
 
       for (const location of possibleLocations) {
@@ -298,7 +298,7 @@ export const useSettingsStore = defineStore('settings', () => {
       ...shortcut,
       id: `shortcut-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: now,
-      modifiedAt: now
+      modifiedAt: now,
     }
 
     settings.value.customShortcuts.push(newShortcut)
@@ -372,7 +372,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     // 检查自定义快捷键
     const conflict = settings.value.customShortcuts.find(s =>
-      s.key === key && s.enabled && s.id !== excludeId
+      s.key === key && s.enabled && s.id !== excludeId,
     )
     if (conflict) {
       return { type: 'custom', name: conflict.description || conflict.actionId, conflict: true }
@@ -388,7 +388,7 @@ export const useSettingsStore = defineStore('settings', () => {
       exportDate: new Date().toISOString(),
       systemShortcuts: settings.value.shortcuts,
       customShortcuts: settings.value.customShortcuts,
-      preferences: settings.value.shortcutPreferences
+      preferences: settings.value.shortcutPreferences,
     }
 
     const format = settings.value.shortcutPreferences.exportFormat
@@ -396,7 +396,7 @@ export const useSettingsStore = defineStore('settings', () => {
       return {
         data: JSON.stringify(exportData, null, 2),
         filename: `shortcuts-${new Date().toISOString().split('T')[0]}.json`,
-        mimeType: 'application/json'
+        mimeType: 'application/json',
       }
     } else {
       // YAML导出（如果需要的话）
@@ -406,7 +406,7 @@ export const useSettingsStore = defineStore('settings', () => {
       return {
         data: yamlData,
         filename: `shortcuts-${new Date().toISOString().split('T')[0]}.yaml`,
-        mimeType: 'text/yaml'
+        mimeType: 'text/yaml',
       }
     }
   }
@@ -425,7 +425,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const backup = {
         systemShortcuts: { ...settings.value.shortcuts },
         customShortcuts: [...settings.value.customShortcuts],
-        preferences: { ...settings.value.shortcutPreferences }
+        preferences: { ...settings.value.shortcutPreferences },
       }
 
       try {
@@ -507,7 +507,7 @@ export const useSettingsStore = defineStore('settings', () => {
     async () => {
       await saveSettings()
     },
-    { deep: true }
+    { deep: true },
   )
 
   return {
@@ -529,6 +529,6 @@ export const useSettingsStore = defineStore('settings', () => {
     checkShortcutConflict,
     exportShortcuts,
     importShortcuts,
-    cleanupShortcuts
+    cleanupShortcuts,
   }
 })

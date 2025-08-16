@@ -50,13 +50,33 @@ import { useApplicationLayout } from '@/composables/useApplicationLayout'
 import { useApplicationsStore, type Application } from '@/stores/applications'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
+// 拖拽事件类型定义
+interface DragEvent {
+    oldIndex?: number
+    newIndex?: number
+    item?: HTMLElement
+    moved?: {
+        element: Application
+        oldIndex: number
+        newIndex: number
+    }
+    added?: {
+        element: Application
+        newIndex: number
+    }
+    removed?: {
+        element: Application
+        oldIndex: number
+    }
+}
+
 // Store
 const applicationsStore = useApplicationsStore()
 
 // 图标尺寸配置和布局
 const {
-  setLayoutMode,
-  layoutMode,
+    setLayoutMode,
+    layoutMode,
 } = useApplicationLayout()
 
 const gridColumnsStr = ref('4') // 字符串形式的网格列数，用于下拉菜单
@@ -70,18 +90,19 @@ const addDialogType = ref<'file' | 'folder' | 'url'>('file')
 
 // 图标大小计算
 const iconSize = computed(() => {
-  // 根据网格列数动态计算图标大小
-  const baseSize = Math.max(40, Math.min(200, (containerWidth.value / applicationsStore.gridColumns) * 0.6))
-  return Math.floor(baseSize)
+    // 根据网格列数动态计算图标大小
+    const baseSize = Math.max(40, Math.min(200, (containerWidth.value / applicationsStore.gridColumns) * 0.6))
+    return Math.floor(baseSize)
 })
 
 // 当前页面的应用（双向绑定）
 const currentPageApps = computed({
-  get: () => applicationsStore.currentPageApps,
-  set: (value) => {
-    // 这里可以处理拖拽排序后的数据更新
-    console.log('应用列表更新:', value)
-  },
+    get: () => applicationsStore.currentPageApps,
+    set: (value) => {
+        console.log('应用列表更新:', value.map(app => app.name))
+        // 更新当前页面的应用顺序
+        applicationsStore.updateCurrentPageApps(value)
+    },
 })
 
 // 右键菜单
@@ -95,270 +116,270 @@ const blankAreaContextMenuPosition = ref({ x: 0, y: 0 })
 
 // 空白区域右键菜单项目
 const blankAreaContextMenuItems = computed((): MenuItem[] => [
-  {
-    label: '添加新项目',
-    icon: 'pi pi-plus',
-    action: () => {
-      openAddDialog('file')
+    {
+        label: '添加新项目',
+        icon: 'pi pi-plus',
+        action: () => {
+            openAddDialog('file')
+        },
     },
-  },
-  {
-    label: '',
-    separator: true,
-  },
-  {
-    label: '删除当前页面',
-    icon: 'pi pi-trash',
-    danger: true,
-    action: () => {
-      if (applicationsStore.totalPages > 1) {
-        applicationsStore.removePage()
-      }
+    {
+        label: '',
+        separator: true,
     },
-  },
+    {
+        label: '删除当前页面',
+        icon: 'pi pi-trash',
+        danger: true,
+        action: () => {
+            if (applicationsStore.totalPages > 1) {
+                applicationsStore.removePage()
+            }
+        },
+    },
 ])
 
 // 右键菜单项目
 const contextMenuItems = computed((): MenuItem[] => [
-  {
-    label: '启动应用',
-    icon: 'pi pi-play',
-    action: () => {
-      if (selectedApp.value) launchApp(selectedApp.value)
+    {
+        label: '启动应用',
+        icon: 'pi pi-play',
+        action: () => {
+            if (selectedApp.value) launchApp(selectedApp.value)
+        },
     },
-  },
-  {
-    label: selectedApp.value?.pinned ? '取消固定' : '固定到快速访问',
-    icon: 'pi pi-thumbtack',
-    action: () => {
-      if (selectedApp.value) {
-        applicationsStore.togglePin(selectedApp.value.id)
-      }
+    {
+        label: selectedApp.value?.pinned ? '取消固定' : '固定到快速访问',
+        icon: 'pi pi-thumbtack',
+        action: () => {
+            if (selectedApp.value) {
+                applicationsStore.togglePin(selectedApp.value.id)
+            }
+        },
     },
-  },
-  {
-    label: '',
-    separator: true,
-  },
-  {
-    label: '编辑',
-    icon: 'pi pi-pencil',
-    action: () => {
-      if (selectedApp.value) editApp(selectedApp.value)
+    {
+        label: '',
+        separator: true,
     },
-  },
-  {
-    label: '移除',
-    icon: 'pi pi-trash',
-    danger: true,
-    action: () => {
-      if (selectedApp.value) removeApp(selectedApp.value)
+    {
+        label: '编辑',
+        icon: 'pi pi-pencil',
+        action: () => {
+            if (selectedApp.value) editApp(selectedApp.value)
+        },
     },
-  },
+    {
+        label: '移除',
+        icon: 'pi pi-trash',
+        danger: true,
+        action: () => {
+            if (selectedApp.value) removeApp(selectedApp.value)
+        },
+    },
 ])
 
 // 方法
 const launchApp = async (app: Application) => {
-  applicationsStore.updateLastUsed(app.id)
-  console.log('启动应用:', app.name)
-  // await invoke('launch_application', { path: app.path })
+    applicationsStore.updateLastUsed(app.id)
+    console.log('启动应用:', app.name)
+    // await invoke('launch_application', { path: app.path })
 }
 
 // 网格大小变更处理
 const onGridSizeChange = (newSize: string) => {
-  console.log('网格大小变更:', newSize)
-  gridColumnsStr.value = newSize
+    console.log('网格大小变更:', newSize)
+    gridColumnsStr.value = newSize
 
-  if (newSize === 'auto') {
-    // 自适应模式：根据容器宽度自动计算列数
-    const autoColumns = Math.floor(containerWidth.value / 150)
-    applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
-  } else {
-    // 固定列数模式
-    applicationsStore.setGridColumns(parseInt(newSize))
-  }
+    if (newSize === 'auto') {
+        // 自适应模式：根据容器宽度自动计算列数
+        const autoColumns = Math.floor(containerWidth.value / 150)
+        applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
+    } else {
+        // 固定列数模式
+        applicationsStore.setGridColumns(parseInt(newSize))
+    }
 }
 
 // 监听容器大小变化
 const updateContainerWidth = () => {
-  const container = document.querySelector('.page-container')
-  if (container) {
-    containerWidth.value = container.clientWidth
+    const container = document.querySelector('.page-container')
+    if (container) {
+        containerWidth.value = container.clientWidth
 
-    // 如果是自适应模式，重新计算列数
-    if (gridColumnsStr.value === 'auto') {
-      const autoColumns = Math.floor(containerWidth.value / 150)
-      applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
+        // 如果是自适应模式，重新计算列数
+        if (gridColumnsStr.value === 'auto') {
+            const autoColumns = Math.floor(containerWidth.value / 150)
+            applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
+        }
     }
-  }
 }
 
 // 拖拽事件处理
-const onDragStart = (evt: { oldIndex: number; item: HTMLElement }) => {
-  console.log('开始拖拽:', evt)
-  isDragging.value = true
-  sortSaved.value = false
-}
-
-const onDragEnd = (evt: { oldIndex: number; newIndex: number; item: HTMLElement }) => {
-  console.log('拖拽结束:', evt)
-  isDragging.value = false
-
-  // 保存排序
-  applicationsStore.saveApplications()
-
-  // 显示保存成功提示
-  sortSaved.value = true
-  setTimeout(() => {
+const onDragStart = (evt: DragEvent) => {
+    console.log('开始拖拽:', evt)
+    isDragging.value = true
     sortSaved.value = false
-  }, 2000)
 }
 
-const onDragChange = (evt: { moved?: { element: Application; oldIndex: number; newIndex: number } }) => {
-  console.log('拖拽变化:', evt)
-  if (evt.moved) {
-    console.log(`元素 "${evt.moved.element.name}" 从位置 ${evt.moved.oldIndex} 移动到 ${evt.moved.newIndex}`)
-  }
+const onDragEnd = (evt: DragEvent) => {
+    console.log('拖拽结束:', evt)
+    isDragging.value = false
+
+    // 保存排序
+    applicationsStore.saveApplications()
+
+    // 显示保存成功提示
+    sortSaved.value = true
+    setTimeout(() => {
+        sortSaved.value = false
+    }, 2000)
+}
+
+const onDragChange = (evt: DragEvent) => {
+    console.log('拖拽变化:', evt)
+    if (evt.moved) {
+        console.log(`元素 "${evt.moved.element.name}" 从位置 ${evt.moved.oldIndex} 移动到 ${evt.moved.newIndex}`)
+    }
 }
 
 // 添加应用相关方法
 const openAddDialog = (type: 'file' | 'folder' | 'url') => {
-  addDialogType.value = type
-  showAddDialog.value = true
+    addDialogType.value = type
+    showAddDialog.value = true
 }
 
 const onAddApplication = (app: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>) => {
-  applicationsStore.addApplication(app)
-  showAddDialog.value = false
-  console.log('添加应用:', app)
+    applicationsStore.addApplication(app)
+    showAddDialog.value = false
+    console.log('添加应用:', app)
 }
 
 const addTestData = () => {
-  applicationsStore.generateTestApplications(5)
-  console.log('添加测试数据')
+    applicationsStore.generateTestApplications(5)
+    console.log('添加测试数据')
 }
 
 const showContextMenu = (app: Application, event: MouseEvent) => {
-  selectedApp.value = app
-  contextMenuPosition.value = { x: event.clientX, y: event.clientY }
-  contextMenuVisible.value = true
+    selectedApp.value = app
+    contextMenuPosition.value = { x: event.clientX, y: event.clientY }
+    contextMenuVisible.value = true
 }
 
 const hideContextMenu = () => {
-  selectedApp.value = null
-  contextMenuVisible.value = false
+    selectedApp.value = null
+    contextMenuVisible.value = false
 }
 
 const onContextMenuSelect = (item: MenuItem) => {
-  item.action?.()
-  hideContextMenu()
+    item.action?.()
+    hideContextMenu()
 }
 
 const editApp = (app: Application) => {
-  console.log(`编辑应用: ${app.name}`)
-  hideContextMenu()
+    console.log(`编辑应用: ${app.name}`)
+    hideContextMenu()
 }
 
 const removeApp = (app: Application) => {
-  if (confirm(`确定要移除 "${app.name}" 吗？`)) {
-    applicationsStore.removeApplication(app.id)
-  }
-  hideContextMenu()
+    if (confirm(`确定要移除 "${app.name}" 吗？`)) {
+        applicationsStore.removeApplication(app.id)
+    }
+    hideContextMenu()
 }
 
 // 空白区域右键菜单
 const showBlankAreaContextMenu = (event: MouseEvent) => {
-  blankAreaContextMenuPosition.value = { x: event.clientX, y: event.clientY }
-  blankAreaContextMenuVisible.value = true
+    blankAreaContextMenuPosition.value = { x: event.clientX, y: event.clientY }
+    blankAreaContextMenuVisible.value = true
 }
 
 const hideBlankAreaContextMenu = () => {
-  blankAreaContextMenuVisible.value = false
+    blankAreaContextMenuVisible.value = false
 }
 
 const onBlankAreaContextMenuSelect = (item: MenuItem) => {
-  item.action?.()
-  hideBlankAreaContextMenu()
+    item.action?.()
+    hideBlankAreaContextMenu()
 }
 
 const handleClickOutside = () => {
-  hideContextMenu()
-  hideBlankAreaContextMenu()
+    hideContextMenu()
+    hideBlankAreaContextMenu()
 }
 
 // Ctrl+滚轮快速调整大小
 const handleWheelResize = (event: WheelEvent) => {
-  // 只在按住 Ctrl 键时响应
-  if (!event.ctrlKey) return
+    // 只在按住 Ctrl 键时响应
+    if (!event.ctrlKey) return
 
-  // 阻止默认的页面缩放行为
-  event.preventDefault()
+    // 阻止默认的页面缩放行为
+    event.preventDefault()
 
-  // 只在网格模式下生效
-  if (layoutMode.value !== 'grid') return
+    // 只在网格模式下生效
+    if (layoutMode.value !== 'grid') return
 
-  const currentColumns = parseInt(gridColumnsStr.value) || 4
-  let newColumns = currentColumns
+    const currentColumns = parseInt(gridColumnsStr.value) || 4
+    let newColumns = currentColumns
 
-  // 向上滚动减少列数（增大图标），向下滚动增加列数（减小图标）
-  if (event.deltaY < 0 && currentColumns > 1) {
-    // 向上滚动，减少列数
-    newColumns = currentColumns - 1
-  } else if (event.deltaY > 0 && currentColumns < 10) {
-    // 向下滚动，增加列数
-    newColumns = currentColumns + 1
-  }
+    // 向上滚动减少列数（增大图标），向下滚动增加列数（减小图标）
+    if (event.deltaY < 0 && currentColumns > 1) {
+        // 向上滚动，减少列数
+        newColumns = currentColumns - 1
+    } else if (event.deltaY > 0 && currentColumns < 10) {
+        // 向下滚动，增加列数
+        newColumns = currentColumns + 1
+    }
 
-  if (newColumns !== currentColumns) {
-    onGridSizeChange(newColumns.toString())
-  }
+    if (newColumns !== currentColumns) {
+        onGridSizeChange(newColumns.toString())
+    }
 }
 
 onMounted(() => {
-  document.title = 'Mira Launcher - 应用程序'
+    document.title = 'Mira Launcher - 应用程序'
 
-  // 加载数据
-  applicationsStore.loadApplications()
-  applicationsStore.loadPageSettings()
+    // 加载数据
+    applicationsStore.loadApplications()
+    applicationsStore.loadPageSettings()
 
-  // 加载保存的网格设置
-  const savedGridColumns = localStorage.getItem('mira-grid-columns')
-  if (savedGridColumns) {
-    gridColumnsStr.value = savedGridColumns
-    onGridSizeChange(savedGridColumns)
-  }
-
-  // 初始化容器宽度
-  updateContainerWidth()
-
-  // 监听窗口大小变化
-  window.addEventListener('resize', updateContainerWidth)
-  document.addEventListener('click', handleClickOutside)
-
-  // 添加滚轮事件监听器用于快速调整大小
-  document.addEventListener('wheel', handleWheelResize, { passive: false })
-
-  // 阻止右键菜单的默认行为
-  document.addEventListener('contextmenu', e => {
-    const target = e.target as HTMLElement
-    // 只在不是菜单组件和特定可右键元素时阻止默认行为
-    if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
-      e.preventDefault()
+    // 加载保存的网格设置
+    const savedGridColumns = localStorage.getItem('mira-grid-columns')
+    if (savedGridColumns) {
+        gridColumnsStr.value = savedGridColumns
+        onGridSizeChange(savedGridColumns)
     }
-  })
+
+    // 初始化容器宽度
+    updateContainerWidth()
+
+    // 监听窗口大小变化
+    window.addEventListener('resize', updateContainerWidth)
+    document.addEventListener('click', handleClickOutside)
+
+    // 添加滚轮事件监听器用于快速调整大小
+    document.addEventListener('wheel', handleWheelResize, { passive: false })
+
+    // 阻止右键菜单的默认行为
+    document.addEventListener('contextmenu', e => {
+        const target = e.target as HTMLElement
+        // 只在不是菜单组件和特定可右键元素时阻止默认行为
+        if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
+            e.preventDefault()
+        }
+    })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateContainerWidth)
-  document.removeEventListener('click', handleClickOutside)
-  document.removeEventListener('wheel', handleWheelResize)
-  document.removeEventListener('contextmenu', e => {
-    const target = e.target as HTMLElement
-    // 只在不是菜单组件和特定可右键元素时阻止默认行为
-    if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
-      e.preventDefault()
-    }
-  })
+    window.removeEventListener('resize', updateContainerWidth)
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('wheel', handleWheelResize)
+    document.removeEventListener('contextmenu', e => {
+        const target = e.target as HTMLElement
+        // 只在不是菜单组件和特定可右键元素时阻止默认行为
+        if (!target?.closest?.('.p-tieredmenu, .context-menu, .dropdown-menu')) {
+            e.preventDefault()
+        }
+    })
 })
 </script>
 
@@ -366,7 +387,7 @@ onUnmounted(() => {
 .applications-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 6rem);
+  height: 100%;
   background-color: rgb(249 250 251);
   user-select: none;
 }
@@ -381,7 +402,7 @@ onUnmounted(() => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 140px);
+  min-height: 0;
 }
 
 .pages-wrapper {

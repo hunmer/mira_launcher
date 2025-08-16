@@ -1,71 +1,71 @@
 <template>
-  <div :class="dividerClass">
-    <div
-      v-if="text"
-      class="divider-text"
-    >
-      {{ text }}
+    <div :class="dividerClass">
+        <div
+            v-if="text"
+            class="divider-text"
+        >
+            {{ text }}
+        </div>
+        <div
+            v-else-if="$slots['default']"
+            class="divider-text"
+        >
+            <slot />
+        </div>
     </div>
-    <div
-      v-else-if="$slots['default']"
-      class="divider-text"
-    >
-      <slot />
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 
 interface Props {
-  text?: string
-  orientation?: 'horizontal' | 'vertical'
-  size?: 'thin' | 'normal' | 'thick'
-  variant?: 'solid' | 'dashed' | 'dotted'
-  class?: string
+    text?: string
+    orientation?: 'horizontal' | 'vertical'
+    size?: 'thin' | 'normal' | 'thick'
+    variant?: 'solid' | 'dashed' | 'dotted'
+    class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  text: '',
-  orientation: 'horizontal',
-  size: 'normal',
-  variant: 'solid',
-  class: '',
+    text: '',
+    orientation: 'horizontal',
+    size: 'normal',
+    variant: 'solid',
+    class: '',
 })
 
 // 样式类计算
 const dividerClass = computed(() => {
-  const classes = ['divider-base']
+    const classes = ['divider-base']
   
-  // 方向
-  if (props.orientation === 'horizontal') {
-    classes.push('divider-horizontal')
-  } else {
-    classes.push('divider-vertical')
-  }
+    // 方向
+    if (props.orientation === 'horizontal') {
+        classes.push('divider-horizontal')
+    } else {
+        classes.push('divider-vertical')
+    }
   
-  // 尺寸
-  const sizeMap = {
-    thin: 'divider-thin',
-    normal: 'divider-normal',
-    thick: 'divider-thick',
-  }
-  classes.push(sizeMap[props.size])
+    // 尺寸
+    const sizeMap = {
+        thin: 'divider-thin',
+        normal: 'divider-normal',
+        thick: 'divider-thick',
+    }
+    classes.push(sizeMap[props.size])
   
-  // 样式
-  const variantMap = {
-    solid: 'border-solid',
-    dashed: 'border-dashed',
-    dotted: 'border-dotted',
-  }
-  classes.push(variantMap[props.variant])
+    // 样式
+    const variantMap = {
+        solid: 'border-solid',
+        dashed: 'border-dashed',
+        dotted: 'border-dotted',
+    }
+    classes.push(variantMap[props.variant])
   
-  if (props.class) {
-    classes.push(props.class)
-  }
+    if (props.class) {
+        classes.push(props.class)
+    }
   
-  return classes.filter(Boolean).join(' ')
+    return classes.filter(Boolean).join(' ')
 })
 </script>
 

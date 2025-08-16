@@ -62,7 +62,7 @@ export class PluginMenuAPI implements MenuAPI {
       defaultPosition: 'tools',
       defaultPriority: 100,
       permissionChecker: () => true,
-      ...config
+      ...config,
     }
 
     this.initializeEventSystem()
@@ -76,7 +76,7 @@ export class PluginMenuAPI implements MenuAPI {
       'menu:registered',
       'menu:unregistered',
       'menu:clicked',
-      'menu:visibility-changed'
+      'menu:visibility-changed',
     ]
 
     for (const eventType of eventTypes) {
@@ -117,7 +117,7 @@ export class PluginMenuAPI implements MenuAPI {
       position: position as any || this.config.defaultPosition,
       priority: item.priority ?? this.config.defaultPriority,
       visible: item.visible || (() => true),
-      permissions: item.permissions || []
+      permissions: item.permissions || [],
     }
 
     // 權限檢查
@@ -150,7 +150,7 @@ export class PluginMenuAPI implements MenuAPI {
     // 觸發事件
     this.emit('menu:registered', { 
       item: menuItem, 
-      pluginId: menuItem.pluginId || 'unknown' 
+      pluginId: menuItem.pluginId || 'unknown', 
     })
 
     console.log(`[MenuAPI] Registered menu item: ${item.id}`)
@@ -184,7 +184,7 @@ export class PluginMenuAPI implements MenuAPI {
     // 觸發事件
     this.emit('menu:unregistered', { 
       itemId, 
-      pluginId: menuItem.pluginId || 'unknown' 
+      pluginId: menuItem.pluginId || 'unknown', 
     })
 
     console.log(`[MenuAPI] Unregistered menu item: ${itemId}`)
@@ -300,7 +300,7 @@ export class PluginMenuAPI implements MenuAPI {
         id: `${groupId}-separator-before`,
         separator: true,
         priority: (options.priority || 0) - 1,
-        position: options.position || this.config.defaultPosition
+        position: options.position || this.config.defaultPosition,
       } as PluginMenuItem, options.position || this.config.defaultPosition)
     }
 
@@ -314,7 +314,7 @@ export class PluginMenuAPI implements MenuAPI {
         id: sourceItem.id || `${groupId}-item-${i}`,
         group: groupName,
         priority: (options?.priority || 0) + i,
-        position: (options?.position || this.config.defaultPosition) as "main" | "tools" | "help" | "custom"
+        position: (options?.position || this.config.defaultPosition) as 'main' | 'tools' | 'help' | 'custom',
       }
       this.registerSingleItem(item, options?.position || this.config.defaultPosition)
     }
@@ -372,7 +372,7 @@ export class PluginMenuAPI implements MenuAPI {
     itemsByPosition: Record<string, number>
     itemsByPlugin: Record<string, number>
     visibleItems: number
-  } {
+    } {
     const items = Array.from(this.menuItems.values())
     const itemsByPosition: Record<string, number> = {}
     const itemsByPlugin: Record<string, number> = {}
@@ -393,7 +393,7 @@ export class PluginMenuAPI implements MenuAPI {
       totalItems: items.length,
       itemsByPosition,
       itemsByPlugin,
-      visibleItems
+      visibleItems,
     }
   }
 
@@ -457,7 +457,7 @@ export const menuUtils = {
       ...(options.command && { command: options.command }),
       ...(options.route && { route: options.route }),
       ...(options.priority !== undefined && { priority: options.priority }),
-      ...(options.position && { position: options.position as "main" | "tools" | "help" | "custom" })
+      ...(options.position && { position: options.position as 'main' | 'tools' | 'help' | 'custom' }),
     }
     return item
   },
@@ -469,7 +469,7 @@ export const menuUtils = {
     const item: PluginMenuItem = {
       id: `separator-${Date.now()}`,
       separator: true,
-      ...(priority !== undefined && { priority })
+      ...(priority !== undefined && { priority }),
     }
     return item
   },
@@ -489,8 +489,8 @@ export const menuUtils = {
       label: options.label,
       items: options.items,
       ...(options.icon && { icon: options.icon }),
-      ...(options.priority !== undefined && { priority: options.priority })
+      ...(options.priority !== undefined && { priority: options.priority }),
     }
     return item
-  }
+  },
 }

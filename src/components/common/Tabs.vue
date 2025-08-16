@@ -1,12 +1,12 @@
 <!-- Tabs 组件 - 包装 PrimeVue Tabs 以支持自定义样式和暗色模式 -->
 <template>
-  <Tabs
-    :value="value || '0'"
-    v-bind="$attrs"
-    :class="tabsClass"
-  >
-    <slot />
-  </Tabs>
+    <Tabs
+        :value="value || '0'"
+        v-bind="$attrs"
+        :class="tabsClass"
+    >
+        <slot />
+    </Tabs>
 </template>
 
 <script setup lang="ts">
@@ -15,24 +15,24 @@ import Tabs from 'primevue/tabs'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  value?: string | number
+    value?: string | number
 }
 
 withDefaults(defineProps<Props>(), {
-  value: '0',
+    value: '0',
 })
 
 const themeStore = useThemeStore()
 
 // 计算标签页样式类
 const tabsClass = computed(() => {
-  const classes = ['custom-tabs']
+    const classes = ['custom-tabs']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

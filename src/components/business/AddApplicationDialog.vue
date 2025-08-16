@@ -1,32 +1,69 @@
 <template>
-    <Dialog v-model:visible="isVisible" :header="dialogTitle" :style="{ width: '500px' }" :modal="true" :closable="true"
-        @update:visible="$emit('update:show', $event)">
+    <Dialog
+        v-model:visible="isVisible"
+        :header="dialogTitle"
+        :style="{ width: '500px' }"
+        :modal="true"
+        :closable="true"
+        @update:visible="$emit('update:show', $event)"
+    >
         <div class="add-app-form">
             <div class="form-field">
                 <label class="field-label">应用名称</label>
-                <Input v-model="form.name" placeholder="请输入应用名称" class="field-input" />
+                <Input
+                    v-model="form.name"
+                    placeholder="请输入应用名称"
+                    class="field-input"
+                />
             </div>
 
-            <div v-if="type !== 'url'" class="form-field">
+            <div
+                v-if="type !== 'url'"
+                class="form-field"
+            >
                 <label class="field-label">{{ type === 'folder' ? '文件夹路径' : '文件路径' }}</label>
                 <div class="path-input-group">
-                    <Input v-model="form.path" :placeholder="type === 'folder' ? '请输入文件夹路径' : '请输入文件路径'"
-                        class="field-input" />
-                    <Button icon="pi pi-folder" @click="selectPath" class="browse-btn" title="浏览" />
+                    <Input
+                        v-model="form.path"
+                        :placeholder="type === 'folder' ? '请输入文件夹路径' : '请输入文件路径'"
+                        class="field-input"
+                    />
+                    <Button
+                        icon="pi pi-folder"
+                        class="browse-btn"
+                        title="浏览"
+                        @click="selectPath"
+                    />
                 </div>
             </div>
 
-            <div v-if="type === 'url'" class="form-field">
+            <div
+                v-if="type === 'url'"
+                class="form-field"
+            >
                 <label class="field-label">网址</label>
-                <Input v-model="form.path" placeholder="请输入网址 (如: https://www.example.com)" class="field-input" />
+                <Input
+                    v-model="form.path"
+                    placeholder="请输入网址 (如: https://www.example.com)"
+                    class="field-input"
+                />
             </div>
 
             <div class="form-field">
                 <label class="field-label">分类</label>
-                <FilterSelect v-model="form.category" :options="categoryOptions" option-label="label"
-                    option-value="value" placeholder="选择分类" class="field-input">
+                <FilterSelect
+                    v-model="form.category"
+                    :options="categoryOptions"
+                    option-label="label"
+                    option-value="value"
+                    placeholder="选择分类"
+                    class="field-input"
+                >
                     <template #value="{ value, placeholder }">
-                        <div v-if="value" class="flex items-center gap-2">
+                        <div
+                            v-if="value"
+                            class="flex items-center gap-2"
+                        >
                             <i :class="getCategoryIcon(value)" />
                             <span>{{ getCategoryLabel(value) }}</span>
                         </div>
@@ -43,22 +80,47 @@
 
             <div class="form-field">
                 <label class="field-label">描述 (可选)</label>
-                <Input v-model="form.description" placeholder="请输入应用描述" class="field-input" />
+                <Input
+                    v-model="form.description"
+                    placeholder="请输入应用描述"
+                    class="field-input"
+                />
             </div>
 
             <div class="form-field">
                 <label class="field-label">图标路径 (可选)</label>
                 <div class="icon-input-group">
-                    <Input v-model="form.icon" placeholder="请输入图标路径或URL" class="field-input" />
-                    <Button icon="pi pi-image" @click="selectIcon" class="browse-btn" title="选择图标" />
+                    <Input
+                        v-model="form.icon"
+                        placeholder="请输入图标路径或URL"
+                        class="field-input"
+                    />
+                    <Button
+                        icon="pi pi-image"
+                        class="browse-btn"
+                        title="选择图标"
+                        @click="selectIcon"
+                    />
                 </div>
             </div>
 
-            <div v-if="form.icon" class="icon-preview">
+            <div
+                v-if="form.icon"
+                class="icon-preview"
+            >
                 <label class="field-label">图标预览</label>
                 <div class="preview-container">
-                    <img v-if="form.icon" :src="form.icon" :alt="form.name" class="preview-icon" @error="onIconError" />
-                    <div v-if="iconError" class="icon-error">
+                    <img
+                        v-if="form.icon"
+                        :src="form.icon"
+                        :alt="form.name"
+                        class="preview-icon"
+                        @error="onIconError"
+                    >
+                    <div
+                        v-if="iconError"
+                        class="icon-error"
+                    >
                         <i class="pi pi-exclamation-triangle" />
                         <span>图标加载失败</span>
                     </div>
@@ -68,9 +130,19 @@
 
         <template #footer>
             <div class="dialog-footer">
-                <Button label="取消" icon="pi pi-times" @click="cancel" class="p-button-secondary" />
-                <Button label="添加" icon="pi pi-check" @click="confirm" :disabled="!isFormValid"
-                    class="p-button-primary" />
+                <Button
+                    label="取消"
+                    icon="pi pi-times"
+                    class="p-button-secondary"
+                    @click="cancel"
+                />
+                <Button
+                    label="添加"
+                    icon="pi pi-check"
+                    :disabled="!isFormValid"
+                    class="p-button-primary"
+                    @click="confirm"
+                />
             </div>
         </template>
     </Dialog>
@@ -101,7 +173,7 @@ const emit = defineEmits<Emits>()
 
 const isVisible = computed({
     get: () => props.show,
-    set: (value) => emit('update:show', value)
+    set: (value) => emit('update:show', value),
 })
 
 const iconError = ref(false)
@@ -112,20 +184,20 @@ const form = reactive({
     path: '',
     category: 'utility',
     description: '',
-    icon: ''
+    icon: '',
 })
 
 // 对话框标题
 const dialogTitle = computed(() => {
     switch (props.type) {
-        case 'file':
-            return '添加文件'
-        case 'folder':
-            return '添加文件夹'
-        case 'url':
-            return '添加网址'
-        default:
-            return '添加应用'
+    case 'file':
+        return '添加文件'
+    case 'folder':
+        return '添加文件夹'
+    case 'url':
+        return '添加网址'
+    default:
+        return '添加应用'
     }
 })
 
@@ -193,7 +265,7 @@ const confirm = () => {
         category: form.category,
         type: props.type,
         isSystem: false,
-        pinned: false
+        pinned: false,
     }
 
     // 只在有值时添加可选字段

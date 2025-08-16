@@ -1,14 +1,14 @@
 <!-- Slider 组件 - 包装 PrimeVue Slider 以支持自定义样式和暗色模式 -->
 <template>
-  <Slider
-    v-model="sliderValue"
-    v-bind="{
-      ...$attrs,
-      class: sliderClass
-    }"
-    @change="handleChange"
-    @slideend="handleSlideEnd"
-  />
+    <Slider
+        v-model="sliderValue"
+        v-bind="{
+            ...$attrs,
+            class: sliderClass
+        }"
+        @change="handleChange"
+        @slideend="handleSlideEnd"
+    />
 </template>
 
 <script setup lang="ts">
@@ -17,18 +17,18 @@ import Slider from 'primevue/slider'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  modelValue?: number | number[]
-  min?: number
-  max?: number
-  step?: number
-  range?: boolean
-  disabled?: boolean
+    modelValue?: number | number[]
+    min?: number
+    max?: number
+    step?: number
+    range?: boolean
+    disabled?: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: number | number[]): void
-  (e: 'change', value: number | number[]): void
-  (e: 'slideend', value: number | number[]): void
+    (e: 'update:modelValue', value: number | number[]): void
+    (e: 'change', value: number | number[]): void
+    (e: 'slideend', value: number | number[]): void
 }
 
 const props = defineProps<Props>()
@@ -40,31 +40,31 @@ const sliderValue = ref(props.modelValue || 0)
 
 // 监听外部值变化
 watch(() => props.modelValue, (newValue) => {
-  sliderValue.value = newValue || 0
+    sliderValue.value = newValue || 0
 })
 
 // 监听内部值变化
 watch(sliderValue, (newValue) => {
-  emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue)
 })
 
 const handleChange = (value: number | number[]) => {
-  emit('change', value)
+    emit('change', value)
 }
 
 const handleSlideEnd = (event: { value: number | number[] }) => {
-  emit('slideend', event.value)
+    emit('slideend', event.value)
 }
 
 // 计算滑块样式类
 const sliderClass = computed(() => {
-  const classes = ['custom-slider']
+    const classes = ['custom-slider']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

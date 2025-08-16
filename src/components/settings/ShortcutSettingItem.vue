@@ -2,24 +2,37 @@
     <div class="setting-item">
         <InputGroup class="w-full no-border">
             <!-- 快捷键类型标记（放在最前面） -->
-            <InputGroupAddon v-if="shortcutType" class="border-0">
+            <InputGroupAddon
+                v-if="shortcutType"
+                class="border-0"
+            >
                 <div class="px-3 py-2">
-                    <Badge :value="shortcutType === 'global' ? '全局' : '应用内'"
-                        :severity="shortcutType === 'global' ? 'info' : 'secondary'" size="small" />
+                    <Badge
+                        :value="shortcutType === 'global' ? '全局' : '应用内'"
+                        :severity="shortcutType === 'global' ? 'info' : 'secondary'"
+                        size="small"
+                    />
                 </div>
             </InputGroupAddon>
 
             <!-- 标题部分 -->
             <InputGroupAddon class="bg-gray-50 dark:bg-gray-700 border-0">
                 <div class="flex items-center gap-2 px-3 py-2 min-w-0">
-                    <i v-if="icon" :class="[icon, iconColor]" class="flex-shrink-0" />
+                    <i
+                        v-if="icon"
+                        :class="[icon, iconColor]"
+                        class="flex-shrink-0"
+                    />
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <span class="font-medium text-gray-900 dark:text-white text-sm truncate">
                             {{ title }}
                         </span>
-                        <i v-if="tooltip" v-tooltip.top="tooltip"
+                        <i
+                            v-if="tooltip"
+                            v-tooltip.top="tooltip"
                             class="pi pi-info-circle text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm flex-shrink-0"
-                            style="margin-left: 8px;" />
+                            style="margin-left: 8px;"
+                        />
                     </div>
                 </div>
             </InputGroupAddon>
@@ -27,25 +40,52 @@
             <!-- 快捷键输入部分（填满宽度） -->
             <InputGroupAddon class="flex-1 border-0 p-0 fill-width">
                 <IftaLabel class="w-full">
-                    <KeyCaptureInput v-if="conflictChecker" v-model="inputValue" :conflict-checker="conflictChecker"
-                        class="w-full shortcut-input" @change="handleChange" @conflict="handleConflict"
-                        @focus="handleFocus" @blur="handleBlur" />
-                    <KeyCaptureInput v-else v-model="inputValue" class="w-full shortcut-input" @change="handleChange"
-                        @conflict="handleConflict" @focus="handleFocus" @blur="handleBlur" />
+                    <KeyCaptureInput
+                        v-if="conflictChecker"
+                        v-model="inputValue"
+                        :conflict-checker="conflictChecker"
+                        class="w-full shortcut-input"
+                        @change="handleChange"
+                        @conflict="handleConflict"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                    />
+                    <KeyCaptureInput
+                        v-else
+                        v-model="inputValue"
+                        class="w-full shortcut-input"
+                        @change="handleChange"
+                        @conflict="handleConflict"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                    />
                     <label>{{ placeholder || '点击设置快捷键' }}</label>
                 </IftaLabel>
             </InputGroupAddon>
 
             <!-- 操作按钮（根据isBuiltIn属性控制显示） -->
-            <InputGroupAddon v-if="showDeleteButton && !isBuiltIn" class="border-0">
-                <Button icon="pi pi-trash" size="small" variant="text" severity="danger" class="px-2 py-2"
-                    @click="handleDelete" v-tooltip.top="'清除快捷键'" />
+            <InputGroupAddon
+                v-if="showDeleteButton && !isBuiltIn"
+                class="border-0"
+            >
+                <Button
+                    v-tooltip.top="'清除快捷键'"
+                    icon="pi pi-trash"
+                    size="small"
+                    variant="text"
+                    severity="danger"
+                    class="px-2 py-2"
+                    @click="handleDelete"
+                />
             </InputGroupAddon>
         </InputGroup>
 
         <!-- 冲突提示 -->
-        <div v-if="conflictMessage" class="text-red-500 text-sm mt-1 flex items-center gap-1 px-3">
-            <i class="pi pi-exclamation-triangle"></i>
+        <div
+            v-if="conflictMessage"
+            class="text-red-500 text-sm mt-1 flex items-center gap-1 px-3"
+        >
+            <i class="pi pi-exclamation-triangle" />
             <span>{{ conflictMessage }}</span>
         </div>
     </div>
@@ -84,7 +124,7 @@ const props = withDefaults(defineProps<Props>(), {
     modelValue: '',
     placeholder: '点击设置快捷键',
     showDeleteButton: false,
-    isBuiltIn: false
+    isBuiltIn: false,
 })
 
 const emit = defineEmits<Emits>()

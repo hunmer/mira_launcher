@@ -191,7 +191,7 @@ class PerformanceMonitor {
    */
   private dispatchPerformanceEvent(type: string, data: any) {
     const event = new CustomEvent('performance-event', {
-      detail: { type, data, timestamp: Date.now() }
+      detail: { type, data, timestamp: Date.now() },
     })
     window.dispatchEvent(event)
   }
@@ -251,7 +251,7 @@ class PerformanceMonitor {
 
     const metric = this.pluginMetrics.get(pluginId)
     if (metric) {
-      ; (metric as any).activationStartTime = startTime
+      (metric as any).activationStartTime = startTime
     }
 
     // 更新总插件数
@@ -407,11 +407,11 @@ export function setupPerformanceMonitor(app: App) {
 
     // 监听路由变化
     window.addEventListener('beforeunload', () => {
-      console.log(`[Performance] Final stats:`, performanceMonitor.getPerformanceReport())
+      console.log('[Performance] Final stats:', performanceMonitor.getPerformanceReport())
     })
 
-      // 暴露到全局以便调试
-      ; (window as any).__performanceMonitor = performanceMonitor
+    // 暴露到全局以便调试
+    ; (window as any).__performanceMonitor = performanceMonitor
 
     console.log('[Performance Monitor] Initialized for development environment')
   }

@@ -1,70 +1,70 @@
 <template>
-  <Menubar 
-    :model="currentMenuItems" 
-    class="top-menubar"
-  >
-    <template #item="{ item, props, hasSubmenu }">
-      <router-link 
-        v-if="item['route']" 
-        v-slot="{ href, navigate, isActive }" 
-        :to="item['route']" 
-        custom
-      >
-        <a 
-          v-ripple 
-          :href="href" 
-          v-bind="props.action" 
-          :class="{ 'active-menu-item': isActive }"
-          @click="navigate"
-        >
-          <span 
-            v-if="item.icon" 
-            :class="item.icon" 
-          />
-          <span>{{ item.label }}</span>
-          <i 
-            v-if="hasSubmenu" 
-            class="pi pi-angle-down ml-2" 
-          />
-        </a>
-      </router-link>
-      <a 
-        v-else 
-        v-ripple 
-        v-bind="props.action"
-        @click="handleMenuClick(item, $event)"
-      >
-        <span 
-          v-if="item.icon" 
-          :class="item.icon" 
-        />
-        <span>{{ item.label }}</span>
-        <i 
-          v-if="hasSubmenu" 
-          class="pi pi-angle-down ml-2" 
-        />
-      </a>
-    </template>
+    <Menubar 
+        :model="currentMenuItems" 
+        class="top-menubar"
+    >
+        <template #item="{ item, props, hasSubmenu }">
+            <router-link 
+                v-if="item['route']" 
+                v-slot="{ href, navigate, isActive }" 
+                :to="item['route']" 
+                custom
+            >
+                <a 
+                    v-ripple 
+                    :href="href" 
+                    v-bind="props.action" 
+                    :class="{ 'active-menu-item': isActive }"
+                    @click="navigate"
+                >
+                    <span 
+                        v-if="item.icon" 
+                        :class="item.icon" 
+                    />
+                    <span>{{ item.label }}</span>
+                    <i 
+                        v-if="hasSubmenu" 
+                        class="pi pi-angle-down ml-2" 
+                    />
+                </a>
+            </router-link>
+            <a 
+                v-else 
+                v-ripple 
+                v-bind="props.action"
+                @click="handleMenuClick(item, $event)"
+            >
+                <span 
+                    v-if="item.icon" 
+                    :class="item.icon" 
+                />
+                <span>{{ item.label }}</span>
+                <i 
+                    v-if="hasSubmenu" 
+                    class="pi pi-angle-down ml-2" 
+                />
+            </a>
+        </template>
 
-    <template #end>
-      <div class="flex items-center gap-2">
-        <Button 
-          icon="pi pi-search" 
-          text 
-          rounded 
-          aria-label="Search"
-          @click="toggleSearch"
-        />
-        <Button 
-          icon="pi pi-bell" 
-          text 
-          rounded 
-          aria-label="Notifications"
-          @click="showNotifications"
-        />
-      </div>
-    </template>
-  </Menubar>
+        <template #end>
+            <div class="flex items-center gap-2">
+                <Button 
+                    icon="pi pi-search" 
+                    text 
+                    rounded 
+                    aria-label="Search"
+                    @click="toggleSearch"
+                />
+                <Button 
+                    icon="pi pi-bell" 
+                    text 
+                    rounded 
+                    aria-label="Notifications"
+                    @click="showNotifications"
+                />
+            </div>
+        </template>
+    </Menubar>
 </template>
 
 <script setup lang="ts">
@@ -80,125 +80,125 @@ const { setLayoutMode: changeLayoutMode, setIconSize: changeIconSize } = useAppl
 
 // 全局菜单项
 const globalMenuItems: MenuItem[] = [
-  {
-    label: '菜单',
-    icon: 'pi pi-bars',
-    items: [
-      {
-        label: '首页',
-        icon: 'pi pi-home',
-        route: '/home',
-      },
-      {
-        label: '应用程序',
-        icon: 'pi pi-th-large',
-        route: '/',
-      },
-      {
-        label: '插件管理',
-        icon: 'pi pi-puzzle-piece',
-        route: '/plugins',
-      },
-      {
-        separator: true,
-      },
-      {
-        label: '设置',
-        icon: 'pi pi-cog',
-        route: '/settings',
-      },
-      {
-        label: '关于',
-        icon: 'pi pi-info-circle',
-        route: '/about',
-      },
-    ],
-  },
+    {
+        label: '菜单',
+        icon: 'pi pi-bars',
+        items: [
+            {
+                label: '首页',
+                icon: 'pi pi-home',
+                route: '/home',
+            },
+            {
+                label: '应用程序',
+                icon: 'pi pi-th-large',
+                route: '/',
+            },
+            {
+                label: '插件管理',
+                icon: 'pi pi-puzzle-piece',
+                route: '/plugins',
+            },
+            {
+                separator: true,
+            },
+            {
+                label: '设置',
+                icon: 'pi pi-cog',
+                route: '/settings',
+            },
+            {
+                label: '关于',
+                icon: 'pi pi-info-circle',
+                route: '/about',
+            },
+        ],
+    },
 ]
 
 // Applications 页面特有的菜单项
 const layoutMenuItems: MenuItem[] = [
-  {
-    label: '布局',
-    icon: 'pi pi-layout',
-    items: [
-      {
-        label: '网格视图',
-        icon: 'pi pi-th-large',
-        command: () => switchLayout('grid'),
-      },
-      {
-        label: '列表视图',
-        icon: 'pi pi-list',
-        command: () => switchLayout('list'),
-      },
-      {
-        separator: true,
-      },
-      {
-        label: '小图标',
-        icon: 'pi pi-circle',
-        command: () => setIconSize('small'),
-      },
-      {
-        label: '中图标',
-        icon: 'pi pi-circle-fill',
-        command: () => setIconSize('medium'),
-      },
-      {
-        label: '大图标',
-        icon: 'pi pi-stop-circle',
-        command: () => setIconSize('large'),
-      },
-    ],
-  },
+    {
+        label: '布局',
+        icon: 'pi pi-layout',
+        items: [
+            {
+                label: '网格视图',
+                icon: 'pi pi-th-large',
+                command: () => switchLayout('grid'),
+            },
+            {
+                label: '列表视图',
+                icon: 'pi pi-list',
+                command: () => switchLayout('list'),
+            },
+            {
+                separator: true,
+            },
+            {
+                label: '小图标',
+                icon: 'pi pi-circle',
+                command: () => setIconSize('small'),
+            },
+            {
+                label: '中图标',
+                icon: 'pi pi-circle-fill',
+                command: () => setIconSize('medium'),
+            },
+            {
+                label: '大图标',
+                icon: 'pi pi-stop-circle',
+                command: () => setIconSize('large'),
+            },
+        ],
+    },
 ]
 
 // 根据当前路由计算菜单项
 const currentMenuItems = computed((): MenuItem[] => {
-  const baseItems = [...globalMenuItems]
+    const baseItems = [...globalMenuItems]
   
-  // 如果在 Applications 页面，添加布局菜单
-  if (route.name === 'Applications') {
-    baseItems.push(...layoutMenuItems)
-  }
+    // 如果在 Applications 页面，添加布局菜单
+    if (route.name === 'Applications') {
+        baseItems.push(...layoutMenuItems)
+    }
   
-  return baseItems
+    return baseItems
 })
 
 // 菜单事件处理
 const handleMenuClick = (item: MenuItem, event: MouseEvent) => {
-  if (item.command) {
-    const menuEvent = {
-      originalEvent: event,
-      item,
+    if (item.command) {
+        const menuEvent = {
+            originalEvent: event,
+            item,
+        }
+        item.command(menuEvent)
     }
-    item.command(menuEvent)
-  }
 }
 
 const toggleSearch = () => {
-  console.log('Toggle search')
-  // 这里可以触发搜索功能
+    console.log('Toggle search')
+    // 这里可以触发搜索功能
 }
 
 const showNotifications = () => {
-  console.log('Show notifications')
-  // 这里可以显示通知
+    console.log('Show notifications')
+    // 这里可以显示通知
 }
 
 const switchLayout = (layout: string) => {
-  console.log('Switch layout to:', layout)
-  if (layout === 'grid' || layout === 'list') {
-    changeLayoutMode(layout)
-  }
+    console.log('Switch layout to:', layout)
+    if (layout === 'grid' || layout === 'list') {
+        changeLayoutMode(layout)
+    }
 }
 
 const setIconSize = (size: string) => {
-  console.log('Set icon size to:', size)
-  if (size === 'small' || size === 'medium' || size === 'large') {
-    changeIconSize(size)
-  }
+    console.log('Set icon size to:', size)
+    if (size === 'small' || size === 'medium' || size === 'large') {
+        changeIconSize(size)
+    }
 }
 </script>
 

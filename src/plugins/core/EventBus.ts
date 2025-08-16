@@ -28,7 +28,7 @@ export class EventBus {
   on<T = unknown>(
     type: PluginEventType,
     listener: EventListener<T>,
-    options: EventListenerOptions = {}
+    options: EventListenerOptions = {},
   ): void {
     if (this.isDestroyed) {
       console.warn('[EventBus] Cannot add listener to destroyed event bus')
@@ -300,7 +300,7 @@ export class EventBus {
     eventTypes: PluginEventType[]
     historySize: number
     isDestroyed: boolean
-  } {
+    } {
     return {
       listenerCount: this.getListenerCount(),
       eventTypes: this.getEventTypes(),
@@ -351,7 +351,7 @@ export const eventBusUtils = {
    */
   createDebouncedListener<T>(
     listener: EventListener<T>,
-    delay: number
+    delay: number,
   ): EventListener<T> {
     let timeoutId: number | undefined
 
@@ -371,7 +371,7 @@ export const eventBusUtils = {
    */
   createThrottledListener<T>(
     listener: EventListener<T>,
-    delay: number
+    delay: number,
   ): EventListener<T> {
     let lastCall = 0
 

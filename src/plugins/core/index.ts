@@ -16,14 +16,14 @@ export { PluginSettingsService } from './PluginSettingsService'
 export { BaseQueue } from './BaseQueue'
 export {
   CircularQueue, DelayedQueue, FIFOQueue,
-  PriorityQueue, QueueFactory
+  PriorityQueue, QueueFactory,
 } from './QueueFactory'
 export { TaskExecutor } from './TaskExecutor'
 
 // 任务调度系统 (Task 2)
 export { default as ConcurrencyController } from './ConcurrencyController'
 export {
-  globalSchedulerMonitor, default as SchedulerPerformanceMonitor
+  globalSchedulerMonitor, default as SchedulerPerformanceMonitor,
 } from './SchedulerPerformanceMonitor'
 export { default as TaskScheduler } from './TaskScheduler'
 
@@ -39,7 +39,7 @@ export { default as RetryHandler } from './RetryHandler'
 // } from './QueueTest'
 
 export {
-  runSchedulerTests, testConcurrencyController, testMixedMode, testModeSwitch, testParallelMode, testRateLimit, testSerialMode, testTaskCancellation
+  runSchedulerTests, testConcurrencyController, testMixedMode, testModeSwitch, testParallelMode, testRateLimit, testSerialMode, testTaskCancellation,
 } from './SchedulerTest'
 
 // 工具函数
@@ -49,7 +49,7 @@ export { usePluginStore } from '@/stores/plugin'
 export type {
   EventListener,
   EventListenerOptions, ITaskQueue, PluginAPI, PluginConfiguration, PluginEvent, PluginEventType, PluginInfo, PluginLifecycleEvent, PluginMetadata, PluginRegistryEntry, PluginState, PluginStats, QueueConfig, QueueEventContext, QueueStats, QueueType, Task, TaskExecutorOptions,
-  TaskExecutorStats, TaskMetadata, TaskState
+  TaskExecutorStats, TaskMetadata, TaskState,
 } from '@/types/plugin'
 
 // 导入核心类用于函数内部使用
@@ -105,7 +105,7 @@ export function createPluginSystem(config?: {
 
     async destroy() {
       return await pluginManager.destroy()
-    }
+    },
   }
 }
 

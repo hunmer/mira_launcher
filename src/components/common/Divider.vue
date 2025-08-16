@@ -1,13 +1,13 @@
 <!-- Divider 组件 - 包装 PrimeVue Divider 以支持自定义样式和暗色模式 -->
 <template>
-  <Divider
-    v-bind="{
-      ...$attrs,
-      class: dividerClass
-    }"
-  >
-    <slot />
-  </Divider>
+    <Divider
+        v-bind="{
+            ...$attrs,
+            class: dividerClass
+        }"
+    >
+        <slot />
+    </Divider>
 </template>
 
 <script setup lang="ts">
@@ -19,13 +19,13 @@ const themeStore = useThemeStore()
 
 // 计算分割线样式类
 const dividerClass = computed(() => {
-  const classes = ['custom-divider']
+    const classes = ['custom-divider']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 

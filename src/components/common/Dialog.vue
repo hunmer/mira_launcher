@@ -1,21 +1,21 @@
 <!-- Dialog 组件 - 包装 PrimeVue Dialog 以支持自定义样式和暗色模式 -->
 <template>
-  <Dialog
-    v-model:visible="dialogVisible"
-    v-bind="{
-      ...$attrs,
-      class: dialogClass
-    }"
-    @hide="handleHide"
-  >
-    <template #header>
-      <slot name="header" />
-    </template>
-    <slot />
-    <template #footer>
-      <slot name="footer" />
-    </template>
-  </Dialog>
+    <Dialog
+        v-model:visible="dialogVisible"
+        v-bind="{
+            ...$attrs,
+            class: dialogClass
+        }"
+        @hide="handleHide"
+    >
+        <template #header>
+            <slot name="header" />
+        </template>
+        <slot />
+        <template #footer>
+            <slot name="footer" />
+        </template>
+    </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -24,16 +24,16 @@ import Dialog from 'primevue/dialog'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-  visible?: boolean
+    visible?: boolean
 }
 
 interface Emits {
-  (e: 'update:visible', value: boolean): void
-  (e: 'hide'): void
+    (e: 'update:visible', value: boolean): void
+    (e: 'hide'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: false,
+    visible: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -44,27 +44,27 @@ const dialogVisible = ref(props.visible)
 
 // 监听外部值变化
 watch(() => props.visible, (newValue) => {
-  dialogVisible.value = newValue
+    dialogVisible.value = newValue
 })
 
 // 监听内部值变化
 watch(dialogVisible, (newValue) => {
-  emit('update:visible', newValue)
+    emit('update:visible', newValue)
 })
 
 const handleHide = () => {
-  emit('hide')
+    emit('hide')
 }
 
 // 计算对话框样式类
 const dialogClass = computed(() => {
-  const classes = ['custom-dialog']
+    const classes = ['custom-dialog']
   
-  if (themeStore.currentTheme === 'dark') {
-    classes.push('dark-theme')
-  }
+    if (themeStore.currentTheme === 'dark') {
+        classes.push('dark-theme')
+    }
   
-  return classes.join(' ')
+    return classes.join(' ')
 })
 </script>
 
