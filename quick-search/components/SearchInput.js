@@ -104,24 +104,6 @@ const SearchInput = {
 
         // 键盘事件处理
         const handleKeyDown = (e) => {
-            // 处理 Ctrl+A 全选
-            if (e.ctrlKey && e.key === 'a') {
-                e.preventDefault()
-                if (input.value) {
-                    input.value.select()
-                }
-                return
-            }
-
-            // 禁用其他 Ctrl 快捷键（除了 F12）
-            if (e.ctrlKey && !['F12'].includes(e.key)) {
-                const allowedKeys = ['a', 'c', 'v', 'x', 'z', 'y'] // 允许基本编辑操作
-                if (!allowedKeys.includes(e.key.toLowerCase())) {
-                    e.preventDefault()
-                    return
-                }
-            }
-
             // 发送键盘事件给父组件处理导航逻辑
             emit('keydown', e)
 

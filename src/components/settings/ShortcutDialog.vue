@@ -23,7 +23,6 @@
             <div class="space-y-3">
                 <IftaLabel>
                     <IconField class="w-full">
-                        <InputIcon class="pi pi-cog" />
                         <FilterSelect v-model="formData.actionId" :options="availableActions" option-label="name"
                             option-value="id" placeholder="选择要执行的动作" :loading="actionsLoading" :show-clear="true"
                             class="w-full filter-select-full-width">
@@ -33,7 +32,7 @@
                                     <div>
                                         <div class="font-medium">{{ option.name }}</div>
                                         <small class="text-gray-500" v-if="option.description">{{ option.description
-                                        }}</small>
+                                            }}</small>
                                     </div>
                                 </div>
                             </template>

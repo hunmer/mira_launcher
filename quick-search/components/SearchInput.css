@@ -92,7 +92,7 @@
 }
 
 .search-input::placeholder {
-  color: var(--text-placeholder);
+  color: rgba(107, 114, 128, 0.8);
   font-weight: 300;
 }
 
@@ -145,13 +145,15 @@
 }
 
 .pin-button.pinned {
-  color: #4F46E5;
-  background-color: rgba(79, 70, 229, 0.2);
-  border-color: rgba(79, 70, 229, 0.4);
+  color: white;
+  background-color: #4F46E5;
+  border-color: #4F46E5;
+  font-weight: 600;
 }
 
 .pin-button.pinned:hover {
-  background-color: rgba(79, 70, 229, 0.3);
+  background-color: #3730A3;
+  border-color: #3730A3;
 }
 
 /* 主题切换按钮特殊样式 */
@@ -200,14 +202,16 @@
   }
 
   .pin-button.pinned {
-    color: #60a5fa;
-    background-color: rgba(96, 165, 250, 0.2);
-    border-color: rgba(96, 165, 250, 0.4);
+    color: white;
+    background-color: #60a5fa;
+    border-color: #60a5fa;
+    font-weight: 600;
   }
 
   .pin-button.pinned:hover {
-    background-color: rgba(96, 165, 250, 0.3);
-    color: #60a5fa;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
   }
 
   .search-input {
@@ -257,15 +261,17 @@
 
 .dark .pin-button.pinned,
 [data-theme="dark"] .pin-button.pinned {
-  color: #60a5fa;
-  background-color: rgba(96, 165, 250, 0.2);
-  border-color: rgba(96, 165, 250, 0.4);
+  color: white;
+  background-color: #60a5fa;
+  border-color: #60a5fa;
+  font-weight: 600;
 }
 
 .dark .pin-button.pinned:hover,
 [data-theme="dark"] .pin-button.pinned:hover {
-  background-color: rgba(96, 165, 250, 0.3);
-  color: #60a5fa;
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
 }
 
 .dark .search-input,

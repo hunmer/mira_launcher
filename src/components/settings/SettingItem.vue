@@ -21,13 +21,15 @@
             <InputGroupAddon v-if="(type === 'text' || type === 'select' || type === 'number') && !rightControl"
                 class="flex-1 border-0 p-0">
                 <!-- 输入框类型 -->
-                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder" :readonly="readonly"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder || ''"
+                    :readonly="readonly || false" class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate" />
 
                 <!-- 下拉选择 -->
                 <Dropdown v-else-if="type === 'select'" v-model="inputValue" :options="options || []"
-                    :option-label="optionLabel" :option-value="optionValue" :placeholder="placeholder"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                    :option-label="optionLabel || 'label'" :option-value="optionValue || 'value'"
+                    :placeholder="placeholder || ''" class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate" />
 
                 <!-- 数字输入 -->
                 <InputNumber v-else-if="type === 'number'" v-model="inputValue" :placeholder="placeholder"
@@ -39,13 +41,15 @@
                 v-if="(type === 'text' || type === 'select' || type === 'number') && rightControl && rightControl !== 'switch'"
                 class="flex-1 border-0 p-0">
                 <!-- 输入框类型 -->
-                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder" :readonly="readonly"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                <InputText v-if="type === 'text'" v-model="inputValue" :placeholder="placeholder || ''"
+                    :readonly="readonly || false" class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate" />
 
                 <!-- 下拉选择 -->
                 <Dropdown v-else-if="type === 'select'" v-model="inputValue" :options="options || []"
-                    :option-label="optionLabel" :option-value="optionValue" :placeholder="placeholder"
-                    class="w-full border-0 rounded-none" @update:model-value="handleUpdate" />
+                    :option-label="optionLabel || 'label'" :option-value="optionValue || 'value'"
+                    :placeholder="placeholder || ''" class="w-full border-0 rounded-none"
+                    @update:model-value="handleUpdate" />
 
                 <!-- 数字输入 -->
                 <InputNumber v-else-if="type === 'number'" v-model="inputValue" :placeholder="placeholder"

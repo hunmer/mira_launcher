@@ -1,7 +1,7 @@
 <template>
     <div class="key-capture-input relative w-full">
-        <InputText ref="inputRef" v-model="displayValue" :placeholder="placeholder" :readonly="true" class="w-full"
-            @focus="handleFocus" @blur="handleBlur" @keydown="handleKeyDown" />
+        <InputText ref="inputRef" v-model="displayValue" :placeholder="placeholder || ''" :readonly="true"
+            class="w-full" @focus="handleFocus" @blur="handleBlur" @keydown="handleKeyDown" />
 
         <!-- 冲突提示 -->
         <div v-if="conflictInfo" class="text-red-500 text-sm mt-1 flex items-center gap-1">

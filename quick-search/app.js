@@ -4,7 +4,7 @@
 // 基于 CDN 版本的 Vue 3 和 PrimeVue
 // 集成Tauri事件通信系统
 
-const { createApp, ref, onMounted, nextTick } = window.Vue
+const { createApp, ref, onMounted, onUnmounted, nextTick } = window.Vue
 
 // 主应用组件定义
 const QuickSearchApp = {
@@ -115,6 +115,8 @@ const QuickSearchApp = {
 
         // 搜索防抖计时器
         let searchTimeout = null
+        // 请求搜索数据的节流计时器
+        let requestDataTimeout = null
 
         // 检查是否在 Tauri 环境中
         const isTauriEnvironment = () => {
@@ -153,10 +155,15 @@ const QuickSearchApp = {
                 // 监听来自主窗口的搜索数据
                 await currentWindow.listen('search-data-updated', eventData => {
                     console.log('收到搜索数据:', eventData.payload)
-                    searchData.value = eventData.payload || []
+                    const receivedData = eventData.payload || []
+
+                    // 现在接收到的数据已经是主进程筛选过的结果
+                    // 如果有查询词，直接使用筛选后的结果
                     if (searchQuery.value.trim()) {
-                        performSearch(searchQuery.value)
+                        currentResults.value = receivedData
                     } else {
+                        // 如果没有查询词，将数据存储为原始数据并显示默认结果
+                        searchData.value = receivedData
                         loadDefaultResults()
                     }
                 })
@@ -167,6 +174,31 @@ const QuickSearchApp = {
                 // 降级到 postMessage
                 setupMessageListener()
             }
+        }
+
+        // 通过 Tauri 事件请求搜索数据（节流版本）
+        const requestSearchDataTauriThrottled = async (query = '') => {
+            // 清除之前的计时器
+            if (requestDataTimeout) {
+                clearTimeout(requestDataTimeout)
+            }
+
+            // 节流请求搜索数据
+            requestDataTimeout = setTimeout(async () => {
+                try {
+                    if (!window.__TAURI__) {
+                        throw new Error('Tauri API not available')
+                    }
+
+                    const { event } = window.__TAURI__
+                    await event.emit('request-search-data', { query })
+                    console.log('已通过 Tauri 事件发送搜索数据请求, 查询:', query)
+                } catch (error) {
+                    console.error('Tauri 事件请求失败:', error)
+                    // 降级到 postMessage
+                    await requestSearchData()
+                }
+            }, 200) // 200ms 节流延迟
         }
 
         // 通过 Tauri 事件请求搜索数据
@@ -190,10 +222,13 @@ const QuickSearchApp = {
         const setupMessageListener = () => {
             window.addEventListener('message', event => {
                 if (event.data && event.data.type === 'search-data-updated') {
-                    searchData.value = event.data.payload || []
+                    const receivedData = event.data.payload || []
+
+                    // 处理与 Tauri 事件监听器相同的逻辑
                     if (searchQuery.value.trim()) {
-                        performSearch(searchQuery.value)
+                        currentResults.value = receivedData
                     } else {
+                        searchData.value = receivedData
                         loadDefaultResults()
                     }
                 }
@@ -253,15 +288,15 @@ const QuickSearchApp = {
         // 处理搜索输入 (替换为SearchInput组件的回调)
         const handleSearch = (query) => {
             searchQuery.value = query
-            if (!query.trim()) {
-                loadDefaultResults()
-            } else {
-                performSearch(query)
-            }
-            selectedIndex.value = -1
-        }
 
-        // 搜索焦点事件处理
+            // 在每次输入后节流请求搜索数据
+            if (isTauriEnvironment()) {
+                requestSearchDataTauriThrottled(query)
+            }
+
+            // 不再在这里进行本地搜索，等待主进程返回筛选后的数据
+            selectedIndex.value = -1
+        }        // 搜索焦点事件处理
         const handleSearchFocus = () => {
             // 搜索获得焦点时的处理逻辑
             console.log('Search input focused')
@@ -410,17 +445,17 @@ const QuickSearchApp = {
 
             // 防抖搜索
             searchTimeout = setTimeout(() => {
-                if (!searchQuery.value.trim()) {
-                    loadDefaultResults()
-                } else {
-                    performSearch(searchQuery.value)
+                // 在搜索执行时也节流请求搜索数据
+                if (isTauriEnvironment()) {
+                    requestSearchDataTauriThrottled(searchQuery.value)
                 }
+
+                // 不再在这里进行本地搜索，等待主进程返回筛选后的数据
                 selectedIndex.value = -1
             }, 300)
-        }
-
-        // 执行搜索
+        }        // 执行搜索 (备用方案，主要搜索逻辑现在在主进程中)
         const performSearch = (query) => {
+            console.log('使用备用搜索逻辑，查询:', query)
             const queryLower = query.toLowerCase()
             const results = []
 
@@ -641,6 +676,16 @@ const QuickSearchApp = {
 
             // 全局键盘事件监听
             document.addEventListener('keydown', (e) => {
+                // 处理 Ctrl+A 全选
+                if (e.ctrlKey && e.key === 'a') {
+                    const activeElement = document.activeElement
+                    if (activeElement && activeElement.tagName === 'INPUT') {
+                        e.preventDefault()
+                        activeElement.select()
+                        return
+                    }
+                }
+
                 // 禁用常见的浏览器快捷键（除了F12）
                 if (e.ctrlKey && !['F12'].includes(e.key)) {
                     const allowedKeys = ['a', 'c', 'v', 'x', 'z', 'y'] // 基本编辑操作
@@ -688,6 +733,23 @@ const QuickSearchApp = {
                     })
                 })
             }
+        })
+
+        // 组件卸载前清理
+        onUnmounted(() => {
+            // 清理搜索防抖计时器
+            if (searchTimeout) {
+                clearTimeout(searchTimeout)
+                searchTimeout = null
+            }
+
+            // 清理请求数据节流计时器
+            if (requestDataTimeout) {
+                clearTimeout(requestDataTimeout)
+                requestDataTimeout = null
+            }
+
+            console.log('计时器已清理')
         })
 
         return {

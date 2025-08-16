@@ -10,7 +10,6 @@ const Plugins = () => import('@/views/Plugins.vue')
 const PluginStore = () => import('@/views/PluginStore.vue')
 const About = () => import('@/views/About.vue')
 const UITest = () => import('@/views/UITest.vue')
-const QuickSearchPage = () => import('@/views/QuickSearchPage.vue')
 
 // 路由配置
 const routes: RouteRecordRaw[] = [
@@ -93,18 +92,6 @@ const routes: RouteRecordRaw[] = [
       icon: 'info',
       transition: 'fade',
       requiresAuth: false,
-    },
-  },
-  {
-    path: '/quick-search',
-    name: 'QuickSearch',
-    component: QuickSearchPage,
-    meta: {
-      title: '快速搜索',
-      icon: 'search',
-      transition: 'fade',
-      requiresAuth: false,
-      hideInMenu: true, // 不在菜单中显示
     },
   },
   {

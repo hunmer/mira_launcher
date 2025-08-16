@@ -9,6 +9,13 @@ import { usePluginStore } from '@/stores/plugin'
 import { listen } from '@tauri-apps/api/event'
 
 /**
+ * 搜索数据请求事件载荷
+ */
+interface SearchDataRequestPayload {
+    query?: string
+}
+
+/**
  * 快速搜索窗口配置
  */
 interface QuickSearchWindowOptions {
@@ -54,15 +61,14 @@ async function setupEventListeners() {
 
     try {
         // 监听来自快速搜索窗口的数据请求
-        await listen('request-search-data', async () => {
-            console.log('[WindowManager] 收到搜索数据请求')
-            const searchData = await getSearchData()
+        await listen<SearchDataRequestPayload>('request-search-data', async (event) => {
+            const query = event.payload?.query || ''
+            const searchData = await getSearchData(query)
 
             // 向快速搜索窗口发送数据
             if (quickSearchWindow) {
                 try {
                     await quickSearchWindow.emit('search-data-updated', searchData)
-                    console.log('[WindowManager] 已发送搜索数据到快速搜索窗口')
                 } catch (error) {
                     console.error('[WindowManager] 发送搜索数据失败:', error)
                 }
@@ -87,13 +93,14 @@ async function setupEventListeners() {
 
 /**
  * 获取搜索数据
+ * @param query 搜索查询字符串，如果为空则返回所有数据
  */
-async function getSearchData() {
+async function getSearchData(query: string = '') {
     const gridStore = useGridStore()
     const pageStore = usePageStore()
     const pluginStore = usePluginStore()
 
-    const searchData = []
+    const allData = []
 
     try {
         // 应用程序数据
@@ -107,7 +114,7 @@ async function getSearchData() {
             category: '应用程序',
             tags: []
         }))
-        searchData.push(...apps)
+        allData.push(...apps)
 
         // 系统功能
         const systemFunctions = [
@@ -139,7 +146,7 @@ async function getSearchData() {
                 category: '系统功能'
             }
         ]
-        searchData.push(...systemFunctions)
+        allData.push(...systemFunctions)
 
         // 页面数据
         const pages = pageStore.pages.map(page => ({
@@ -152,7 +159,7 @@ async function getSearchData() {
             category: '页面',
             tags: []
         }))
-        searchData.push(...pages)
+        allData.push(...pages)
 
         // 插件数据 - 包含 search_regexps
         const plugins = pluginStore.plugins
@@ -170,14 +177,87 @@ async function getSearchData() {
                 version: plugin.metadata.version,
                 state: plugin.state
             }))
-        searchData.push(...plugins)
+        allData.push(...plugins)
 
-        console.log(`[WindowManager] 生成搜索数据: ${searchData.length} 项`)
-        return searchData
+        // 如果没有查询字符串，返回所有数据
+        if (!query.trim()) {
+            return allData
+        }
+
+        // 执行搜索筛选
+        return performSearch(allData, query)
     } catch (error) {
         console.error('[WindowManager] 获取搜索数据失败:', error)
         return []
     }
+}
+
+/**
+ * 执行搜索筛选
+ * @param data 所有数据
+ * @param query 搜索查询
+ */
+function performSearch(data: any[], query: string) {
+    const queryLower = query.toLowerCase()
+    const results = []
+
+    for (const item of data) {
+        let score = 0
+        let matched = false
+
+        // 基础匹配（名称、描述）
+        if (item.title && item.title.toLowerCase().includes(queryLower)) {
+            score += item.title.toLowerCase() === queryLower ? 100 : 50
+            matched = true
+        }
+
+        if (item.description && item.description.toLowerCase().includes(queryLower)) {
+            score += 20
+            matched = true
+        }
+
+        // 插件正则匹配 - 只对插件类型进行正则匹配
+        if (item.type === 'plugin' && item.search_regexps && Array.isArray(item.search_regexps)) {
+            for (const pattern of item.search_regexps) {
+                try {
+                    const regex = new RegExp(pattern, 'i')
+                    if (regex.test(query)) {
+                        score += 60
+                        matched = true
+                        console.log(`[WindowManager] 插件 ${item.title} 通过正则 ${pattern} 匹配查询: ${query}`)
+                    }
+                } catch (error) {
+                    console.warn(`[WindowManager] 无效的正则表达式: ${pattern}`, error)
+                }
+            }
+        }
+
+        // 标签匹配
+        if (item.tags && Array.isArray(item.tags)) {
+            for (const tag of item.tags) {
+                if (tag.toLowerCase().includes(queryLower)) {
+                    score += 15
+                    matched = true
+                }
+            }
+        }
+
+        // 分类匹配
+        if (item.category && item.category.toLowerCase().includes(queryLower)) {
+            score += 10
+            matched = true
+        }
+
+        if (matched) {
+            results.push({ ...item, score })
+        }
+    }
+
+    // 按评分排序并返回
+    const sortedResults = results.sort((a, b) => b.score - a.score)
+    console.log(`[WindowManager] 搜索 "${query}" 找到 ${sortedResults.length} 个结果`)
+
+    return sortedResults
 }
 
 /**
@@ -304,7 +384,6 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
             try {
                 // 确保窗口完全透明
                 await quickSearchWindow.setDecorations(false)
-                await quickSearchWindow.setTransparent(true)
 
                 // 尝试设置阴影（可能在某些平台上不可用）
                 try {
