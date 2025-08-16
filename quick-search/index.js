@@ -1,445 +1,491 @@
-// 从主应用获取搜索数据
-let searchData = []
+const { createApp } = Vue;
 
-class QuickSearch {
-    constructor() {
-        this.searchInput = document.getElementById('searchInput')
-        this.resultsContainer = document.getElementById('resultsContainer')
-        this.noResults = document.getElementById('noResults')
-        this.selectedIndex = -1
-        this.currentResults = []
+// 主应用组件
+const QuickSearchApp = {
+    name: 'QuickSearchApp',
+    template: `
+        <div class="quick-search-app min-h-screen">
+            <div class="mx-auto">
+                <!-- 顶部标题栏 -->
+                <HeaderBar
+                    :connection-status="connectionStatus"
+                    :current-theme="currentTheme"
+                    @theme-toggle="handleThemeToggle"
+                    @settings-open="handleSettingsOpen"
+                />
+                
+                <!-- 主要内容区域 -->
+                <div class="p-6 space-y-6">
+                    <!-- 搜索输入框 -->
+                    <SearchInput
+                        v-model="searchQuery"
+                        :placeholder="searchPlaceholder"
+                        :autofocus="true"
+                        :show-hints="showSearchHints"
+                        :hints="searchHints"
+                        :is-searching="isSearching"
+                        @search="handleSearch"
+                        @keydown="handleSearchKeyDown"
+                        @clear="handleSearchClear"
+                        @hint-select="handleHintSelect"
+                    />
 
-        this.initEventListeners()
-        this.initDataSync()
-        this.loadDefaultResults()
-    }
+                    <!-- 搜索结果列表 -->
+                    <ResultList
+                        :results="searchResults"
+                        :selected-index="selectedIndex"
+                        :group-by-category="groupByCategory"
+                        :show-category-headers="showCategoryHeaders"
+                        :show-score="showScore"
+                        :max-results="maxResults"
+                        :show-load-more="showLoadMore"
+                        :show-empty-state="showEmptyState"
+                        :empty-state-type="emptyStateType"
+                        @result-select="handleResultSelect"
+                        @result-mouseenter="handleResultMouseEnter"
+                        @load-more="handleLoadMore"
+                    />
+                </div>
+            </div>
+        </div>
+    `,
 
-    // 检查是否在 Tauri 环境中
-    isTauriEnvironment() {
-        return typeof window !== 'undefined' && window.__TAURI__
-    }
+    data() {
+        return {
+            // 搜索状态
+            searchQuery: '',
+            searchResults: [],
+            selectedIndex: 0,
+            isSearching: false,
 
-    // 初始化与主窗口的数据同步
-    async initDataSync() {
-        try {
-            if (this.isTauriEnvironment()) {
-                // 在 Tauri 环境中使用事件通信
-                await this.setupTauriEventListeners()
-                await this.requestSearchDataTauri()
-            } else {
-                // Web 环境中使用 postMessage
-                this.setupMessageListener()
-                await this.requestSearchData()
-            }
-        } catch (error) {
-            console.error('数据同步初始化失败:', error)
-            // 使用默认数据
-            this.loadFallbackData()
+            // 服务实例
+            searchService: null,
+            communicationService: null,
+            keyboardManager: null,
+
+            // 连接状态
+            connectionStatus: 'disconnected',
+
+            // UI 配置
+            searchPlaceholder: '搜索应用程序、插件...',
+            groupByCategory: false,
+            showCategoryHeaders: true,
+            showScore: false,
+            maxResults: 10,
+            showLoadMore: false,
+            showEmptyState: true,
+            showSearchHints: true,
+            currentTheme: 'light',
+
+            // 搜索提示
+            searchHints: []
+        };
+    },
+
+    computed: {
+        emptyStateType() {
+            if (this.isSearching) return 'loading';
+            if (this.searchQuery.trim()) return 'no-results';
+            return 'default';
         }
-    }
+    },
 
-    // 设置 Tauri 事件监听器
-    async setupTauriEventListeners() {
-        try {
-            // 使用全局 Tauri API
-            if (!window.__TAURI__) {
-                throw new Error('Tauri API not available')
-            }
+    async mounted() {
+        this.initializeTheme();
+        await this.initializeServices();
+        this.setupKeyboardHandlers();
+        this.loadSearchHints();
+    },
 
-            const { webviewWindow, event } = window.__TAURI__
-            const currentWindow = webviewWindow.getCurrentWebviewWindow()
+    beforeUnmount() {
+        this.cleanup();
+    },
 
-            // 监听来自主窗口的搜索数据
-            await currentWindow.listen('search-data-updated', eventData => {
-                console.log('收到搜索数据:', eventData.payload)
-                searchData = eventData.payload || []
-                if (this.searchInput.value.trim()) {
-                    this.handleSearch(this.searchInput.value)
-                } else {
-                    this.loadDefaultResults()
-                }
-            })
+    methods: {
+        /**
+         * 初始化服务
+         */
+        async initializeServices() {
+            try {
+                // 初始化通信服务
+                this.communicationService = new CommunicationService();
+                await this.communicationService.initialize();
 
-            console.log('Tauri 事件监听器设置完成')
-        } catch (error) {
-            console.error('设置 Tauri 事件监听器失败:', error)
-            // 降级到 postMessage
-            this.setupMessageListener()
-        }
-    }
+                // 监听连接状态变化
+                this.communicationService.on('initialized', (data) => {
+                    this.connectionStatus = 'connected';
+                });
 
-    // 通过 Tauri 事件请求搜索数据
-    async requestSearchDataTauri() {
-        try {
-            // 使用全局 Tauri API
-            if (!window.__TAURI__) {
-                throw new Error('Tauri API not available')
-            }
+                this.communicationService.on('error', () => {
+                    this.connectionStatus = 'error';
+                });
 
-            const { event } = window.__TAURI__
-            await event.emit('request-search-data', {})
-            console.log('已通过 Tauri 事件发送搜索数据请求')
-        } catch (error) {
-            console.error('Tauri 事件请求失败:', error)
-            // 降级到 postMessage
-            await this.requestSearchData()
-        }
-    }
+                // 初始化搜索服务
+                this.searchService = new SearchService();
 
-    // 设置消息监听器
-    setupMessageListener() {
-        window.addEventListener('message', event => {
-            if (event.data && event.data.type === 'search-data-updated') {
-                searchData = event.data.payload || []
-                if (this.searchInput.value.trim()) {
-                    this.handleSearch(this.searchInput.value)
-                } else {
-                    this.loadDefaultResults()
-                }
-            }
-        })
-    }
+                // 获取搜索数据
+                const searchData = await this.communicationService.getSearchData();
+                this.searchService.setSearchData(searchData);
 
-    // 请求主窗口提供搜索数据
-    async requestSearchData() {
-        try {
-            // 直接使用 postMessage，无论是否在 Tauri 环境中
-            if (window.opener) {
-                // 如果是弹出窗口
-                window.opener.postMessage({ type: 'request-search-data' }, '*')
-            } else if (window.parent && window.parent !== window) {
-                // 如果是 iframe
-                window.parent.postMessage({ type: 'request-search-data' }, '*')
-            } else {
-                // 尝试通过全局事件
-                document.dispatchEvent(new CustomEvent('request-search-data'))
-            }
-
-            console.log('已发送搜索数据请求')
-        } catch (error) {
-            console.error('请求搜索数据失败:', error)
-        }
-    } // 加载默认搜索数据
-    loadFallbackData() {
-        searchData = [
-            {
-                type: 'application',
-                title: 'Visual Studio Code',
-                description: '代码编辑器',
-                icon: '💻',
-                path: 'code.exe',
-                category: '应用程序',
-            },
-            {
-                type: 'function',
-                title: '设置',
-                description: '应用程序设置',
-                icon: '⚙️',
-                action: 'open-settings',
-                category: '系统功能',
-            },
-        ]
-    }
-
-    initEventListeners() {
-        // 搜索输入事件
-        this.searchInput.addEventListener('input', e => {
-            this.handleSearch(e.target.value)
-        })
-
-        // 键盘导航
-        this.searchInput.addEventListener('keydown', e => {
-            this.handleKeyNavigation(e)
-        })
-
-        // ESC 关闭窗口
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                this.closeWindow()
-            }
-        })
-
-        // 点击结果项
-        this.resultsContainer.addEventListener('click', e => {
-            const resultItem = e.target.closest('.result-item')
-            if (resultItem) {
-                const index = parseInt(resultItem.dataset.index)
-                this.selectResult(index)
-            }
-        })
-    }
-
-    loadDefaultResults() {
-        // 显示默认的热门应用和功能
-        const defaultResults = searchData.slice(0, 8)
-        this.displayResults(defaultResults)
-    }
-
-    handleSearch(query) {
-        if (!query.trim()) {
-            this.loadDefaultResults()
-            return
-        }
-
-        // 通过已加载插件的 search_regexps 进行搜索
-        const results = this.performPluginSearch(query)
-        this.displayResults(results)
-    }
-
-    // 通过插件搜索算法进行搜索
-    performPluginSearch(query) {
-        const queryLower = query.toLowerCase()
-        const results = []
-
-        // 遍历所有搜索数据
-        for (const item of searchData) {
-            let score = 0
-            let matched = false
-
-            // 基础匹配（名称、描述）
-            if (item.title && item.title.toLowerCase().includes(queryLower)) {
-                score += item.title.toLowerCase() === queryLower ? 100 : 50
-                matched = true
-            }
-
-            if (
-                item.description &&
-                item.description.toLowerCase().includes(queryLower)
-            ) {
-                score += 20
-                matched = true
-            }
-
-            // 插件正则匹配 - 检查是否有 search_regexps
-            if (item.search_regexps && Array.isArray(item.search_regexps)) {
-                for (const pattern of item.search_regexps) {
-                    try {
-                        const regex = new RegExp(pattern, 'i')
-                        if (regex.test(query)) {
-                            score += 60 // 正则匹配给高分
-                            matched = true
-                        }
-                    } catch (error) {
-                        console.warn('无效的正则表达式:', pattern, error)
+                // 监听搜索数据更新
+                this.communicationService.on('search-data-updated', (data) => {
+                    this.searchService.setSearchData(data);
+                    if (this.searchQuery.trim()) {
+                        this.performSearch(this.searchQuery);
                     }
-                }
+                });
+
+                console.log('[应用] 服务初始化完成');
+            } catch (error) {
+                console.error('[应用] 服务初始化失败:', error);
+                this.connectionStatus = 'error';
+                // 使用降级数据
+                this.searchService = new SearchService();
+                this.searchService.setSearchData(this.communicationService?.getFallbackData() || []);
             }
+        },
 
-            // 标签匹配
-            if (item.tags && Array.isArray(item.tags)) {
-                for (const tag of item.tags) {
-                    if (tag.toLowerCase().includes(queryLower)) {
-                        score += 15
-                        matched = true
-                    }
-                }
+        /**
+         * 设置键盘处理器
+         */
+        setupKeyboardHandlers() {
+            this.keyboardManager = new KeyboardManager();
+            this.keyboardManager.bind();
+
+            // 导航快捷键
+            const navigationHandlers = KeyboardManager.createNavigationHandler({
+                onUp: () => this.navigateUp(),
+                onDown: () => this.navigateDown(),
+                onEnter: () => this.executeSelected(),
+                onEscape: () => this.handleEscape(),
+                onPageUp: () => this.navigatePageUp(),
+                onPageDown: () => this.navigatePageDown(),
+                onHome: () => this.navigateHome(),
+                onEnd: () => this.navigateEnd()
+            });
+
+            // 注册快捷键
+            Object.entries(navigationHandlers).forEach(([key, handler]) => {
+                this.keyboardManager.on(key, handler);
+            });
+
+            // 其他快捷键
+            this.keyboardManager.on('ctrl+r', () => this.refreshData());
+            this.keyboardManager.on('f1', () => this.showHelp());
+        },
+
+        /**
+         * 加载搜索提示
+         */
+        loadSearchHints() {
+            if (this.searchService) {
+                this.searchHints = this.searchService.getPopularSearches();
             }
+        },
 
-            if (matched) {
-                results.push({ ...item, score })
-            }
-        }
+        /**
+         * 处理搜索
+         */
+        handleSearch(query) {
+            this.searchQuery = query;
+            this.performSearch(query);
+        },
 
-        // 按评分排序
-        return results.sort((a, b) => b.score - a.score)
-    }
+        /**
+         * 执行搜索
+         */
+        performSearch(query) {
+            if (!this.searchService) return;
 
-    displayResults(results) {
-        this.currentResults = results
-        this.selectedIndex = -1
+            this.isSearching = true;
+            this.selectedIndex = 0;
 
-        if (results.length === 0) {
-            this.resultsContainer.innerHTML =
-                '<div class="no-results">未找到匹配的结果</div>'
-            return
-        }
-
-        // 按类别分组
-        const groupedResults = this.groupByCategory(results)
-        let html = ''
-
-        Object.keys(groupedResults).forEach((category, categoryIndex) => {
-            if (categoryIndex > 0) {
-                html += `<div class="category-divider">${category}</div>`
-            }
-
-            groupedResults[category].forEach((result, index) => {
-                const globalIndex = results.indexOf(result)
-                html += `
-                            <div class="result-item" data-index="${globalIndex}">
-                                <div class="result-icon">${result.icon}</div>
-                                <div class="result-content">
-                                    <div class="result-title">${result.title}</div>
-                                    <div class="result-description">${result.description}</div>
-                                </div>
-                            </div>
-                        `
-            })
-        })
-
-        this.resultsContainer.innerHTML = html
-    }
-
-    groupByCategory(results) {
-        const grouped = {}
-        results.forEach(result => {
-            const category = result.category || '其他'
-            if (!grouped[category]) {
-                grouped[category] = []
-            }
-            grouped[category].push(result)
-        })
-        return grouped
-    }
-
-    handleKeyNavigation(e) {
-        const resultItems = this.resultsContainer.querySelectorAll('.result-item')
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault()
-                this.selectedIndex = Math.min(
-                    this.selectedIndex + 1,
-                    resultItems.length - 1,
-                )
-                this.updateSelection()
-                break
-
-            case 'ArrowUp':
-                e.preventDefault()
-                this.selectedIndex = Math.max(this.selectedIndex - 1, -1)
-                this.updateSelection()
-                break
-
-            case 'Enter':
-                e.preventDefault()
-                if (this.selectedIndex >= 0) {
-                    this.selectResult(this.selectedIndex)
-                }
-                break
-        }
-    }
-
-    updateSelection() {
-        const resultItems = this.resultsContainer.querySelectorAll('.result-item')
-        resultItems.forEach((item, index) => {
-            item.classList.toggle('selected', index === this.selectedIndex)
-        })
-
-        // 滚动到选中项
-        if (this.selectedIndex >= 0 && resultItems[this.selectedIndex]) {
-            resultItems[this.selectedIndex].scrollIntoView({
-                block: 'nearest',
-                behavior: 'smooth',
-            })
-        }
-    }
-
-    selectResult(index) {
-        const result = this.currentResults[index]
-        if (!result) return
-
-        console.log('选择结果:', result)
-
-        // 通过事件通信通知主应用
-        this.notifyMainApp(result)
-
-        // 关闭窗口
-        this.closeWindow()
-    }
-
-    async notifyMainApp(result) {
-        try {
-            if (this.isTauriEnvironment()) {
-                // 在 Tauri 环境中使用事件通信
-                if (!window.__TAURI__) {
-                    throw new Error('Tauri API not available')
-                }
-
-                const { event } = window.__TAURI__
-                await event.emit('quick-search-result-selected', result)
-                console.log('已通过 Tauri 事件通知主应用选择结果:', result)
-            } else {
-                // Web 环境中使用 postMessage
-                if (window.opener) {
-                    window.opener.postMessage(
-                        {
-                            type: 'quick-search-result-selected',
-                            data: result,
-                        },
-                        '*',
-                    )
-                } else if (window.parent && window.parent !== window) {
-                    window.parent.postMessage(
-                        {
-                            type: 'quick-search-result-selected',
-                            data: result,
-                        },
-                        '*',
-                    )
+            try {
+                if (!query.trim()) {
+                    this.searchResults = [];
+                    this.searchHints = this.searchService.getPopularSearches();
                 } else {
-                    document.dispatchEvent(
-                        new CustomEvent('quick-search-result-selected', {
-                            detail: result,
-                        }),
-                    )
+                    this.searchResults = this.searchService.search(query, {
+                        maxResults: this.maxResults,
+                        includeScore: this.showScore
+                    });
+
+                    // 更新搜索建议
+                    this.searchHints = this.searchService.getSuggestions(query);
                 }
-                console.log('已通过 postMessage 通知主应用选择结果:', result)
+            } catch (error) {
+                console.error('[应用] 搜索失败:', error);
+                this.searchResults = [];
+            } finally {
+                this.isSearching = false;
             }
-        } catch (error) {
-            console.error('通知主应用失败:', error)
-            this.simulateAction(result)
-        }
-    }
+        },
 
-    simulateAction(result) {
-        switch (result.type) {
-            case 'application':
-                console.log(`启动应用: ${result.title} (${result.path})`)
-                break
-            case 'function':
-                console.log(`执行功能: ${result.action}`)
-                break
-            case 'file':
-                console.log(`打开文件: ${result.path}`)
-                break
-        }
-    }
+        /**
+         * 处理搜索框按键
+         */
+        handleSearchKeyDown(event) {
+            // 在搜索框中的特殊按键处理已经在 KeyboardManager 中统一处理
+        },
 
-    async closeWindow() {
-        try {
-            if (this.isTauriEnvironment()) {
-                // 在 Tauri 环境中使用窗口 API
-                if (!window.__TAURI__) {
-                    throw new Error('Tauri API not available')
+        /**
+         * 处理搜索清除
+         */
+        handleSearchClear() {
+            this.searchQuery = '';
+            this.searchResults = [];
+            this.selectedIndex = 0;
+            this.loadSearchHints();
+        },
+
+        /**
+         * 处理提示选择
+         */
+        handleHintSelect(hint) {
+            this.searchQuery = hint;
+            this.performSearch(hint);
+        },
+
+        /**
+         * 处理结果选择
+         */
+        async handleResultSelect(result) {
+            try {
+                if (this.communicationService) {
+                    await this.communicationService.executeResult(result);
+                    await this.communicationService.closeWindow();
                 }
+            } catch (error) {
+                console.error('[应用] 执行结果失败:', error);
+            }
+        },
 
-                const { webviewWindow } = window.__TAURI__
-                const currentWindow = webviewWindow.getCurrentWebviewWindow()
-                await currentWindow.close()
-                console.log('Tauri 窗口已关闭')
+        /**
+         * 处理鼠标悬停
+         */
+        handleResultMouseEnter(result, index) {
+            this.selectedIndex = index;
+        },
+
+        /**
+         * 处理加载更多
+         */
+        handleLoadMore() {
+            // 可以扩展为从服务器加载更多结果
+            console.log('[应用] 加载更多结果');
+        },
+
+        /**
+         * 导航 - 上一个
+         */
+        navigateUp() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = Math.max(0, this.selectedIndex - 1);
+            }
+        },
+
+        /**
+         * 导航 - 下一个
+         */
+        navigateDown() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = Math.min(this.searchResults.length - 1, this.selectedIndex + 1);
+            }
+        },
+
+        /**
+         * 导航 - 页面上翻
+         */
+        navigatePageUp() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = Math.max(0, this.selectedIndex - 5);
+            }
+        },
+
+        /**
+         * 导航 - 页面下翻
+         */
+        navigatePageDown() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = Math.min(this.searchResults.length - 1, this.selectedIndex + 5);
+            }
+        },
+
+        /**
+         * 导航 - 首个
+         */
+        navigateHome() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = 0;
+            }
+        },
+
+        /**
+         * 导航 - 末个
+         */
+        navigateEnd() {
+            if (this.searchResults.length > 0) {
+                this.selectedIndex = this.searchResults.length - 1;
+            }
+        },
+
+        /**
+         * 执行选中的结果
+         */
+        executeSelected() {
+            if (this.searchResults[this.selectedIndex]) {
+                this.handleResultSelect(this.searchResults[this.selectedIndex]);
+            }
+        },
+
+        /**
+         * 处理 ESC 键
+         */
+        handleEscape() {
+            if (this.searchQuery.trim()) {
+                this.handleSearchClear();
+            } else if (this.communicationService) {
+                this.communicationService.closeWindow();
+            }
+        },
+
+        /**
+         * 刷新数据
+         */
+        async refreshData() {
+            if (this.communicationService) {
+                try {
+                    await this.communicationService.refreshData();
+                } catch (error) {
+                    console.error('[应用] 刷新数据失败:', error);
+                }
+            }
+        },
+
+        /**
+         * 显示帮助
+         */
+        showHelp() {
+            const helpInfo = KeyboardManager.getHelpInfo();
+            console.log('[应用] 快捷键帮助:', helpInfo);
+            // 可以实现帮助弹窗
+        },
+
+        /**
+         * 切换主题
+         */
+        handleThemeToggle() {
+            this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+            console.log('[应用] 主题切换为:', this.currentTheme);
+
+            // 应用主题到DOM
+            this.applyTheme(this.currentTheme);
+        },
+
+        /**
+         * 应用主题
+         */
+        applyTheme(theme) {
+            const body = document.body;
+            const themeLink = document.getElementById('theme-link');
+
+            if (theme === 'dark') {
+                body.classList.add('dark');
+                if (themeLink) {
+                    themeLink.href = 'https://unpkg.com/@primeuix/themes@^0.0.5/themes/aura/aura-dark/blue/theme.css';
+                }
             } else {
-                // Web 环境中尝试关闭窗口
-                if (window.close) {
-                    window.close()
-                } else {
-                    document.body.style.display = 'none'
+                body.classList.remove('dark');
+                if (themeLink) {
+                    themeLink.href = 'https://unpkg.com/@primeuix/themes@^0.0.5/themes/aura/aura-light/blue/theme.css';
                 }
             }
-        } catch (error) {
-            console.error('关闭窗口失败:', error)
-            document.body.style.display = 'none'
+
+            // 保存主题偏好
+            localStorage.setItem('quick-search-theme', theme);
+        },
+
+        /**
+         * 初始化主题
+         */
+        initializeTheme() {
+            // 从本地存储读取主题偏好，或使用系统偏好
+            const savedTheme = localStorage.getItem('quick-search-theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            this.currentTheme = savedTheme || (systemDark ? 'dark' : 'light');
+            this.applyTheme(this.currentTheme);
+
+            // 监听系统主题变化
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('quick-search-theme')) {
+                    this.currentTheme = e.matches ? 'dark' : 'light';
+                    this.applyTheme(this.currentTheme);
+                }
+            });
+        },
+
+        /**
+         * 打开设置
+         */
+        handleSettingsOpen() {
+            console.log('[应用] 打开设置');
+            // 这里可以实现设置界面
+        },
+
+        /**
+         * 获取连接状态文本
+         */
+        getConnectionStatusText() {
+            const statusMap = {
+                'connected': '已连接',
+                'disconnected': '未连接',
+                'error': '连接错误'
+            };
+            return statusMap[this.connectionStatus] || '未知状态';
+        },
+
+        /**
+         * 清理资源
+         */
+        cleanup() {
+            if (this.keyboardManager) {
+                this.keyboardManager.disable();
+            }
         }
     }
-}
+};
 
-// 初始化快速搜索
-document.addEventListener('DOMContentLoaded', () => {
-    new QuickSearch()
-})
+// 创建并配置应用
+const app = createApp(QuickSearchApp);
 
-// 禁用右键菜单
-document.addEventListener('contextmenu', e => e.preventDefault())
+// 配置 PrimeVue
+app.use(PrimeVue.Config, {
+    theme: {
+        preset: PrimeUIX.Themes.Aura
+    }
+});
 
-// 禁用选择文本
-document.addEventListener('selectstart', e => e.preventDefault())
+// 注册 PrimeVue 组件
+app.component('Badge', PrimeVue.Badge);
+app.component('Button', PrimeVue.Button);
+app.component('Card', PrimeVue.Card);
+app.component('InputText', PrimeVue.InputText);
+app.component('Tag', PrimeVue.Tag);
+
+// 注册 PrimeVue 指令
+app.directive('tooltip', PrimeVue.Tooltip);
+
+// 注册自定义组件
+app.component('HeaderBar', HeaderBar);
+app.component('SearchInput', SearchInput);
+app.component('ResultItem', ResultItem);
+app.component('ResultList', ResultList);
+app.component('EmptyState', EmptyState);
+
+// 挂载应用
+app.mount('#app');
+
+// 禁用右键菜单和文本选择
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => e.preventDefault());

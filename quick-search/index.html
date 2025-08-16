@@ -8,41 +8,317 @@
     <meta name="theme-color" content="#3b82f6">
     <title>快速搜索</title>
 
-    <!-- PrimeVue CSS - 仅加载图标 -->
+    <!-- PrimeIcons 图标库 -->
     <link rel="stylesheet" href="https://unpkg.com/primeicons@^7/primeicons.css">
 
-    <!-- 新的独立主题系统 -->
-    <link rel="stylesheet" href="theme-system.css">
-
-
-    <!-- 组件集成适配器 -->
-    <link rel="stylesheet" href="component-integration.css">
-
-    <!-- 组件样式 -->
-    <link rel="stylesheet" href="components/SearchInput.css">
+    <!-- PrimeVue 主题 -->
+    <link id="theme-link" rel="stylesheet"
+        href="https://unpkg.com/@primeuix/themes@^0.0.5/themes/aura/aura-light/blue/theme.css">
 
     <!-- 预连接优化 -->
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="dns-prefetch" href="https://unpkg.com">
+
+    <style>
+        /* 全局样式和主题变量 */
+        :root {
+            --glass-bg-light: rgba(255, 255, 255, 1);
+            --glass-bg-dark: rgba(0, 0, 0, 1);
+            --glass-border-light: rgba(255, 255, 255, 0.18);
+            --glass-border-dark: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            margin: 0;
+            padding: 8px;
+            min-height: 100vh;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        /* 主应用容器 */
+        #app {
+            background: var(--glass-bg-light);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border-light);
+            border-radius: 20px;
+            box-shadow: 0 0 0 -8px rgba(0, 0, 0, 0.25);
+            padding: 0;
+            animation: slideInFade 0.4s ease-out;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 深色主题下的玻璃效果 */
+        .dark #app {
+            background: var(--glass-bg-dark);
+            border-color: var(--glass-border-dark);
+        }
+
+        /* 应用显示动画 */
+        @keyframes slideInFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 滚动条样式 - 仅在搜索结果区域显示 */
+        .results-container {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .results-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .results-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            transition: background 0.2s ease;
+        }
+
+        .results-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 深色主题下的滚动条 */
+        .dark .results-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .results-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 窗口拖动区域 */
+        .drag-region {
+            -webkit-app-region: drag;
+            cursor: grab;
+        }
+
+        .drag-region:active {
+            cursor: grabbing;
+        }
+
+        /* 非拖动区域 */
+        .no-drag {
+            -webkit-app-region: no-drag;
+        }
+
+        /* 搜索加载条动画 */
+        .search-loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: searchLoadingSlide 1.5s infinite;
+        }
+
+        @keyframes searchLoadingSlide {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* 状态指示器优化 */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            border: 2px solid #2563eb;
+        }
+
+        .status-connected {
+            background-color: #10b981;
+            box-shadow: 0 0 0 2px #d1fae5;
+        }
+
+        .status-error {
+            background-color: #ef4444;
+            box-shadow: 0 0 0 2px #fee2e2;
+        }
+
+        .status-disconnected {
+            background-color: #6b7280;
+            box-shadow: 0 0 0 2px #e5e7eb;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* macOS 风格的拖动条优化 */
+        .macos-dragbar {
+            background: linear-gradient(90deg, #e0e7ff 0%, #c7d2fe 100%);
+            border: 1.5px solid #3b82f6;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            width: 100px;
+            height: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            margin: 0 auto;
+            cursor: grab;
+        }
+
+        .macos-dragbar::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -20px;
+            right: -20px;
+            bottom: -8px;
+            cursor: grab;
+        }
+
+        .macos-dragbar:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scaleY(1.5);
+        }
+
+        .macos-dragbar:active {
+            cursor: grabbing;
+        }
+
+        .macos-dragbar:active::before {
+            cursor: grabbing;
+        }
+
+        /* 搜索图标间距修复 */
+        .search-input-icon {
+            margin-right: 8px;
+        }
+
+        /* 主题切换过渡效果 */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 按钮主题适配 */
+        .p-button {
+            transition: all 0.3s ease !important;
+            border-color: #3b82f6 !important;
+            color: #2563eb !important;
+            font-weight: 500;
+        }
+
+        .p-button:hover {
+            background-color: #e0e7ff !important;
+            border-color: #2563eb !important;
+            color: #1e40af !important;
+        }
+
+        .p-button:active {
+            background-color: #c7d2fe !important;
+        }
+
+        .dark .p-button {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .dark .p-button:hover {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .dark .p-button:active {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        /* 输入框主题适配 */
+        .dark .p-inputtext {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .dark .p-inputtext:focus {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .dark .p-inputtext::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    </style>
 </head>
 
 <body>
     <div id="app">
+        <!-- 应用加载中... -->
+        <div class="flex items-center justify-center min-h-screen bg-surface-0">
+            <div class="text-center">
+                <i class="pi pi-spin pi-spinner text-4xl text-primary-500 mb-4"></i>
+                <p class="text-surface-600">正在初始化快速搜索...</p>
+            </div>
+        </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <!-- 主题管理系统 -->
-    <script src="theme-manager.js"></script>
+    <!-- PrimeVue CDN -->
+    <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
 
-    <!-- 组件脚本 -->
-    <script src="components/SearchInput.js"></script>
-    <script src="components/ResultList.js"></script>
-    <script src="components/HistoryPanel.js"></script>
+    <!-- PrimeVue Theme -->
+    <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 
-    <!-- 应用脚本 -->
-    <script type="module" src="app.js"></script>
+    <!-- 工具类 -->
+    <script src="utils/KeyboardManager.js"></script>
+
+    <!-- 服务类 -->
+    <script src="services/SearchService.js"></script>
+    <script src="services/CommunicationService.js"></script>
+
+    <!-- UI 组件 -->
+    <script src="components/ui/HeaderBar.js"></script>
+    <script src="components/ui/EmptyState.js"></script>
+    <script src="components/ui/SearchInput.js"></script>
+    <script src="components/ui/ResultItem.js"></script>
+    <script src="components/ui/ResultList.js"></script>
+
+    <!-- 兼容性桥接器 -->
+    <script src="communication-bridge.js"></script>
+    <script src="vue-communication-adapter.js"></script>
+
+    <!-- 主应用 -->
+    <script src="index.js"></script>
 </body>
 
 </html>
