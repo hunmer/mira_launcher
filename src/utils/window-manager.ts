@@ -62,16 +62,27 @@ async function setupEventListeners() {
     try {
         // 监听来自快速搜索窗口的数据请求
         await listen<SearchDataRequestPayload>('request-search-data', async (event) => {
+            console.log('[WindowManager] 收到搜索数据请求:', event.payload)
             const query = event.payload?.query || ''
             const searchData = await getSearchData(query)
+            console.log('[WindowManager] 准备发送搜索数据，条目数:', searchData.length)
 
-            // 向快速搜索窗口发送数据
-            if (quickSearchWindow) {
-                try {
+            // 向快速搜索窗口发送数据 - 使用全局事件和窗口特定事件双重保障
+            try {
+                // 方法1: 使用全局事件系统
+                const { emit } = await import('@tauri-apps/api/event')
+                await emit('search-data-updated', searchData)
+                console.log('[WindowManager] 通过全局事件发送搜索数据成功')
+
+                // 方法2: 如果窗口实例存在，也通过窗口发送
+                if (quickSearchWindow) {
                     await quickSearchWindow.emit('search-data-updated', searchData)
-                } catch (error) {
-                    console.error('[WindowManager] 发送搜索数据失败:', error)
+                    console.log('[WindowManager] 通过窗口实例发送搜索数据成功')
+                } else {
+                    console.warn('[WindowManager] 窗口实例不存在，仅使用全局事件')
                 }
+            } catch (error) {
+                console.error('[WindowManager] 发送搜索数据失败:', error)
             }
         })
 
@@ -172,7 +183,7 @@ async function getSearchData(query: string = '') {
                 icon: plugin.metadata.icon || '🧩',
                 category: '插件',
                 tags: plugin.metadata.keywords || [],
-                search_regexps: plugin.metadata.search_regexps || [], // 插件自定义搜索正则
+                search_regexps: plugin.instance.search_regexps || [], // 插件自定义搜索正则
                 author: plugin.metadata.author,
                 version: plugin.metadata.version,
                 state: plugin.state
@@ -348,9 +359,21 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
             await existingWindow.show()
             await existingWindow.setFocus()
 
-            // 发送最新的搜索数据
+            // 发送最新的搜索数据 - 使用双重保障
             const searchData = await getSearchData()
-            await quickSearchWindow.emit('search-data-updated', searchData)
+
+            try {
+                // 方法1: 使用全局事件系统
+                const { emit } = await import('@tauri-apps/api/event')
+                await emit('search-data-updated', searchData)
+                console.log('[WindowManager] 通过全局事件发送搜索数据给现有窗口')
+
+                // 方法2: 通过窗口实例发送
+                await quickSearchWindow.emit('search-data-updated', searchData)
+                console.log('[WindowManager] 通过窗口实例发送搜索数据给现有窗口')
+            } catch (emitError) {
+                console.error('[WindowManager] 发送数据给现有窗口失败:', emitError)
+            }
             console.log('[WindowManager] Quick search window focused and data updated')
             return
         }
@@ -396,10 +419,21 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
                 await quickSearchWindow.setFocus()
                 console.log('[WindowManager] Quick search window shown and focused')
 
-                // 窗口创建后立即发送初始搜索数据
+                // 窗口创建后立即发送初始搜索数据 - 使用双重保障
                 const searchData = await getSearchData()
-                await quickSearchWindow.emit('search-data-updated', searchData)
-                console.log('[WindowManager] 初始搜索数据已发送')
+
+                try {
+                    // 方法1: 使用全局事件系统
+                    const { emit } = await import('@tauri-apps/api/event')
+                    await emit('search-data-updated', searchData)
+                    console.log('[WindowManager] 通过全局事件发送初始搜索数据')
+
+                    // 方法2: 通过窗口实例发送
+                    await quickSearchWindow.emit('search-data-updated', searchData)
+                    console.log('[WindowManager] 通过窗口实例发送初始搜索数据')
+                } catch (emitError) {
+                    console.error('[WindowManager] 发送初始搜索数据失败:', emitError)
+                }
             } catch (error) {
                 console.error('[WindowManager] Failed to show/focus window or send initial data:', error)
             }

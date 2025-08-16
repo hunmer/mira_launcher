@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
     minify: 'esbuild',
-    sourcemap: false, // 生产环境关闭sourcemap
+    sourcemap: process.env.NODE_ENV === 'development' ? true : false, // 开发环境启用sourcemap
     cssCodeSplit: true,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000,

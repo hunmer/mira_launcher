@@ -56,12 +56,40 @@
                 "!**/node_modules/**"
             ],
             "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-data",
-            "timeout": 10000,
+            "timeout": 15000,
             "runtimeArgs": [
                 "--disable-web-security",
                 "--disable-features=VizDisplayCompositor",
-                "--no-first-run"
+                "--no-first-run",
+                "--remote-debugging-port=9222",
+                "--disable-background-timer-throttling",
+                "--disable-renderer-backgrounding",
+                "--disable-backgrounding-occluded-windows"
             ]
+        },
+        {
+            "name": "🔧 Debug Tauri WebView",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "*",
+                "/src/*": "${webRoot}/*",
+                "vite:///src/*": "${webRoot}/*",
+                "webpack:///./src/*": "${webRoot}/*"
+            },
+            "skipFiles": [
+                "**/node_modules/**",
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "smartStep": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/src/**",
+                "!**/node_modules/**"
+            ],
+            "preLaunchTask": "tauri:dev"
         },
         {
             "name": "🚀 Debug Tauri App + Frontend",

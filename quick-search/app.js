@@ -149,24 +149,36 @@ const QuickSearchApp = {
                     throw new Error('Tauri API not available')
                 }
 
-                const { webviewWindow } = window.__TAURI__
+                const { webviewWindow, event } = window.__TAURI__
                 const currentWindow = webviewWindow.getCurrentWebviewWindow()
 
-                // 监听来自主窗口的搜索数据
-                await currentWindow.listen('search-data-updated', eventData => {
-                    console.log('收到搜索数据:', eventData.payload)
+                // 数据处理函数
+                const handleSearchData = (eventData) => {
+                    console.log('[QuickSearch] 收到搜索数据事件，来源:', eventData)
+                    console.log('[QuickSearch] 事件载荷:', eventData.payload)
                     const receivedData = eventData.payload || []
+                    console.log('[QuickSearch] 处理数据条目数:', receivedData.length)
 
                     // 现在接收到的数据已经是主进程筛选过的结果
                     // 如果有查询词，直接使用筛选后的结果
                     if (searchQuery.value.trim()) {
                         currentResults.value = receivedData
+                        console.log('[QuickSearch] 更新搜索结果，当前查询:', searchQuery.value)
                     } else {
                         // 如果没有查询词，将数据存储为原始数据并显示默认结果
                         searchData.value = receivedData
                         loadDefaultResults()
+                        console.log('[QuickSearch] 更新原始数据并加载默认结果')
                     }
-                })
+                }
+
+                // 方法1: 监听窗口特定事件
+                await currentWindow.listen('search-data-updated', handleSearchData)
+                console.log('窗口事件监听器设置完成')
+
+                // 方法2: 监听全局事件（双重保障）
+                await event.listen('search-data-updated', handleSearchData)
+                console.log('全局事件监听器设置完成')
 
                 console.log('Tauri 事件监听器设置完成')
             } catch (error) {
