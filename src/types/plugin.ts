@@ -61,7 +61,7 @@ export interface PluginMetadata {
   /** 插件资源文件 */
   assets?: string[]
   /** 搜索框正则规则 */
-  search_regexps?: string[]
+  search_regexps?: PluginSearchEntry[]
   /** 插件日志配置 */
   logs?: PluginLogConfig
   /** 插件配置定义 */
@@ -926,4 +926,41 @@ export interface PluginBuilderOptions {
   api?: unknown
   /** 应用实例 */
   app?: App
+}
+
+/**
+ * 插件搜索入口配置
+ */
+export interface PluginSearchEntry {
+  /** 路由标识 */
+  router: string
+  /** 入口标题 */
+  title: string
+  /** 入口图标（可选，覆盖插件默认图标） */
+  icon?: string
+  /** 入口标签（可选，覆盖插件默认标签） */
+  tags?: string[]
+  /** 正则表达式列表 */
+  regexps: string[]
+  /** 解析器函数（可选，用于通过正则后的额外判断） */
+  parser?: (context: PluginSearchContext) => Promise<boolean>
+  /** 执行器函数（必须，用于处理执行结果） */
+  runner: (context: PluginSearchContext) => Promise<void>
+}
+
+/**
+ * 插件搜索上下文
+ */
+export interface PluginSearchContext {
+  /** 搜索参数 */
+  args: {
+    /** 搜索查询字符串 */
+    query: string
+    /** 匹配的正则表达式 */
+    matchedRegexp?: string
+    /** 正则匹配结果 */
+    matches?: RegExpMatchArray | null
+  }
+  /** 插件API */
+  api?: PluginAPI
 }

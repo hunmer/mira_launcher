@@ -466,7 +466,7 @@ const QuickSearchApp = {
                 selectedIndex.value = -1
             }, 300)
         }        // 执行搜索 (备用方案，主要搜索逻辑现在在主进程中)
-        const performSearch = (query) => {
+        const performSearch = async (query) => {
             console.log('使用备用搜索逻辑，查询:', query)
             const queryLower = query.toLowerCase()
             const results = []
@@ -487,17 +487,81 @@ const QuickSearchApp = {
                     matched = true
                 }
 
-                // 插件正则匹配
+                // 插件搜索入口匹配
                 if (item.search_regexps && Array.isArray(item.search_regexps)) {
-                    for (const pattern of item.search_regexps) {
-                        try {
-                            const regex = new RegExp(pattern, 'i')
-                            if (regex.test(query)) {
-                                score += 60
-                                matched = true
+                    for (const entry of item.search_regexps) {
+                        // 支持新的 PluginSearchEntry 格式
+                        if (entry && typeof entry === 'object' && entry.regexps && Array.isArray(entry.regexps)) {
+                            // 检查正则匹配
+                            let entryMatched = false
+                            let matchedRegexp = null
+                            for (const pattern of entry.regexps) {
+                                try {
+                                    const regex = new RegExp(pattern, 'i')
+                                    if (regex.test(query)) {
+                                        matchedRegexp = pattern
+                                        entryMatched = true
+                                        break
+                                    }
+                                } catch (error) {
+                                    console.warn('无效的正则表达式:', pattern, error)
+                                }
                             }
-                        } catch (error) {
-                            console.warn('无效的正则表达式:', pattern, error)
+
+                            // 如果正则匹配成功，检查是否需要通过parser额外验证
+                            if (entryMatched) {
+                                let shouldInclude = true
+
+                                // 如果有parser函数，需要额外验证
+                                if (entry.parser && typeof entry.parser === 'function') {
+                                    try {
+                                        const context = {
+                                            args: {
+                                                query: query,
+                                                matchedRegexp: matchedRegexp,
+                                                matches: query.match(new RegExp(matchedRegexp, 'i'))
+                                            },
+                                            api: null // 这里可以传入实际的API实例
+                                        }
+                                        shouldInclude = await entry.parser(context)
+                                    } catch (error) {
+                                        console.warn('Parser函数执行错误:', error)
+                                        shouldInclude = false
+                                    }
+                                }
+
+                                // 如果通过所有验证，添加结果项
+                                if (shouldInclude) {
+                                    matched = true
+                                    score += 60
+                                    // 为每个匹配的搜索入口创建一个结果项
+                                    const entryResult = {
+                                        ...item,
+                                        score: score + 10, // 搜索入口匹配额外加分
+                                        searchEntry: {
+                                            router: entry.router,
+                                            title: entry.title,
+                                            icon: entry.icon || item.icon,
+                                            tags: entry.tags || item.tags,
+                                            runner: entry.runner, // 保存runner函数供执行时使用
+                                            matchedRegexp: matchedRegexp
+                                        }
+                                    }
+                                    results.push(entryResult)
+                                }
+                            }
+                        }
+                        // 兼容旧的字符串格式
+                        else if (typeof entry === 'string') {
+                            try {
+                                const regex = new RegExp(entry, 'i')
+                                if (regex.test(query)) {
+                                    score += 60
+                                    matched = true
+                                }
+                            } catch (error) {
+                                console.warn('无效的正则表达式:', entry, error)
+                            }
                         }
                     }
                 }
@@ -512,7 +576,8 @@ const QuickSearchApp = {
                     }
                 }
 
-                if (matched) {
+                // 只有在没有通过搜索入口匹配的情况下才添加普通结果
+                if (matched && !results.some(r => r.id === item.id && r.searchEntry)) {
                     results.push({ ...item, score })
                 }
             }
@@ -568,14 +633,38 @@ const QuickSearchApp = {
         }
 
         // 选择结果
-        const selectResult = (index) => {
+        const selectResult = async (index) => {
             const result = currentResults.value[index]
             if (!result) return
 
             console.log('选择结果:', result)
 
-            // 通过事件通信通知主应用
-            notifyMainApp(result)
+            // 如果结果包含搜索入口的runner函数，先执行runner
+            if (result.searchEntry && result.searchEntry.runner && typeof result.searchEntry.runner === 'function') {
+                try {
+                    const context = {
+                        args: {
+                            query: searchQuery.value,
+                            matchedRegexp: result.searchEntry.matchedRegexp,
+                            matches: searchQuery.value.match(new RegExp(result.searchEntry.matchedRegexp, 'i'))
+                        },
+                        api: null // 这里可以传入实际的API实例
+                    }
+
+                    console.log('执行搜索入口runner函数:', result.searchEntry.router)
+                    await result.searchEntry.runner(context)
+
+                    // 执行完runner后，仍然通知主应用
+                    notifyMainApp(result)
+                } catch (error) {
+                    console.error('执行runner函数时出错:', error)
+                    // 即使runner出错，也继续通知主应用
+                    notifyMainApp(result)
+                }
+            } else {
+                // 没有runner函数，直接通知主应用
+                notifyMainApp(result)
+            }
 
             // 关闭窗口
             closeWindow()

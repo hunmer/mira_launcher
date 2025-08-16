@@ -87,9 +87,9 @@ async function setupEventListeners() {
         })
 
         // 监听来自快速搜索窗口的结果选择
-        await listen('quick-search-result-selected', (event) => {
+        await listen('quick-search-result-selected', async (event) => {
             console.log('[WindowManager] 收到搜索结果选择:', event.payload)
-            handleSearchResult(event.payload)
+            await handleSearchResult(event.payload)
 
             // 选择结果后关闭快速搜索窗口
             closeQuickSearchWindow()
@@ -159,22 +159,72 @@ async function getSearchData(query: string = '') {
         }))
         allData.push(...pages)
 
-        // 插件数据 - 包含 search_regexps
+        // 插件数据 - 支持新的 PluginSearchEntry 格式
         const plugins = pluginStore.plugins
             .filter(plugin => plugin.state === 'active')
-            .map(plugin => ({
-                id: plugin.metadata.id,
-                type: 'plugin',
-                title: plugin.metadata.name,
-                description: plugin.metadata.description || '',
-                icon: plugin.metadata.icon || '🧩',
-                category: '插件',
-                tags: plugin.metadata.keywords || [],
-                search_regexps: plugin.instance.search_regexps || [], // 插件自定义搜索正则
-                author: plugin.metadata.author,
-                version: plugin.metadata.version,
-                state: plugin.state
-            }))
+            .map(plugin => {
+                const basePluginData = {
+                    id: plugin.metadata.id,
+                    type: 'plugin',
+                    title: plugin.metadata.name,
+                    description: plugin.metadata.description || '',
+                    icon: plugin.metadata.icon || '🧩',
+                    category: '插件',
+                    tags: plugin.metadata.keywords || [],
+                    author: plugin.metadata.author,
+                    version: plugin.metadata.version,
+                    state: plugin.state,
+                    pluginInstance: plugin.instance
+                }
+
+                // 如果插件有搜索入口配置，为每个入口创建单独的搜索项
+                if (plugin.instance.search_regexps && Array.isArray(plugin.instance.search_regexps)) {
+                    const searchEntries = []
+
+                    // 添加基础插件项（用于插件名称匹配）
+                    searchEntries.push({
+                        ...basePluginData,
+                        search_regexps: plugin.instance.search_regexps
+                    })
+
+                    // 为每个搜索入口创建单独的项
+                    for (const entry of plugin.instance.search_regexps) {
+                        if (entry && typeof entry === 'object' && entry.regexps && Array.isArray(entry.regexps)) {
+                            searchEntries.push({
+                                ...basePluginData,
+                                id: `${plugin.metadata.id}:${entry.router}`,
+                                type: 'plugin_entry', // 区分插件入口类型
+                                title: entry.title || plugin.metadata.name,
+                                icon: entry.icon || plugin.metadata.icon || '🧩',
+                                tags: entry.tags || plugin.metadata.keywords || [],
+                                category: '插件入口',
+                                searchEntry: {
+                                    router: entry.router,
+                                    title: entry.title,
+                                    icon: entry.icon,
+                                    tags: entry.tags,
+                                    regexps: entry.regexps,
+                                    parser: entry.parser,
+                                    runner: entry.runner
+                                },
+                                pluginInfo: {
+                                    id: plugin.metadata.id,
+                                    name: plugin.metadata.name,
+                                    icon: plugin.metadata.icon,
+                                    version: plugin.metadata.version
+                                }
+                            })
+                        }
+                    }
+
+                    return searchEntries
+                } else {
+                    // 兼容旧格式或没有搜索入口的插件
+                    return [basePluginData]
+                }
+            })
+            .flat() // 展平数组，因为每个插件可能返回多个项
+
         allData.push(...plugins)
 
         // 如果没有查询字符串，返回所有数据
@@ -183,7 +233,7 @@ async function getSearchData(query: string = '') {
         }
 
         // 执行搜索筛选
-        return performSearch(allData, query)
+        return await performSearch(allData, query)
     } catch (error) {
         console.error('[WindowManager] 获取搜索数据失败:', error)
         return []
@@ -195,7 +245,7 @@ async function getSearchData(query: string = '') {
  * @param data 所有数据
  * @param query 搜索查询
  */
-function performSearch(data: any[], query: string) {
+async function performSearch(data: any[], query: string) {
     const queryLower = query.toLowerCase()
     const results = []
 
@@ -214,18 +264,86 @@ function performSearch(data: any[], query: string) {
             matched = true
         }
 
-        // 插件正则匹配 - 只对插件类型进行正则匹配
-        if (item.type === 'plugin' && item.search_regexps && Array.isArray(item.search_regexps)) {
-            for (const pattern of item.search_regexps) {
+        // 插件搜索入口匹配 - 支持新的 PluginSearchEntry 格式
+        if (item.type === 'plugin_entry' && item.searchEntry) {
+            // 这是一个插件搜索入口项
+            const entry = item.searchEntry
+            let entryMatched = false
+            let matchedRegexp = null
+
+            // 检查正则匹配
+            for (const pattern of entry.regexps) {
                 try {
                     const regex = new RegExp(pattern, 'i')
                     if (regex.test(query)) {
-                        score += 60
-                        matched = true
-                        console.log(`[WindowManager] 插件 ${item.title} 通过正则 ${pattern} 匹配查询: ${query}`)
+                        matchedRegexp = pattern
+                        entryMatched = true
+                        break
                     }
                 } catch (error) {
                     console.warn(`[WindowManager] 无效的正则表达式: ${pattern}`, error)
+                }
+            }
+
+            // 如果正则匹配成功，检查是否需要通过parser额外验证
+            if (entryMatched) {
+                let shouldInclude = true
+
+                // 如果有parser函数，需要额外验证
+                if (entry.parser && typeof entry.parser === 'function') {
+                    try {
+                        const context = {
+                            args: {
+                                query: query,
+                                matchedRegexp: matchedRegexp,
+                                matches: query.match(new RegExp(matchedRegexp, 'i'))
+                            },
+                            api: null // 这里可以传入实际的API实例
+                        }
+                        shouldInclude = await entry.parser(context)
+                    } catch (error) {
+                        console.warn(`[WindowManager] Parser函数执行错误:`, error)
+                        shouldInclude = false
+                    }
+                }
+
+                if (shouldInclude) {
+                    score += 80 // 搜索入口匹配给更高分数
+                    matched = true
+                    console.log(`[WindowManager] 插件入口 ${item.title} (${entry.router}) 通过正则 ${matchedRegexp} 匹配查询: ${query}`)
+                }
+            }
+        }
+        // 插件基础匹配 - 兼容旧格式
+        else if (item.type === 'plugin' && item.search_regexps && Array.isArray(item.search_regexps)) {
+            for (const pattern of item.search_regexps) {
+                // 兼容旧的字符串格式
+                if (typeof pattern === 'string') {
+                    try {
+                        const regex = new RegExp(pattern, 'i')
+                        if (regex.test(query)) {
+                            score += 60
+                            matched = true
+                            console.log(`[WindowManager] 插件 ${item.title} 通过正则 ${pattern} 匹配查询: ${query}`)
+                        }
+                    } catch (error) {
+                        console.warn(`[WindowManager] 无效的正则表达式: ${pattern}`, error)
+                    }
+                }
+                // 新格式的PluginSearchEntry（用于基础插件项）
+                else if (pattern && typeof pattern === 'object' && pattern.regexps) {
+                    for (const regexp of pattern.regexps) {
+                        try {
+                            const regex = new RegExp(regexp, 'i')
+                            if (regex.test(query)) {
+                                score += 60
+                                matched = true
+                                console.log(`[WindowManager] 插件 ${item.title} 通过入口 ${pattern.router} 的正则 ${regexp} 匹配查询: ${query}`)
+                            }
+                        } catch (error) {
+                            console.warn(`[WindowManager] 无效的正则表达式: ${regexp}`, error)
+                        }
+                    }
                 }
             }
         }
@@ -261,7 +379,7 @@ function performSearch(data: any[], query: string) {
 /**
  * 处理搜索结果选择
  */
-function handleSearchResult(result: any) {
+async function handleSearchResult(result: any) {
     console.log('[WindowManager] 处理搜索结果:', result)
 
     try {
@@ -277,9 +395,29 @@ function handleSearchResult(result: any) {
                 break
 
             case 'plugin':
-                // 插件相关操作
-                console.log(`插件操作: ${result.title}`)
-                // TODO: 实现插件交互逻辑
+            case 'plugin_entry':
+                // 处理插件搜索入口
+                if (result.searchEntry && result.searchEntry.runner && typeof result.searchEntry.runner === 'function') {
+                    try {
+                        const context = {
+                            args: {
+                                query: '', // 这里可以从搜索上下文获取实际查询
+                                matchedRegexp: '',
+                                matches: null
+                            },
+                            api: null // 这里可以传入实际的API实例
+                        }
+
+                        console.log(`[WindowManager] 执行插件搜索入口 ${result.searchEntry.router} 的 runner 函数`)
+                        await result.searchEntry.runner(context)
+                    } catch (error) {
+                        console.error('[WindowManager] 执行插件搜索入口 runner 函数失败:', error)
+                    }
+                } else {
+                    // 普通插件操作
+                    console.log(`插件操作: ${result.title}`)
+                    // TODO: 实现基础插件交互逻辑
+                }
                 break
             default:
                 console.warn('未知的结果类型:', result.type)

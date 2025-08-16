@@ -7,6 +7,7 @@ import type {
     PluginMetadata,
     PluginNotificationConfig,
     PluginQueueConfig,
+    PluginSearchEntry,
     PluginStorageConfig,
     PluginSubscription
 } from '../plugin-sdk'
@@ -27,14 +28,70 @@ export class FileSystemPlugin extends BasePlugin {
     readonly minAppVersion = '1.0.0'
     readonly permissions = ['filesystem', 'storage', 'notification', 'shell']
 
-    // 文件路径正则表达式匹配规则
-    override readonly search_regexps = [
-        '^[A-Za-z]:[\\\\\/].*',                    // Windows 绝对路径 (C:\path 或 C:/path)
-        '^\/[^\/\\s]*',                           // Unix 绝对路径 (/path)
-        '^~\/.*',                                 // Home 目录路径 (~/path)
-        '^\\.{1,2}[\\\\\/].*',                    // 相对路径 (./path 或 ../path)
-        '.*\\.(txt|doc|docx|pdf|xls|xlsx|ppt|pptx|jpg|png|gif|mp4|mp3|exe|msi|zip|rar|7z)$', // 常见文件扩展名
-        '.*[\\\\\/](?:Downloads|Desktop|Documents|Pictures|Videos|Music)[\\\\\/].*', // 常见文件夹路径
+    // 文件路径搜索入口配置
+    override readonly search_regexps: PluginSearchEntry[] = [
+        {
+            router: "file",
+            title: '文件系统',
+            icon: 'pi pi-folder',
+            tags: ['文件', '文件夹', '路径'],
+            regexps: [
+                '^[A-Za-z]:[\\\\\/].*',                    // Windows 绝对路径 (C:\path 或 C:/path)
+                '^\/[^\/\\s]*',                           // Unix 绝对路径 (/path)
+                '^~\/.*',                                 // Home 目录路径 (~/path)
+                '^\\.{1,2}[\\\\\/].*',                    // 相对路径 (./path 或 ../path)
+            ],
+            parser: async ({ args }) => {
+                // 检查是否为有效的文件路径格式
+                const { query } = args
+                return /^([A-Za-z]:[\\\/]|\/|~\/|\.[\\\/])/.test(query)
+            },
+            runner: async ({ args, api }) => {
+                // 执行文件路径打开操作
+                const { query } = args
+                console.log('文件系统插件：打开路径', query)
+                // 这里可以调用系统API打开文件或文件夹
+                // 例如：api?.notification?.success('正在打开文件路径', query)
+            }
+        },
+        {
+            router: "file-extension",
+            title: '文件扩展名',
+            icon: 'pi pi-file',
+            tags: ['文件类型', '扩展名'],
+            regexps: [
+                '.*\\.(txt|doc|docx|pdf|xls|xlsx|ppt|pptx|jpg|png|gif|mp4|mp3|exe|msi|zip|rar|7z)$', // 常见文件扩展名
+            ],
+            parser: async ({ args }) => {
+                // 检查是否以常见文件扩展名结尾
+                const { query } = args
+                return /\.(txt|doc|docx|pdf|xls|xlsx|ppt|pptx|jpg|png|gif|mp4|mp3|exe|msi|zip|rar|7z)$/i.test(query)
+            },
+            runner: async ({ args, api }) => {
+                // 执行文件打开操作
+                const { query } = args
+                console.log('文件系统插件：打开文件', query)
+                // 根据文件扩展名选择合适的应用程序打开
+                // 例如：api?.notification?.info('正在打开文件', query)
+            }
+        },
+        {
+            router: "common-folders",
+            title: '常用文件夹',
+            icon: 'pi pi-folder-open',
+            tags: ['下载', '桌面', '文档', '图片'],
+            regexps: [
+                '.*[\\\\\/](?:Downloads|Desktop|Documents|Pictures|Videos|Music)[\\\\\/].*', // 常见文件夹路径
+            ],
+            // 这个入口没有parser，直接通过正则匹配即可
+            runner: async ({ args, api }) => {
+                // 执行文件夹打开操作
+                const { query } = args
+                console.log('文件系统插件：打开常用文件夹', query)
+                // 打开系统文件管理器到指定文件夹
+                // 例如：api?.notification?.success('正在打开文件夹', query)
+            }
+        }
     ]
 
     override readonly logs: PluginLogConfig = {
@@ -350,9 +407,11 @@ export class FileSystemPlugin extends BasePlugin {
         if (!text) return false
 
         // 检查是否匹配任何正则表达式
-        return this.search_regexps.some(pattern => {
-            const regex = new RegExp(pattern, 'i')
-            return regex.test(text.trim())
+        return this.search_regexps.some(entry => {
+            return entry.regexps.some(pattern => {
+                const regex = new RegExp(pattern, 'i')
+                return regex.test(text.trim())
+            })
         })
     }
 

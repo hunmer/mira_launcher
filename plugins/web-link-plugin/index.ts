@@ -7,6 +7,7 @@ import type {
     PluginMetadata,
     PluginNotificationConfig,
     PluginQueueConfig,
+    PluginSearchEntry,
     PluginStorageConfig,
     PluginSubscription
 } from '../plugin-sdk'
@@ -27,14 +28,63 @@ export class WebLinkPlugin extends BasePlugin {
     readonly minAppVersion = '1.0.0'
     readonly permissions = ['shell', 'storage', 'notification']
 
-    // 网页链接正则表达式匹配规则
-    override readonly search_regexps = [
-        '^https?:\\/\\/',                    // http:// 或 https:// 开头
-        '^www\\.',                          // www. 开头
-        '.*\\.(com|org|net|edu|gov|io|cn|co\\.uk|de|fr|jp)\\b',  // 常见域名后缀
-        '\\b\\w+\\.(com|org|net|edu|gov|io)\\b',  // 域名格式
-        'localhost:\\d+',                   // localhost端口
-        '\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+',     // IP地址端口
+    // 网页链接搜索入口配置
+    override readonly search_regexps: PluginSearchEntry[] = [
+        {
+            router: "url",
+            title: '网页链接',
+            icon: 'pi pi-globe',
+            tags: ['链接', '网页', 'URL'],
+            regexps: [
+                '^https?:\\/\\/',                    // http:// 或 https:// 开头
+                '^www\\.',                          // www. 开头
+            ],
+            runner: async ({ args, api }) => {
+                // 执行网页链接打开操作
+                const { query } = args
+                const url = this.normalizeUrl(query)
+                console.log('网页链接插件：打开链接', url)
+                // 在默认浏览器中打开链接
+                // 例如：api?.notification?.info('正在打开链接', url)
+            }
+        },
+        {
+            router: "domain",
+            title: '域名',
+            icon: 'pi pi-server',
+            tags: ['域名', '网站'],
+            regexps: [
+                '.*\\.(com|org|net|edu|gov|io|cn|co\\.uk|de|fr|jp)\\b',  // 常见域名后缀
+                '\\b\\w+\\.(com|org|net|edu|gov|io)\\b',  // 域名格式
+            ],
+            runner: async ({ args, api }) => {
+                // 执行域名打开操作
+                const { query } = args
+                const url = this.normalizeUrl(query)
+                console.log('网页链接插件：打开域名', url)
+                // 在默认浏览器中打开域名
+                // 例如：api?.notification?.info('正在打开域名', url)
+            }
+        },
+        {
+            router: "localhost",
+            title: '本地服务',
+            icon: 'pi pi-desktop',
+            tags: ['本地', '开发', '服务器'],
+            regexps: [
+                'localhost:\\d+',                   // localhost端口
+                '\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+',     // IP地址端口
+            ],
+            // 本地服务地址无需额外验证，直接通过正则匹配
+            runner: async ({ args, api }) => {
+                // 执行本地服务打开操作
+                const { query } = args
+                const url = this.normalizeUrl(query)
+                console.log('网页链接插件：打开本地服务', url)
+                // 在默认浏览器中打开本地服务
+                // 例如：api?.notification?.success('正在打开本地服务', url)
+            }
+        }
     ]
 
     override readonly logs: PluginLogConfig = {
@@ -304,9 +354,11 @@ export class WebLinkPlugin extends BasePlugin {
         if (!text) return false
 
         // 检查是否匹配任何正则表达式
-        return this.search_regexps.some(pattern => {
-            const regex = new RegExp(pattern, 'i')
-            return regex.test(text.trim())
+        return this.search_regexps.some(entry => {
+            return entry.regexps.some(pattern => {
+                const regex = new RegExp(pattern, 'i')
+                return regex.test(text.trim())
+            })
         })
     }
 

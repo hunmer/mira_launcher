@@ -11,6 +11,7 @@ import type {
   PluginMetadata,
   PluginNotificationConfig,
   PluginQueueConfig,
+  PluginSearchEntry,
   PluginState,
   PluginStorageConfig,
   PluginSubscription
@@ -67,7 +68,7 @@ export abstract class BasePlugin {
   /**
    * 搜索框正则规则
    */
-  abstract readonly search_regexps?: string[]
+  abstract readonly search_regexps?: PluginSearchEntry[]
 
   /**
    * 插件日志配置

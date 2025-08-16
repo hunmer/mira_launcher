@@ -135,6 +135,43 @@ export interface PluginConfig {
 }
 
 /**
+ * Plugin Search Entry Configuration
+ */
+export interface PluginSearchEntry {
+    /** 路由标识 */
+    router: string
+    /** 入口标题 */
+    title: string
+    /** 入口图标（可选，覆盖插件默认图标） */
+    icon?: string
+    /** 入口标签（可选，覆盖插件默认标签） */
+    tags?: string[]
+    /** 正则表达式列表 */
+    regexps: string[]
+    /** 解析器函数（可选，用于通过正则后的额外判断） */
+    parser?: (context: PluginSearchContext) => Promise<boolean>
+    /** 执行器函数（必须，用于处理执行结果） */
+    runner: (context: PluginSearchContext) => Promise<void>
+}
+
+/**
+ * Plugin Search Context
+ */
+export interface PluginSearchContext {
+    /** 搜索参数 */
+    args: {
+        /** 搜索查询字符串 */
+        query: string
+        /** 匹配的正则表达式 */
+        matchedRegexp?: string
+        /** 正则匹配结果 */
+        matches?: RegExpMatchArray | null
+    }
+    /** 插件API */
+    api?: PluginAPI
+}
+
+/**
  * Plugin Components
  */
 export interface PluginComponents {
@@ -172,7 +209,7 @@ export abstract class BasePlugin {
     abstract readonly minAppVersion?: string
 
     // Optional properties with defaults
-    readonly search_regexps?: string[] = []
+    readonly search_regexps?: PluginSearchEntry[] = []
     readonly logs?: PluginLogConfig
     readonly configs?: PluginConfigDefinition
     readonly contextMenus?: PluginContextMenu[]

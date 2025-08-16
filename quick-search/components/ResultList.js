@@ -32,25 +32,57 @@ const ResultList = {
           <div class="result-icon">
             <!-- 应用图标 -->
             <img 
-              v-if="result.icon && result.type === 'app'" 
-              :src="result.icon" 
+              v-if="(result.searchEntry?.icon || result.icon) && result.type === 'app'" 
+              :src="result.searchEntry?.icon || result.icon" 
               :alt="result.name"
               @error="handleIconError"
             />
+            <!-- 搜索入口图标 -->
+            <i v-else-if="result.searchEntry?.icon" :class="result.searchEntry.icon"></i>
             <!-- 类型图标 -->
             <i v-else :class="getTypeIcon(result.type)"></i>
           </div>
           
           <!-- 结果项内容 -->
           <div class="result-content">
-            <div class="result-title" v-html="highlightText(result.name || result.title)"></div>
+            <!-- 如果有搜索入口，优先显示入口标题 -->
+            <div class="result-title" v-html="highlightText(result.searchEntry?.title || result.name || result.title)"></div>
+            <!-- 搜索入口描述或原描述 -->
             <div v-if="result.description" class="result-description">
               {{ result.description }}
             </div>
+            <!-- 如果有搜索入口，显示原插件名称作为副标题 -->
+            <div v-if="result.searchEntry && result.name && result.searchEntry.title !== result.name" class="result-subtitle">
+              来自: {{ result.name }}
+            </div>
             <div class="result-meta">
-              <span class="result-category">{{ result.category }}</span>
-              <span v-if="result.version" class="result-version">v{{ result.version }}</span>
-              <span v-if="result.type" class="result-type">{{ getTypeLabel(result.type) }}</span>
+              <!-- 类型标识 Badge -->
+              <span :class="getTypeBadgeClass(result.type)" class="result-type-badge">
+                {{ getTypeBadgeText(result.type) }}
+              </span>
+              
+              <!-- 插件入口路由 Badge（仅对 plugin_entry 类型显示） -->
+              <span v-if="result.type === 'plugin_entry' && result.searchEntry?.router" class="result-entry-badge">
+                {{ result.searchEntry.router }}
+              </span>
+              
+              <!-- 版本信息 Badge -->
+              <span v-if="result.version || result.pluginInfo?.version" class="result-version-badge">
+                v{{ result.version || result.pluginInfo?.version }}
+              </span>
+              
+              <!-- 显示搜索入口标签 -->
+              <div v-if="result.searchEntry?.tags" class="result-tags">
+                <span v-for="tag in (result.searchEntry.tags || []).slice(0, 3)" :key="tag" class="result-tag">
+                  {{ tag }}
+                </span>
+              </div>
+              <!-- 显示原始标签（如果没有搜索入口标签） -->
+              <div v-else-if="result.tags" class="result-tags">
+                <span v-for="tag in (result.tags || []).slice(0, 3)" :key="tag" class="result-tag">
+                  {{ tag }}
+                </span>
+              </div>
             </div>
           </div>
           
@@ -160,6 +192,36 @@ const ResultList = {
             return typeLabels[type] || typeLabels.default
         }
 
+        // 获取类型 Badge 的 CSS 类
+        const getTypeBadgeClass = (type) => {
+            const badgeClasses = {
+                'function': 'badge-system',
+                'page': 'badge-page',
+                'plugin': 'badge-plugin',
+                'plugin_entry': 'badge-plugin-entry',
+                'app': 'badge-app',
+                'file': 'badge-file',
+                'web': 'badge-web',
+                'default': 'badge-default'
+            }
+            return badgeClasses[type] || badgeClasses.default
+        }
+
+        // 获取类型 Badge 的文本
+        const getTypeBadgeText = (type) => {
+            const badgeTexts = {
+                'function': '系统',
+                'page': '页面',
+                'plugin': '插件',
+                'plugin_entry': '入口',
+                'app': '应用',
+                'file': '文件',
+                'web': '网页',
+                'default': '其他'
+            }
+            return badgeTexts[type] || badgeTexts.default
+        }
+
         // 高亮搜索关键词
         const highlightText = (text) => {
             if (!text || !props.searchQuery.trim()) {
@@ -236,6 +298,8 @@ const ResultList = {
             getItemClass,
             getTypeIcon,
             getTypeLabel,
+            getTypeBadgeClass,
+            getTypeBadgeText,
             highlightText,
             handleIconError,
             selectItem,
