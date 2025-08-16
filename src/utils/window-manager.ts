@@ -114,19 +114,6 @@ async function getSearchData(query: string = '') {
     const allData = []
 
     try {
-        // 应用程序数据
-        const apps = gridStore.items.map(item => ({
-            id: item.id,
-            type: 'application',
-            title: item.name,
-            description: item.description || '',
-            icon: item.icon || '📱',
-            path: item.path,
-            category: '应用程序',
-            tags: []
-        }))
-        allData.push(...apps)
-
         // 系统功能
         const systemFunctions = [
             {
@@ -279,12 +266,6 @@ function handleSearchResult(result: any) {
 
     try {
         switch (result.type) {
-            case 'application':
-                // 启动应用程序
-                console.log(`启动应用: ${result.title}`)
-                // TODO: 实现应用启动逻辑
-                break
-
             case 'function':
                 // 执行系统功能
                 handleSystemFunction(result)
@@ -300,13 +281,6 @@ function handleSearchResult(result: any) {
                 console.log(`插件操作: ${result.title}`)
                 // TODO: 实现插件交互逻辑
                 break
-
-            case 'file':
-                // 打开文件
-                console.log(`打开文件: ${result.path}`)
-                // TODO: 实现文件打开逻辑
-                break
-
             default:
                 console.warn('未知的结果类型:', result.type)
         }
