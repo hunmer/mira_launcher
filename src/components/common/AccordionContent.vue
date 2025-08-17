@@ -1,8 +1,6 @@
 <!-- AccordionContent 组件 - 包装 PrimeVue AccordionContent -->
 <template>
-    <AccordionContent
-        v-bind="$attrs"
-    >
+    <AccordionContent v-bind="$attrs">
         <slot />
     </AccordionContent>
 </template>

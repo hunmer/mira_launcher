@@ -1,8 +1,6 @@
 <!-- IconField 组件 - 包装 PrimeVue IconField -->
 <template>
-    <IconField
-        v-bind="$attrs"
-    >
+    <IconField v-bind="$attrs">
         <slot />
     </IconField>
 </template>

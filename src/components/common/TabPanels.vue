@@ -1,8 +1,6 @@
 <!-- TabPanels 组件 - 包装 PrimeVue TabPanels -->
 <template>
-    <TabPanels
-        v-bind="$attrs"
-    >
+    <TabPanels v-bind="$attrs">
         <slot />
     </TabPanels>
 </template>

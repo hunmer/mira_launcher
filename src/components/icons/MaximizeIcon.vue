@@ -1,11 +1,11 @@
 <template>
-    <BaseIcon 
-        :icon-component="Square" 
+    <BaseIcon
+        :icon-component="Square"
         v-bind="{
             ...(size !== undefined && { size }),
             ...(color !== undefined && { color }),
             ...(iconClass !== undefined && { class: iconClass }),
-            ...$attrs
+            ...$attrs,
         }"
     />
 </template>
@@ -32,7 +32,9 @@ const iconClass = computed(() => {
     return [
         'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors',
         props.class,
-    ].filter(Boolean).join(' ')
+    ]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>
 

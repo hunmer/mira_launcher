@@ -9,7 +9,7 @@
             ...(disabled !== undefined && { disabled }),
             ...(readonly !== undefined && { readonly }),
             ...(primeVueSize !== undefined && { size: primeVueSize }),
-            class: inputClass
+            class: inputClass,
         }"
         @input="handleInput"
         @change="handleChange"
@@ -24,7 +24,7 @@
             ...(placeholder !== undefined && { placeholder }),
             ...(disabled !== undefined && { disabled }),
             ...(readonly !== undefined && { readonly }),
-            class: inputClass
+            class: inputClass,
         }"
         @input="handleInput"
         @change="handleChange"
@@ -69,12 +69,15 @@ interface Emits {
 const inputValue = ref(props.value)
 
 // 监听外部值变化
-watch(() => props.value, (newValue) => {
-    inputValue.value = newValue
-})
+watch(
+    () => props.value,
+    newValue => {
+        inputValue.value = newValue
+    },
+)
 
 // 监听内部值变化
-watch(inputValue, (newValue) => {
+watch(inputValue, newValue => {
     emit('update:value', newValue)
 })
 
@@ -94,7 +97,9 @@ const inputClass = computed(() => {
         'transition-all duration-200',
         props.clearable && 'clearable',
         props.class,
-    ].filter(Boolean).join(' ')
+    ]
+        .filter(Boolean)
+        .join(' ')
 })
 
 // 事件处理

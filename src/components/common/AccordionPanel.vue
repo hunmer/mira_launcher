@@ -3,7 +3,7 @@
     <AccordionPanel
         v-bind="{
             ...$attrs,
-            value: value
+            value: value,
         }"
     >
         <slot />

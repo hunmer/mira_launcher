@@ -8,22 +8,16 @@
     >
         <slot />
     </Badge>
-    <div
-        v-else-if="props.dot"
-        :class="['inline-block relative', badgeClass]"
-    >
+    <div v-else-if="props.dot" :class="['inline-block relative', badgeClass]">
         <slot />
         <span
             :class="[
                 'absolute -top-1 -right-1 w-2 h-2 rounded-full',
-                severityColorClass
+                severityColorClass,
             ]"
         />
     </div>
-    <div
-        v-else
-        :class="badgeClass"
-    >
+    <div v-else :class="badgeClass">
         <slot />
     </div>
 </template>
@@ -65,13 +59,13 @@ const primeVueSeverity = computed(() => {
 // 显示值处理
 const displayValue = computed(() => {
     if (props.dot) return undefined
-  
+
     const numValue = Number(props.value)
     if (isNaN(numValue)) return props.value
-  
+
     if (numValue === 0 && !props.showZero) return undefined
     if (numValue > props.max) return `${props.max}+`
-  
+
     return numValue.toString()
 })
 
@@ -89,10 +83,7 @@ const severityColorClass = computed(() => {
 
 // 样式类
 const badgeClass = computed(() => {
-    return [
-        'inline-block',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['inline-block', props.class].filter(Boolean).join(' ')
 })
 </script>
 

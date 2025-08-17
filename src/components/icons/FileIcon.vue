@@ -5,7 +5,7 @@
             ...(size !== undefined && { size }),
             ...(color !== undefined && { color }),
             ...(customClass !== undefined && { class: customClass }),
-            ...$attrs
+            ...$attrs,
         }"
     />
 </template>

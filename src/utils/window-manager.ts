@@ -12,24 +12,24 @@ import { listen } from '@tauri-apps/api/event'
  * 搜索数据请求事件载荷
  */
 interface SearchDataRequestPayload {
-    query?: string
+  query?: string
 }
 
 /**
  * 快速搜索窗口配置
  */
 interface QuickSearchWindowOptions {
-    width?: number
-    height?: number
-    center?: boolean
-    resizable?: boolean
-    decorations?: boolean
-    transparent?: boolean
-    alwaysOnTop?: boolean
-    skipTaskbar?: boolean
-    focus?: boolean
-    visible?: boolean
-    shadow?: boolean
+  width?: number
+  height?: number
+  center?: boolean
+  resizable?: boolean
+  decorations?: boolean
+  transparent?: boolean
+  alwaysOnTop?: boolean
+  skipTaskbar?: boolean
+  focus?: boolean
+  visible?: boolean
+  shadow?: boolean
 }
 
 /**
@@ -61,33 +61,39 @@ async function setupEventListeners() {
 
   try {
     // 监听来自快速搜索窗口的数据请求
-    await listen<SearchDataRequestPayload>('request-search-data', async (event) => {
-      console.log('[WindowManager] 收到搜索数据请求:', event.payload)
-      const query = event.payload?.query || ''
-      const searchData = await getSearchData(query)
-      console.log('[WindowManager] 准备发送搜索数据，条目数:', searchData.length)
+    await listen<SearchDataRequestPayload>(
+      'request-search-data',
+      async event => {
+        console.log('[WindowManager] 收到搜索数据请求:', event.payload)
+        const query = event.payload?.query || ''
+        const searchData = await getSearchData(query)
+        console.log(
+          '[WindowManager] 准备发送搜索数据，条目数:',
+          searchData.length,
+        )
 
-      // 向快速搜索窗口发送数据 - 使用全局事件和窗口特定事件双重保障
-      try {
-        // 方法1: 使用全局事件系统
-        const { emit } = await import('@tauri-apps/api/event')
-        await emit('search-data-updated', searchData)
-        console.log('[WindowManager] 通过全局事件发送搜索数据成功')
+        // 向快速搜索窗口发送数据 - 使用全局事件和窗口特定事件双重保障
+        try {
+          // 方法1: 使用全局事件系统
+          const { emit } = await import('@tauri-apps/api/event')
+          await emit('search-data-updated', searchData)
+          console.log('[WindowManager] 通过全局事件发送搜索数据成功')
 
-        // 方法2: 如果窗口实例存在，也通过窗口发送
-        if (quickSearchWindow) {
-          await quickSearchWindow.emit('search-data-updated', searchData)
-          console.log('[WindowManager] 通过窗口实例发送搜索数据成功')
-        } else {
-          console.warn('[WindowManager] 窗口实例不存在，仅使用全局事件')
+          // 方法2: 如果窗口实例存在，也通过窗口发送
+          if (quickSearchWindow) {
+            await quickSearchWindow.emit('search-data-updated', searchData)
+            console.log('[WindowManager] 通过窗口实例发送搜索数据成功')
+          } else {
+            console.warn('[WindowManager] 窗口实例不存在，仅使用全局事件')
+          }
+        } catch (error) {
+          console.error('[WindowManager] 发送搜索数据失败:', error)
         }
-      } catch (error) {
-        console.error('[WindowManager] 发送搜索数据失败:', error)
-      }
-    })
+      },
+    )
 
     // 监听来自快速搜索窗口的结果选择
-    await listen('quick-search-result-selected', async (event) => {
+    await listen('quick-search-result-selected', async event => {
       console.log('[WindowManager] 收到搜索结果选择:', event.payload)
       await handleSearchResult(event.payload)
 
@@ -178,7 +184,10 @@ async function getSearchData(query: string = '') {
         }
 
         // 如果插件有搜索入口配置，为每个入口创建单独的搜索项
-        if (plugin.instance.search_regexps && Array.isArray(plugin.instance.search_regexps)) {
+        if (
+          plugin.instance.search_regexps &&
+          Array.isArray(plugin.instance.search_regexps)
+        ) {
           const searchEntries = []
 
           // 添加基础插件项（用于插件名称匹配）
@@ -189,7 +198,12 @@ async function getSearchData(query: string = '') {
 
           // 为每个搜索入口创建单独的项
           for (const entry of plugin.instance.search_regexps) {
-            if (entry && typeof entry === 'object' && entry.regexps && Array.isArray(entry.regexps)) {
+            if (
+              entry &&
+              typeof entry === 'object' &&
+              entry.regexps &&
+              Array.isArray(entry.regexps)
+            ) {
               searchEntries.push({
                 ...basePluginData,
                 id: `${plugin.metadata.id}:${entry.router}`,
@@ -259,7 +273,10 @@ async function performSearch(data: any[], query: string) {
       matched = true
     }
 
-    if (item.description && item.description.toLowerCase().includes(queryLower)) {
+    if (
+      item.description &&
+      item.description.toLowerCase().includes(queryLower)
+    ) {
       score += 20
       matched = true
     }
@@ -310,12 +327,18 @@ async function performSearch(data: any[], query: string) {
         if (shouldInclude) {
           score += 80 // 搜索入口匹配给更高分数
           matched = true
-          console.log(`[WindowManager] 插件入口 ${item.title} (${entry.router}) 通过正则 ${matchedRegexp} 匹配查询: ${query}`)
+          console.log(
+            `[WindowManager] 插件入口 ${item.title} (${entry.router}) 通过正则 ${matchedRegexp} 匹配查询: ${query}`,
+          )
         }
       }
     }
     // 插件基础匹配 - 兼容旧格式
-    else if (item.type === 'plugin' && item.search_regexps && Array.isArray(item.search_regexps)) {
+    else if (
+      item.type === 'plugin' &&
+      item.search_regexps &&
+      Array.isArray(item.search_regexps)
+    ) {
       for (const pattern of item.search_regexps) {
         // 兼容旧的字符串格式
         if (typeof pattern === 'string') {
@@ -324,7 +347,9 @@ async function performSearch(data: any[], query: string) {
             if (regex.test(query)) {
               score += 60
               matched = true
-              console.log(`[WindowManager] 插件 ${item.title} 通过正则 ${pattern} 匹配查询: ${query}`)
+              console.log(
+                `[WindowManager] 插件 ${item.title} 通过正则 ${pattern} 匹配查询: ${query}`,
+              )
             }
           } catch (error) {
             console.warn(`[WindowManager] 无效的正则表达式: ${pattern}`, error)
@@ -338,7 +363,9 @@ async function performSearch(data: any[], query: string) {
               if (regex.test(query)) {
                 score += 60
                 matched = true
-                console.log(`[WindowManager] 插件 ${item.title} 通过入口 ${pattern.router} 的正则 ${regexp} 匹配查询: ${query}`)
+                console.log(
+                  `[WindowManager] 插件 ${item.title} 通过入口 ${pattern.router} 的正则 ${regexp} 匹配查询: ${query}`,
+                )
               }
             } catch (error) {
               console.warn(`[WindowManager] 无效的正则表达式: ${regexp}`, error)
@@ -371,7 +398,9 @@ async function performSearch(data: any[], query: string) {
 
   // 按评分排序并返回
   const sortedResults = results.sort((a, b) => b.score - a.score)
-  console.log(`[WindowManager] 搜索 "${query}" 找到 ${sortedResults.length} 个结果`)
+  console.log(
+    `[WindowManager] 搜索 "${query}" 找到 ${sortedResults.length} 个结果`,
+  )
 
   return sortedResults
 }
@@ -397,7 +426,11 @@ async function handleSearchResult(result: any) {
     case 'plugin':
     case 'plugin_entry':
       // 处理插件搜索入口
-      if (result.searchEntry && result.searchEntry.runner && typeof result.searchEntry.runner === 'function') {
+      if (
+        result.searchEntry &&
+          result.searchEntry.runner &&
+          typeof result.searchEntry.runner === 'function'
+      ) {
         try {
           const context = {
             args: {
@@ -408,10 +441,15 @@ async function handleSearchResult(result: any) {
             api: null, // 这里可以传入实际的API实例
           }
 
-          console.log(`[WindowManager] 执行插件搜索入口 ${result.searchEntry.router} 的 runner 函数`)
+          console.log(
+            `[WindowManager] 执行插件搜索入口 ${result.searchEntry.router} 的 runner 函数`,
+          )
           await result.searchEntry.runner(context)
         } catch (error) {
-          console.error('[WindowManager] 执行插件搜索入口 runner 函数失败:', error)
+          console.error(
+            '[WindowManager] 执行插件搜索入口 runner 函数失败:',
+            error,
+          )
         }
       } else {
         // 普通插件操作
@@ -450,7 +488,9 @@ function handleSystemFunction(result: any) {
  * 打开或聚焦快速搜索窗口
  * @param options 窗口配置选项
  */
-export async function openQuickSearchWindow(options: QuickSearchWindowOptions = {}): Promise<void> {
+export async function openQuickSearchWindow(
+  options: QuickSearchWindowOptions = {},
+): Promise<void> {
   try {
     // 检查是否在 Tauri 环境中
     if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) {
@@ -486,7 +526,9 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
       } catch (emitError) {
         console.error('[WindowManager] 发送数据给现有窗口失败:', emitError)
       }
-      console.log('[WindowManager] Quick search window focused and data updated')
+      console.log(
+        '[WindowManager] Quick search window focused and data updated',
+      )
       return
     }
 
@@ -494,9 +536,10 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
     const windowOptions = { ...DEFAULT_QUICK_SEARCH_OPTIONS, ...options }
 
     // 获取当前目录路径来加载独立的 HTML 文件
-    const quickSearchUrl = window.location.protocol === 'https:'
-      ? '/quick-search/index.html'  // 生产环境
-      : 'http://localhost:1420/quick-search/index.html'  // 开发环境
+    const quickSearchUrl =
+      window.location.protocol === 'https:'
+        ? '/quick-search/index.html' // 生产环境
+        : 'http://localhost:1420/quick-search/index.html' // 开发环境
 
     // 创建新的快速搜索窗口
     quickSearchWindow = new WebviewWindow('quick-search', {
@@ -524,7 +567,9 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
         try {
           await quickSearchWindow.setShadow(false)
         } catch (shadowError) {
-          console.log('[WindowManager] Shadow setting not available on this platform')
+          console.log(
+            '[WindowManager] Shadow setting not available on this platform',
+          )
         }
 
         await quickSearchWindow.show()
@@ -547,7 +592,10 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
           console.error('[WindowManager] 发送初始搜索数据失败:', emitError)
         }
       } catch (error) {
-        console.error('[WindowManager] Failed to show/focus window or send initial data:', error)
+        console.error(
+          '[WindowManager] Failed to show/focus window or send initial data:',
+          error,
+        )
       }
     })
 
@@ -568,7 +616,7 @@ export async function openQuickSearchWindow(options: QuickSearchWindowOptions = 
       throw fallbackError
     }
   }
-}/**
+} /**
  * 关闭快速搜索窗口
  */
 export async function closeQuickSearchWindow(): Promise<void> {
@@ -604,7 +652,10 @@ export async function isQuickSearchWindowOpen(): Promise<boolean> {
     const existingWindow = await WebviewWindow.getByLabel('quick-search')
     return existingWindow !== null
   } catch (error) {
-    console.error('[WindowManager] Failed to check quick search window status:', error)
+    console.error(
+      '[WindowManager] Failed to check quick search window status:',
+      error,
+    )
     return false
   }
 }
@@ -620,4 +671,3 @@ export async function initWindowManager() {
     console.error('[WindowManager] 窗口管理器初始化失败:', error)
   }
 }
-

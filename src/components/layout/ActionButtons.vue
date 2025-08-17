@@ -11,15 +11,15 @@
             @click="toggleSearch"
         />
 
-        <!-- 通知按钮 -->
+        <!-- 刷新页面按钮 -->
         <Button
-            v-tooltip.bottom="'通知'"
-            icon="pi pi-bell"
+            v-tooltip.bottom="'刷新页面'"
+            icon="pi pi-refresh"
             severity="secondary"
             text
             rounded
             size="small"
-            @click="showNotifications"
+            @click="refreshPage"
         />
 
         <!-- 主题切换按钮 -->
@@ -50,9 +50,8 @@ const toggleSearch = async () => {
     await openQuickSearchWindow()
 }
 
-const showNotifications = () => {
-    console.log('Show notifications')
-    // 显示通知
+const refreshPage = () => {
+    window.location.reload()
 }
 
 const toggleTheme = () => {

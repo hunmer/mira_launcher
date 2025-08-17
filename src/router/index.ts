@@ -14,11 +14,7 @@ const UITest = () => import('@/views/UITest.vue')
 // 路由配置
 const routes: RouteRecordRaw[] = [
   {
-    path: '/home',
-    redirect: '/', // 重定向到根路径
-  },
-  {
-    path: '/home',
+    path: '/',
     name: 'Home',
     component: Home,
     meta: {
@@ -169,7 +165,7 @@ router.afterEach((to, from) => {
 })
 
 // 路由錯誤處理
-router.onError((error) => {
+router.onError(error => {
   console.error('路由錯誤:', error)
 
   // 可以在這裡添加錯誤報告邏輯

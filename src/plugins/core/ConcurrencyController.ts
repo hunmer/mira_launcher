@@ -11,71 +11,71 @@ import { TaskScheduler } from './TaskScheduler'
  * 并发控制策略
  */
 export type ConcurrencyStrategy =
-    | 'fixed'      // 固定并发数
-    | 'adaptive'   // 自适应调整
-    | 'priority'   // 基于优先级
-    | 'resource'   // 基于资源使用率
+  | 'fixed' // 固定并发数
+  | 'adaptive' // 自适应调整
+  | 'priority' // 基于优先级
+  | 'resource' // 基于资源使用率
 
 /**
  * 资源监控配置
  */
 export interface ResourceMonitorConfig {
-    /** 内存使用阈值（MB） */
-    memoryThreshold: number
-    /** CPU 使用率阈值（百分比） */
-    cpuThreshold: number
-    /** 检查间隔（毫秒） */
-    checkInterval: number
-    /** 是否启用自动调整 */
-    enableAutoAdjustment: boolean
+  /** 内存使用阈值（MB） */
+  memoryThreshold: number
+  /** CPU 使用率阈值（百分比） */
+  cpuThreshold: number
+  /** 检查间隔（毫秒） */
+  checkInterval: number
+  /** 是否启用自动调整 */
+  enableAutoAdjustment: boolean
 }
 
 /**
  * 并发控制配置
  */
 export interface ConcurrencyControlConfig {
-    /** 并发策略 */
-    strategy: ConcurrencyStrategy
-    /** 基础并发数 */
-    baseConcurrency: number
-    /** 最小并发数 */
-    minConcurrency: number
-    /** 最大并发数 */
-    maxConcurrency: number
-    /** 资源监控配置 */
-    resourceMonitor: ResourceMonitorConfig
-    /** 自适应调整参数 */
-    adaptiveParams: {
-        /** 调整步长 */
-        adjustmentStep: number
-        /** 调整阈值 */
-        adjustmentThreshold: number
-        /** 调整冷却时间（毫秒） */
-        cooldownPeriod: number
-    }
+  /** 并发策略 */
+  strategy: ConcurrencyStrategy
+  /** 基础并发数 */
+  baseConcurrency: number
+  /** 最小并发数 */
+  minConcurrency: number
+  /** 最大并发数 */
+  maxConcurrency: number
+  /** 资源监控配置 */
+  resourceMonitor: ResourceMonitorConfig
+  /** 自适应调整参数 */
+  adaptiveParams: {
+    /** 调整步长 */
+    adjustmentStep: number
+    /** 调整阈值 */
+    adjustmentThreshold: number
+    /** 调整冷却时间（毫秒） */
+    cooldownPeriod: number
+  }
 }
 
 /**
  * 并发控制器统计信息
  */
 export interface ConcurrencyStats {
-    /** 当前并发数 */
-    currentConcurrency: number
-    /** 平均并发数 */
-    averageConcurrency: number
-    /** 最大并发数 */
-    peakConcurrency: number
-    /** 并发利用率 */
-    utilizationRate: number
-    /** 资源使用情况 */
-    resourceUsage: {
-        memory: number
-        cpu: number
-    }
-    /** 调整次数 */
-    adjustmentCount: number
-    /** 最后调整时间 */
-    lastAdjustment: Date | null
+  /** 当前并发数 */
+  currentConcurrency: number
+  /** 平均并发数 */
+  averageConcurrency: number
+  /** 最大并发数 */
+  peakConcurrency: number
+  /** 并发利用率 */
+  utilizationRate: number
+  /** 资源使用情况 */
+  resourceUsage: {
+    memory: number
+    cpu: number
+  }
+  /** 调整次数 */
+  adjustmentCount: number
+  /** 最后调整时间 */
+  lastAdjustment: Date | null
 }
 
 /**
@@ -116,7 +116,7 @@ export class ConcurrencyController {
       maxConcurrency: 20,
       resourceMonitor: {
         memoryThreshold: 80, // 80%
-        cpuThreshold: 70,    // 70%
+        cpuThreshold: 70, // 70%
         checkInterval: 5000, // 5秒
         enableAutoAdjustment: true,
       },
@@ -135,8 +135,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 初始化控制器
-     */
+   * 初始化控制器
+   */
   private initializeController(): void {
     // 启动资源监控
     if (this.config.resourceMonitor.enableAutoAdjustment) {
@@ -153,8 +153,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 启动资源监控
-     */
+   * 启动资源监控
+   */
   private startResourceMonitoring(): void {
     this.resourceMonitorInterval = window.setInterval(() => {
       this.checkResourceUsage()
@@ -162,8 +162,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 检查资源使用情况
-     */
+   * 检查资源使用情况
+   */
   private checkResourceUsage(): void {
     const resourceUsage = this.getCurrentResourceUsage()
     this.stats.resourceUsage = resourceUsage
@@ -176,13 +176,13 @@ export class ConcurrencyController {
     case 'resource':
       this.resourceBasedAdjustment(resourceUsage)
       break
-            // fixed 和 priority 策略不需要自动调整
+      // fixed 和 priority 策略不需要自动调整
     }
   }
 
   /**
-     * 获取当前资源使用情况
-     */
+   * 获取当前资源使用情况
+   */
   private getCurrentResourceUsage(): { memory: number; cpu: number } {
     let memoryUsage = 0
     let cpuUsage = 0
@@ -203,8 +203,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 估算 CPU 使用率（简化实现）
-     */
+   * 估算 CPU 使用率（简化实现）
+   */
   private estimateCpuUsage(): number {
     // 基于当前运行任务数和平均执行时间估算
     const activeTasks = this.getActiveTasks()
@@ -215,8 +215,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 获取当前活跃任务数
-     */
+   * 获取当前活跃任务数
+   */
   private getActiveTasks(): number {
     let totalActiveTasks = 0
 
@@ -229,9 +229,12 @@ export class ConcurrencyController {
   }
 
   /**
-     * 自适应并发调整
-     */
-  private adaptiveConcurrencyAdjustment(resourceUsage: { memory: number; cpu: number }): void {
+   * 自适应并发调整
+   */
+  private adaptiveConcurrencyAdjustment(resourceUsage: {
+    memory: number
+    cpu: number
+  }): void {
     const now = Date.now()
     const cooldownPeriod = this.config.adaptiveParams.cooldownPeriod
 
@@ -248,8 +251,10 @@ export class ConcurrencyController {
 
     // 如果利用率高且资源允许，增加并发数
     if (utilizationRate > threshold) {
-      if (resourceUsage.memory < this.config.resourceMonitor.memoryThreshold &&
-                resourceUsage.cpu < this.config.resourceMonitor.cpuThreshold) {
+      if (
+        resourceUsage.memory < this.config.resourceMonitor.memoryThreshold &&
+        resourceUsage.cpu < this.config.resourceMonitor.cpuThreshold
+      ) {
         newConcurrency = Math.min(
           this.currentConcurrency.value + step,
           this.config.maxConcurrency,
@@ -270,24 +275,32 @@ export class ConcurrencyController {
   }
 
   /**
-     * 基于资源的并发调整
-     */
-  private resourceBasedAdjustment(resourceUsage: { memory: number; cpu: number }): void {
+   * 基于资源的并发调整
+   */
+  private resourceBasedAdjustment(resourceUsage: {
+    memory: number
+    cpu: number
+  }): void {
     const memoryThreshold = this.config.resourceMonitor.memoryThreshold
     const cpuThreshold = this.config.resourceMonitor.cpuThreshold
 
     let newConcurrency = this.currentConcurrency.value
 
     // 如果资源使用过高，降低并发数
-    if (resourceUsage.memory > memoryThreshold || resourceUsage.cpu > cpuThreshold) {
+    if (
+      resourceUsage.memory > memoryThreshold ||
+      resourceUsage.cpu > cpuThreshold
+    ) {
       newConcurrency = Math.max(
         Math.ceil(this.currentConcurrency.value * 0.8),
         this.config.minConcurrency,
       )
     }
     // 如果资源使用较低，适当增加并发数
-    else if (resourceUsage.memory < memoryThreshold * 0.6 &&
-            resourceUsage.cpu < cpuThreshold * 0.6) {
+    else if (
+      resourceUsage.memory < memoryThreshold * 0.6 &&
+      resourceUsage.cpu < cpuThreshold * 0.6
+    ) {
       newConcurrency = Math.min(
         this.currentConcurrency.value + 1,
         this.config.maxConcurrency,
@@ -300,8 +313,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 调整并发数
-     */
+   * 调整并发数
+   */
   private adjustConcurrency(newConcurrency: number): void {
     const oldConcurrency = this.currentConcurrency.value
     this.currentConcurrency.value = newConcurrency
@@ -336,8 +349,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 更新调度器并发配置
-     */
+   * 更新调度器并发配置
+   */
   private updateSchedulersConcurrency(newConcurrency: number): void {
     for (const scheduler of this.schedulers.values()) {
       const config = scheduler.getConfig()
@@ -349,8 +362,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     // 监听调度器事件来更新统计信息
     globalEventBus.on('scheduler:taskCompleted', () => {
@@ -368,16 +381,16 @@ export class ConcurrencyController {
   }
 
   /**
-     * 更新利用率统计
-     */
+   * 更新利用率统计
+   */
   private updateUtilizationStats(): void {
     const activeTasks = this.getActiveTasks()
     this.stats.utilizationRate = activeTasks / this.currentConcurrency.value
   }
 
   /**
-     * 更新平均并发数
-     */
+   * 更新平均并发数
+   */
   private updateAverageConcurrency(): void {
     if (this.adjustmentHistory.length > 0) {
       const sum = this.adjustmentHistory.reduce((a, b) => a + b, 0)
@@ -386,8 +399,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 注册调度器
-     */
+   * 注册调度器
+   */
   registerScheduler(scheduler: TaskScheduler): void {
     this.schedulers.set(scheduler.id, scheduler)
 
@@ -405,8 +418,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 注销调度器
-     */
+   * 注销调度器
+   */
   unregisterScheduler(schedulerId: string): void {
     if (this.schedulers.delete(schedulerId)) {
       globalEventBus.emit('concurrency:schedulerUnregistered', {
@@ -417,8 +430,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 手动设置并发数
-     */
+   * 手动设置并发数
+   */
   setConcurrency(concurrency: number): void {
     const clampedConcurrency = Math.max(
       this.config.minConcurrency,
@@ -429,29 +442,29 @@ export class ConcurrencyController {
   }
 
   /**
-     * 获取当前并发数
-     */
+   * 获取当前并发数
+   */
   getCurrentConcurrency(): number {
     return this.currentConcurrency.value
   }
 
   /**
-     * 获取统计信息
-     */
+   * 获取统计信息
+   */
   getStats(): ConcurrencyStats {
     return { ...this.stats }
   }
 
   /**
-     * 获取配置信息
-     */
+   * 获取配置信息
+   */
   getConfig(): ConcurrencyControlConfig {
     return { ...this.config }
   }
 
   /**
-     * 更新配置
-     */
+   * 更新配置
+   */
   updateConfig(config: Partial<ConcurrencyControlConfig>): void {
     this.config = { ...this.config, ...config }
 
@@ -472,8 +485,8 @@ export class ConcurrencyController {
   }
 
   /**
-     * 销毁控制器
-     */
+   * 销毁控制器
+   */
   destroy(): void {
     if (this.isDestroyed.value) {
       return

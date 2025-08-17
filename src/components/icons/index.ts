@@ -26,4 +26,3 @@ export { default as SunIcon } from './SunIcon.vue'
 export { default as GeneralIcon } from './GeneralIcon.vue'
 export { default as KeyboardIcon } from './KeyboardIcon.vue'
 export { default as StartupIcon } from './StartupIcon.vue'
-

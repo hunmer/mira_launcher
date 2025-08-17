@@ -17,15 +17,16 @@
                 />
             </div>
 
-            <div
-                v-if="type !== 'url'"
-                class="form-field"
-            >
-                <label class="field-label">{{ type === 'folder' ? '文件夹路径' : '文件路径' }}</label>
+            <div v-if="type !== 'url'" class="form-field">
+                <label class="field-label">
+                    {{ type === 'folder' ? '文件夹路径' : '文件路径' }}
+                </label>
                 <div class="path-input-group">
                     <Input
                         v-model="form.path"
-                        :placeholder="type === 'folder' ? '请输入文件夹路径' : '请输入文件路径'"
+                        :placeholder="
+                            type === 'folder' ? '请输入文件夹路径' : '请输入文件路径'
+                        "
                         class="field-input"
                     />
                     <Button
@@ -37,10 +38,7 @@
                 </div>
             </div>
 
-            <div
-                v-if="type === 'url'"
-                class="form-field"
-            >
+            <div v-if="type === 'url'" class="form-field">
                 <label class="field-label">网址</label>
                 <Input
                     v-model="form.path"
@@ -60,10 +58,7 @@
                     class="field-input"
                 >
                     <template #value="{ value, placeholder }">
-                        <div
-                            v-if="value"
-                            class="flex items-center gap-2"
-                        >
+                        <div v-if="value" class="flex items-center gap-2">
                             <i :class="getCategoryIcon(value)" />
                             <span>{{ getCategoryLabel(value) }}</span>
                         </div>
@@ -104,10 +99,7 @@
                 </div>
             </div>
 
-            <div
-                v-if="form.icon"
-                class="icon-preview"
-            >
+            <div v-if="form.icon" class="icon-preview">
                 <label class="field-label">图标预览</label>
                 <div class="preview-container">
                     <img
@@ -117,10 +109,7 @@
                         class="preview-icon"
                         @error="onIconError"
                     >
-                    <div
-                        v-if="iconError"
-                        class="icon-error"
-                    >
+                    <div v-if="iconError" class="icon-error">
                         <i class="pi pi-exclamation-triangle" />
                         <span>图标加载失败</span>
                     </div>
@@ -173,7 +162,7 @@ const emit = defineEmits<Emits>()
 
 const isVisible = computed({
     get: () => props.show,
-    set: (value) => emit('update:show', value),
+    set: value => emit('update:show', value),
 })
 
 const iconError = ref(false)
@@ -297,108 +286,114 @@ const resetForm = () => {
 }
 
 // 监听显示状态变化，重置表单
-watch(() => props.show, (newValue) => {
-    if (newValue) {
-        resetForm()
-        // 根据类型设置默认分类
-        if (props.type === 'url') {
-            form.category = 'productivity'
-        } else if (props.type === 'folder') {
-            form.category = 'files'
+watch(
+    () => props.show,
+    newValue => {
+        if (newValue) {
+            resetForm()
+            // 根据类型设置默认分类
+            if (props.type === 'url') {
+                form.category = 'productivity'
+            } else if (props.type === 'folder') {
+                form.category = 'files'
+            }
         }
-    }
-})
+    },
+)
 
 // 监听图标变化，重置错误状态
-watch(() => form.icon, () => {
-    iconError.value = false
-})
+watch(
+    () => form.icon,
+    () => {
+        iconError.value = false
+    },
+)
 </script>
 
 <style scoped>
 .add-app-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .field-label {
-    font-weight: 500;
-    color: rgb(55 65 81);
-    font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55 65 81);
+  font-size: 0.875rem;
 }
 
 .dark .field-label {
-    color: rgb(229 231 235);
+  color: rgb(229 231 235);
 }
 
 .field-input {
-    width: 100%;
+  width: 100%;
 }
 
 .path-input-group,
 .icon-input-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .path-input-group .field-input,
 .icon-input-group .field-input {
-    flex: 1;
+  flex: 1;
 }
 
 .browse-btn {
-    flex-shrink: 0;
-    padding: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.5rem;
 }
 
 .icon-preview {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .preview-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border: 2px dashed rgb(209 213 219);
-    border-radius: 8px;
-    background-color: rgb(249 250 251);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 2px dashed rgb(209 213 219);
+  border-radius: 8px;
+  background-color: rgb(249 250 251);
 }
 
 .dark .preview-container {
-    background-color: rgb(31 41 55);
-    border-color: rgb(75 85 99);
+  background-color: rgb(31 41 55);
+  border-color: rgb(75 85 99);
 }
 
 .preview-icon {
-    max-width: 48px;
-    max-height: 48px;
-    object-fit: contain;
+  max-width: 48px;
+  max-height: 48px;
+  object-fit: contain;
 }
 
 .icon-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    color: rgb(239 68 68);
-    font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgb(239 68 68);
+  font-size: 0.75rem;
 }
 
 .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 </style>

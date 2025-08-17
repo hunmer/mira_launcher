@@ -81,7 +81,9 @@ export const useThemeStore = defineStore('theme', () => {
     const htmlElement = document.documentElement
     const isDark = currentTheme.value === 'dark'
 
-    console.log(`[Theme] Applying theme: ${currentTheme.value} (mode: ${themeMode.value}, system: ${systemTheme.value})`)
+    console.log(
+      `[Theme] Applying theme: ${currentTheme.value} (mode: ${themeMode.value}, system: ${systemTheme.value})`,
+    )
 
     if (isDark) {
       htmlElement.classList.add('dark')
@@ -89,7 +91,10 @@ export const useThemeStore = defineStore('theme', () => {
       htmlElement.classList.remove('dark')
     }
 
-    console.log('[Theme] DOM classes after apply:', htmlElement.classList.toString())
+    console.log(
+      '[Theme] DOM classes after apply:',
+      htmlElement.classList.toString(),
+    )
 
     // 刷新插件主题
     refreshPluginThemes()
@@ -120,7 +125,11 @@ export const useThemeStore = defineStore('theme', () => {
   // 初始化主题
   const initTheme = () => {
     // 从 localStorage 读取保存的主题设置
-    const savedTheme = localStorage.getItem('theme-mode') as 'light' | 'dark' | 'auto' | null
+    const savedTheme = localStorage.getItem('theme-mode') as
+      | 'light'
+      | 'dark'
+      | 'auto'
+      | null
     if (savedTheme) {
       themeMode.value = savedTheme
     }
@@ -154,8 +163,14 @@ export const useThemeStore = defineStore('theme', () => {
   // 保存主题设置到 localStorage
   const saveTheme = () => {
     localStorage.setItem('theme-mode', themeMode.value)
-    localStorage.setItem('plugin-theme-config', JSON.stringify(pluginThemeConfig.value))
-    localStorage.setItem('active-plugin-themes', JSON.stringify([...activePluginThemes.value]))
+    localStorage.setItem(
+      'plugin-theme-config',
+      JSON.stringify(pluginThemeConfig.value),
+    )
+    localStorage.setItem(
+      'active-plugin-themes',
+      JSON.stringify([...activePluginThemes.value]),
+    )
   }
 
   // 插件主题管理方法
@@ -168,7 +183,9 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     if (pluginThemes.value.size >= pluginThemeConfig.value.maxPluginThemes) {
-      throw new Error(`Plugin themes limit reached: ${pluginThemeConfig.value.maxPluginThemes}`)
+      throw new Error(
+        `Plugin themes limit reached: ${pluginThemeConfig.value.maxPluginThemes}`,
+      )
     }
 
     const themeId = `${pluginId}.${themeData.name}`
@@ -219,7 +236,9 @@ export const useThemeStore = defineStore('theme', () => {
 
     // 检查主题模式兼容性
     if (!shouldActivateTheme(theme)) {
-      console.log(`[Theme] Theme ${themeId} not compatible with current mode: ${currentTheme.value}`)
+      console.log(
+        `[Theme] Theme ${themeId} not compatible with current mode: ${currentTheme.value}`,
+      )
       return false
     }
 
@@ -352,23 +371,31 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   // 监听主题模式变化，自动应用和保存
-  watch(themeMode, (newMode) => {
-    console.log(`[Theme] Theme mode changed to: ${newMode}`)
-    nextTick(() => {
-      applyTheme()
-      saveTheme()
-    })
-  }, { immediate: false })
-
-  // 监听系统主题变化
-  watch(systemTheme, (newSystemTheme) => {
-    console.log(`[Theme] System theme changed to: ${newSystemTheme}`)
-    if (themeMode.value === 'auto') {
+  watch(
+    themeMode,
+    newMode => {
+      console.log(`[Theme] Theme mode changed to: ${newMode}`)
       nextTick(() => {
         applyTheme()
+        saveTheme()
       })
-    }
-  }, { immediate: false })
+    },
+    { immediate: false },
+  )
+
+  // 监听系统主题变化
+  watch(
+    systemTheme,
+    newSystemTheme => {
+      console.log(`[Theme] System theme changed to: ${newSystemTheme}`)
+      if (themeMode.value === 'auto') {
+        nextTick(() => {
+          applyTheme()
+        })
+      }
+    },
+    { immediate: false },
+  )
 
   return {
     // 基础主题状态

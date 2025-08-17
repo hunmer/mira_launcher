@@ -8,10 +8,7 @@
             @mouseenter="showCloseIcon = true"
             @mouseleave="showCloseIcon = false"
         >
-            <i
-                v-if="showCloseIcon"
-                class="pi pi-times control-icon"
-            />
+            <i v-if="showCloseIcon" class="pi pi-times control-icon" />
         </button>
 
         <!-- 最小化按钮 (黄色) -->
@@ -22,10 +19,7 @@
             @mouseenter="showMinimizeIcon = true"
             @mouseleave="showMinimizeIcon = false"
         >
-            <i
-                v-if="showMinimizeIcon"
-                class="pi pi-minus control-icon"
-            />
+            <i v-if="showMinimizeIcon" class="pi pi-minus control-icon" />
         </button>
 
         <!-- 最大化按钮 (绿色) -->
@@ -36,10 +30,7 @@
             @mouseenter="showMaximizeIcon = true"
             @mouseleave="showMaximizeIcon = false"
         >
-            <i
-                v-if="showMaximizeIcon"
-                class="pi pi-window-maximize control-icon"
-            />
+            <i v-if="showMaximizeIcon" class="pi pi-window-maximize control-icon" />
         </button>
     </div>
 </template>

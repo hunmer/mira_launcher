@@ -2,32 +2,54 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 export interface Application {
-    id: string
-    name: string
-    path: string
-    icon?: string
-    category: string
-    lastUsed?: Date
-    pinned?: boolean
-    type: 'file' | 'folder' | 'url' | 'app'
-    description?: string
-    tags?: string[]
-    isSystem?: boolean
-    version?: string
-    size?: number
-    createdAt: Date
-    updatedAt: Date
+  id: string
+  name: string
+  path: string
+  icon?: string
+  category: string
+  lastUsed?: Date
+  pinned?: boolean
+  type: 'file' | 'folder' | 'url' | 'app'
+  description?: string
+  tags?: string[]
+  isSystem?: boolean
+  version?: string
+  size?: number
+  createdAt: Date
+  updatedAt: Date
+  sortOrder?: number
 }
 
 export interface Category {
-    label: string
-    value: string
-    icon: string
+  label: string
+  value: string
+  icon: string
+}
+
+export type SortType = 'custom' | 'name' | 'created' | 'lastUsed' | 'type'
+
+export interface SortOption {
+  label: string
+  value: SortType
+  icon: string
 }
 
 export const useApplicationsStore = defineStore('applications', () => {
   // 应用列表
   const applications = ref<Application[]>([])
+
+  // 排序相关
+  const currentSortType = ref<SortType>('custom')
+  const sortAscending = ref(true)
+
+  // 排序选项
+  const sortOptions = ref<SortOption[]>([
+    { label: '自定义排序', value: 'custom', icon: 'pi pi-sort' },
+    { label: '按名称排序', value: 'name', icon: 'pi pi-sort-alpha-down' },
+    { label: '按创建时间', value: 'created', icon: 'pi pi-calendar' },
+    { label: '按使用时间', value: 'lastUsed', icon: 'pi pi-clock' },
+    { label: '按类型排序', value: 'type', icon: 'pi pi-tags' },
+  ])
 
   // 分类选项
   const categories = ref<Category[]>([
@@ -56,7 +78,49 @@ export const useApplicationsStore = defineStore('applications', () => {
     if (selectedCategory.value !== 'all') {
       apps = apps.filter(app => app.category === selectedCategory.value)
     }
-    return apps
+    
+    // 根据排序类型进行排序
+    return apps.sort((a, b) => {
+      let result = 0
+      
+      switch (currentSortType.value) {
+      case 'custom': {
+        // 自定义排序：使用 sortOrder
+        const aOrder = a.sortOrder ?? 999999
+        const bOrder = b.sortOrder ?? 999999
+        result = aOrder - bOrder
+        break
+      }
+      case 'name': {
+        // 按名称排序
+        result = a.name.localeCompare(b.name)
+        break
+      }
+      case 'created': {
+        // 按创建时间排序
+        result = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        break
+      }
+      case 'lastUsed': {
+        // 按最后使用时间排序
+        const aTime = a.lastUsed ? new Date(a.lastUsed).getTime() : 0
+        const bTime = b.lastUsed ? new Date(b.lastUsed).getTime() : 0
+        result = bTime - aTime // 最近使用的在前
+        break
+      }
+      case 'type': {
+        // 按类型排序
+        result = a.type.localeCompare(b.type)
+        break
+      }
+      default: {
+        result = 0
+      }
+      }
+      
+      // 应用升序/降序
+      return sortAscending.value ? result : -result
+    })
   })
 
   const pageApplications = computed(() => {
@@ -86,16 +150,23 @@ export const useApplicationsStore = defineStore('applications', () => {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        applications.value = parsed.map((app: Partial<Application> & { 
-          lastUsed?: string | Date
-          createdAt: string | Date
-          updatedAt: string | Date
-        }) => ({
-          ...app,
-          lastUsed: app.lastUsed ? new Date(app.lastUsed) : undefined,
-          createdAt: new Date(app.createdAt),
-          updatedAt: new Date(app.updatedAt),
-        })) as Application[]
+        applications.value = parsed.map(
+          (
+            app: Partial<Application> & {
+              lastUsed?: string | Date
+              createdAt: string | Date
+              updatedAt: string | Date
+              sortOrder?: number
+            },
+            index: number,
+          ) => ({
+            ...app,
+            lastUsed: app.lastUsed ? new Date(app.lastUsed) : undefined,
+            createdAt: new Date(app.createdAt),
+            updatedAt: new Date(app.updatedAt),
+            sortOrder: app.sortOrder ?? index, // 如果没有 sortOrder，使用索引
+          }),
+        ) as Application[]
       } else {
         // 如果没有存储数据，初始化默认数据
         initDefaultApplications()
@@ -123,6 +194,8 @@ export const useApplicationsStore = defineStore('applications', () => {
         totalPages.value = settings.totalPages || 5
         gridColumns.value = settings.gridColumns || 4
         selectedCategory.value = settings.selectedCategory || 'all'
+        currentSortType.value = settings.currentSortType || 'custom'
+        sortAscending.value = settings.sortAscending ?? true
       }
     } catch (error) {
       console.error('加载页面设置失败:', error)
@@ -136,6 +209,8 @@ export const useApplicationsStore = defineStore('applications', () => {
         totalPages: totalPages.value,
         gridColumns: gridColumns.value,
         selectedCategory: selectedCategory.value,
+        currentSortType: currentSortType.value,
+        sortAscending: sortAscending.value,
       }
       localStorage.setItem(PAGE_SETTINGS_KEY, JSON.stringify(settings))
     } catch (error) {
@@ -143,12 +218,15 @@ export const useApplicationsStore = defineStore('applications', () => {
     }
   }
 
-  const addApplication = (app: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addApplication = (
+    app: Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>,
+  ) => {
     const newApp: Application = {
       ...app,
       id: `app-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
       updatedAt: new Date(),
+      sortOrder: applications.value.length, // 设置为当前最大的排序值
     }
     applications.value.push(newApp)
     saveApplications()
@@ -199,8 +277,36 @@ export const useApplicationsStore = defineStore('applications', () => {
   const removePage = (_pageIndex?: number) => {
     if (totalPages.value <= 1) return false
 
+    // 获取要删除的页面索引（默认是最后一页）
+    const pageToDelete = _pageIndex !== undefined ? _pageIndex : totalPages.value - 1
+    
+    // 获取被删除页面上的应用
+    const pageApps = pageApplications.value[pageToDelete] || []
+    
+    // 如果被删除页面有应用，需要重新分配给其他页面
+    if (pageApps.length > 0) {
+      // 将应用重新分配到前面的页面
+      pageApps.forEach((app, index) => {
+        const newPageIndex = Math.min(pageToDelete - 1, totalPages.value - 2)
+        const newSortOrder = (newPageIndex * appsPerPage.value) + 
+                            (pageApplications.value[newPageIndex]?.length || 0) + index
+        
+        const globalApp = applications.value.find(a => a.id === app.id)
+        if (globalApp) {
+          globalApp.sortOrder = newSortOrder
+          globalApp.updatedAt = new Date()
+        }
+      })
+      
+      // 保存应用数据
+      saveApplications()
+    }
+
     // 如果删除的是当前页且不是最后一页，则移动到前一页
-    if (currentPageIndex.value === totalPages.value - 1 && currentPageIndex.value > 0) {
+    if (
+      currentPageIndex.value === totalPages.value - 1 &&
+      currentPageIndex.value > 0
+    ) {
       currentPageIndex.value--
     }
 
@@ -216,6 +322,7 @@ export const useApplicationsStore = defineStore('applications', () => {
   }
 
   const setGridColumns = (columns: number) => {
+    console.log(`[ApplicationsStore] 设置网格列数: ${gridColumns.value} -> ${columns}`)
     gridColumns.value = columns
     savePageSettings()
   }
@@ -323,24 +430,59 @@ export const useApplicationsStore = defineStore('applications', () => {
   // 测试数据生成
   const generateTestApplications = (count: number = 10) => {
     const testNames = [
-      'IntelliJ IDEA', 'WebStorm', 'PyCharm', 'Adobe Photoshop', 'Adobe Illustrator',
-      'Blender', 'Unity', 'Unreal Engine', 'OBS Studio', 'Streamlabs',
-      'Discord', 'Teams', 'Zoom', 'Skype', 'WhatsApp',
-      'Steam', 'Epic Games', 'Origin', 'Battle.net', 'Uplay',
-      'WinRAR', '7-Zip', 'Everything', 'Notepad++', 'Sublime Text',
+      'IntelliJ IDEA',
+      'WebStorm',
+      'PyCharm',
+      'Adobe Photoshop',
+      'Adobe Illustrator',
+      'Blender',
+      'Unity',
+      'Unreal Engine',
+      'OBS Studio',
+      'Streamlabs',
+      'Discord',
+      'Teams',
+      'Zoom',
+      'Skype',
+      'WhatsApp',
+      'Steam',
+      'Epic Games',
+      'Origin',
+      'Battle.net',
+      'Uplay',
+      'WinRAR',
+      '7-Zip',
+      'Everything',
+      'Notepad++',
+      'Sublime Text',
     ]
 
-    const testCategories = ['development', 'design', 'entertainment', 'productivity', 'utility']
-    const testTypes: ('app' | 'url' | 'file' | 'folder')[] = ['app', 'url', 'file', 'folder']
+    const testCategories = [
+      'development',
+      'design',
+      'entertainment',
+      'productivity',
+      'utility',
+    ]
+    const testTypes: ('app' | 'url' | 'file' | 'folder')[] = [
+      'app',
+      'url',
+      'file',
+      'folder',
+    ]
 
     for (let i = 0; i < count; i++) {
       const randomName = testNames[Math.floor(Math.random() * testNames.length)]
-      const randomCategory = testCategories[Math.floor(Math.random() * testCategories.length)]
+      const randomCategory =
+        testCategories[Math.floor(Math.random() * testCategories.length)]
       const randomType = testTypes[Math.floor(Math.random() * testTypes.length)]
 
       addApplication({
         name: `${randomName} ${i + 1}`,
-        path: randomType === 'url' ? `https://example-${i}.com` : `C:\\Test\\${randomName}\\app.exe`,
+        path:
+          randomType === 'url'
+            ? `https://example-${i}.com`
+            : `C:\\Test\\${randomName}\\app.exe`,
         category: randomCategory || 'utility',
         type: randomType || 'app',
         description: `测试应用 ${i + 1}`,
@@ -352,34 +494,58 @@ export const useApplicationsStore = defineStore('applications', () => {
   }
 
   const updateCurrentPageApps = (newApps: Application[]) => {
-    const filteredApps = filteredApplications.value
-    const startIndex = currentPageIndex.value * appsPerPage.value
+    console.log('更新当前页应用:', newApps.map(app => app.name))
     
-    // 创建新的应用列表
-    const updatedApps = [...filteredApps]
+    // 当手动拖拽排序时，自动切换到自定义排序
+    if (currentSortType.value !== 'custom') {
+      currentSortType.value = 'custom'
+      console.log('切换到自定义排序模式')
+    }
     
-    // 替换当前页的应用
-    updatedApps.splice(startIndex, appsPerPage.value, ...newApps)
-    
-    // 更新全局应用列表中对应的应用
-    newApps.forEach((app) => {
-      const globalIndex = applications.value.findIndex(a => a.id === app.id)
-      if (globalIndex !== -1) {
-        applications.value[globalIndex] = app
+    // 更新每个应用的 sortOrder
+    newApps.forEach((app, index) => {
+      const globalApp = applications.value.find(a => a.id === app.id)
+      if (globalApp) {
+        // 计算全局排序位置
+        const pageStartIndex = currentPageIndex.value * appsPerPage.value
+        globalApp.sortOrder = pageStartIndex + index
+        globalApp.updatedAt = new Date()
       }
     })
     
+    // 保存到本地存储
     saveApplications()
+    savePageSettings()
+  }
+
+  // 排序相关方法
+  const setSortType = (sortType: string) => {
+    // 验证并转换为 SortType
+    const validSortTypes: SortType[] = ['custom', 'name', 'created', 'lastUsed', 'type']
+    if (validSortTypes.includes(sortType as SortType)) {
+      console.log(`[ApplicationsStore] 切换排序类型: ${currentSortType.value} -> ${sortType}`)
+      currentSortType.value = sortType as SortType
+      savePageSettings()
+    }
+  }
+
+  const toggleSortOrder = () => {
+    console.log(`[ApplicationsStore] 切换排序顺序: ${sortAscending.value ? '升序' : '降序'} -> ${!sortAscending.value ? '升序' : '降序'}`)
+    sortAscending.value = !sortAscending.value
+    savePageSettings()
   }
 
   return {
     // 状态
     applications,
     categories,
+    sortOptions,
     currentPageIndex,
     totalPages,
     gridColumns,
     selectedCategory,
+    currentSortType,
+    sortAscending,
 
     // 计算属性
     filteredApplications,
@@ -404,5 +570,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     togglePin,
     generateTestApplications,
     updateCurrentPageApps,
+    setSortType,
+    toggleSortOrder,
   }
 })

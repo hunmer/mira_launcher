@@ -1,18 +1,15 @@
 <!-- DataTable 组件 - 包装 PrimeVue DataTable 以支持自定义样式和暗色模式 -->
 <template>
-    <DataTable
-        v-bind="$attrs"
-        :class="computedClass"
-    >
-        <template 
-            v-for="name in Object.keys($slots)" 
+    <DataTable v-bind="$attrs" :class="computedClass">
+        <template
+            v-for="name in Object.keys($slots)"
             #[name]="slotProps"
             :key="name"
         >
-            <slot 
+            <slot
                 v-if="$slots[name]"
-                :name="name" 
-                v-bind="slotProps || {}" 
+                :name="name"
+                v-bind="slotProps || {}"
             />
         </template>
     </DataTable>
@@ -33,11 +30,11 @@ const themeStore = useThemeStore()
 // 计算表格样式类
 const computedClass = computed(() => {
     const classes = ['custom-datatable']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>
@@ -108,11 +105,18 @@ const computedClass = computed(() => {
   background-color: rgb(31, 41, 55);
 }
 
-.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+.custom-datatable.dark-theme
+  .p-datatable
+  .p-datatable-tbody
+  > tr:nth-child(even) {
   background-color: rgb(42, 52, 67);
 }
 
-.custom-datatable.dark-theme .p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+.custom-datatable.dark-theme
+  .p-datatable
+  .p-datatable-tbody
+  > tr:nth-child(even)
+  > td {
   background-color: rgb(42, 52, 67);
 }
 

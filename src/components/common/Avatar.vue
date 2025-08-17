@@ -3,7 +3,7 @@
     <Avatar
         v-bind="{
             ...$attrs,
-            class: avatarClass
+            class: avatarClass,
         }"
     >
         <slot />
@@ -20,11 +20,11 @@ const themeStore = useThemeStore()
 // 计算头像样式类
 const avatarClass = computed(() => {
     const classes = ['custom-avatar']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

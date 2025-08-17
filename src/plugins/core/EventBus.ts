@@ -1,5 +1,10 @@
 import { reactive, type Ref } from 'vue'
-import type { EventListener, EventListenerOptions, PluginEvent, PluginEventType } from '@/types/plugin'
+import type {
+  EventListener,
+  EventListenerOptions,
+  PluginEvent,
+  PluginEventType,
+} from '@/types/plugin'
 
 /**
  * 事件监听器信息
@@ -84,7 +89,11 @@ export class EventBus {
   /**
    * 发布事件
    */
-  async emit<T = unknown>(type: PluginEventType, data: T, source?: string): Promise<void> {
+  async emit<T = unknown>(
+    type: PluginEventType,
+    data: T,
+    source?: string,
+  ): Promise<void> {
     if (this.isDestroyed) {
       console.warn('[EventBus] Cannot emit event on destroyed event bus')
       return
@@ -108,7 +117,11 @@ export class EventBus {
   /**
    * 发布可取消事件
    */
-  async emitCancelable<T = unknown>(type: PluginEventType, data: T, source?: string): Promise<boolean> {
+  async emitCancelable<T = unknown>(
+    type: PluginEventType,
+    data: T,
+    source?: string,
+  ): Promise<boolean> {
     if (this.isDestroyed) {
       console.warn('[EventBus] Cannot emit event on destroyed event bus')
       return false
@@ -134,7 +147,9 @@ export class EventBus {
   /**
    * 处理事件
    */
-  private async processEvent<T = unknown>(event: PluginEvent<T>): Promise<void> {
+  private async processEvent<T = unknown>(
+    event: PluginEvent<T>,
+  ): Promise<void> {
     const listeners = this.listeners.get(event.type)
     if (!listeners || listeners.length === 0) {
       return
@@ -152,7 +167,7 @@ export class EventBus {
         }
 
         const result = listenerInfo.listener(event)
-        
+
         // 处理异步监听器
         if (result instanceof Promise) {
           await result
@@ -163,8 +178,11 @@ export class EventBus {
           listenersToRemove.push(listenerInfo)
         }
       } catch (error) {
-        console.error(`[EventBus] Error in event listener for ${event.type}:`, error)
-        
+        console.error(
+          `[EventBus] Error in event listener for ${event.type}:`,
+          error,
+        )
+
         // 发布错误事件
         this.emitErrorEvent(error, event, listenerInfo)
       }
@@ -187,9 +205,17 @@ export class EventBus {
   /**
    * 发布错误事件
    */
-  private emitErrorEvent(error: unknown, originalEvent: PluginEvent, listenerInfo: ListenerInfo): void {
+  private emitErrorEvent(
+    error: unknown,
+    originalEvent: PluginEvent,
+    listenerInfo: ListenerInfo,
+  ): void {
     try {
-      const errorEvent: PluginEvent<{ error: unknown; originalEvent: PluginEvent; listener: ListenerInfo }> = {
+      const errorEvent: PluginEvent<{
+        error: unknown
+        originalEvent: PluginEvent
+        listener: ListenerInfo
+      }> = {
         type: 'plugin:error',
         data: { error, originalEvent, listener: listenerInfo },
         timestamp: Date.now(),

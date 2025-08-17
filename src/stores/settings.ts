@@ -144,7 +144,10 @@ export const useSettingsStore = defineStore('settings', () => {
   // 保存设置到本地存储
   const saveToLocalStorage = (settingsData: AppSettings) => {
     try {
-      localStorage.setItem('mira-launcher-settings', JSON.stringify(settingsData))
+      localStorage.setItem(
+        'mira-launcher-settings',
+        JSON.stringify(settingsData),
+      )
       console.log('Settings saved to localStorage')
     } catch (error) {
       console.error('Failed to save settings to localStorage:', error)
@@ -171,15 +174,21 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!isTauriEnv()) return
 
     try {
-      const { writeTextFile, BaseDirectory, mkdir } = await import('@tauri-apps/plugin-fs')
+      const { writeTextFile, BaseDirectory, mkdir } = await import(
+        '@tauri-apps/plugin-fs'
+      )
 
       // 优先使用 AppConfig 目录
       try {
-        await writeTextFile('settings.json', JSON.stringify(settingsData, null, 2), {
-          baseDir: BaseDirectory.AppConfig,
-          create: true,
-          createNew: true,
-        })
+        await writeTextFile(
+          'settings.json',
+          JSON.stringify(settingsData, null, 2),
+          {
+            baseDir: BaseDirectory.AppConfig,
+            create: true,
+            createNew: true,
+          },
+        )
         console.log('Settings saved to Tauri storage (AppConfig)')
         return
       } catch (error) {
@@ -195,21 +204,30 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!isTauriEnv()) return null
 
     try {
-      const { readTextFile, BaseDirectory, exists } = await import('@tauri-apps/plugin-fs')
+      const { readTextFile, BaseDirectory, exists } = await import(
+        '@tauri-apps/plugin-fs'
+      )
 
       // 尝试多个可能的目录位置
       const possibleLocations = [
         { baseDir: BaseDirectory.AppConfig, path: 'settings.json' },
         { baseDir: BaseDirectory.AppData, path: 'settings.json' },
-        { baseDir: BaseDirectory.AppData, path: 'com.miralauncher.app/settings.json' },
+        {
+          baseDir: BaseDirectory.AppData,
+          path: 'com.miralauncher.app/settings.json',
+        },
         { baseDir: BaseDirectory.Config, path: 'mira-launcher/settings.json' },
       ]
 
       for (const location of possibleLocations) {
         try {
-          const fileExists = await exists(location.path, { baseDir: location.baseDir })
+          const fileExists = await exists(location.path, {
+            baseDir: location.baseDir,
+          })
           if (fileExists) {
-            const content = await readTextFile(location.path, { baseDir: location.baseDir })
+            const content = await readTextFile(location.path, {
+              baseDir: location.baseDir,
+            })
             const parsed = JSON.parse(content)
             console.log('Settings loaded from Tauri storage:', location)
             return { ...defaultSettings, ...parsed }
@@ -274,12 +292,19 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // 深度合并设置对象
-  const mergeSettings = (defaults: AppSettings, loaded: Partial<AppSettings>): AppSettings => {
+  const mergeSettings = (
+    defaults: AppSettings,
+    loaded: Partial<AppSettings>,
+  ): AppSettings => {
     const result = { ...defaults }
 
     for (const key in loaded) {
       const typedKey = key as keyof AppSettings
-      if (loaded.hasOwnProperty(key) && typeof loaded[typedKey] === 'object' && !Array.isArray(loaded[typedKey])) {
+      if (
+        loaded.hasOwnProperty(key) &&
+        typeof loaded[typedKey] === 'object' &&
+        !Array.isArray(loaded[typedKey])
+      ) {
         result[typedKey] = { ...defaults[typedKey], ...loaded[typedKey] } as any
       } else if (loaded.hasOwnProperty(key)) {
         result[typedKey] = loaded[typedKey] as any
@@ -292,7 +317,9 @@ export const useSettingsStore = defineStore('settings', () => {
   // === 快捷键管理方法 ===
 
   // 添加自定义快捷键
-  const addCustomShortcut = async (shortcut: Omit<CustomShortcut, 'id' | 'createdAt' | 'modifiedAt'>) => {
+  const addCustomShortcut = async (
+    shortcut: Omit<CustomShortcut, 'id' | 'createdAt' | 'modifiedAt'>,
+  ) => {
     const now = new Date().toISOString()
     const newShortcut: CustomShortcut = {
       ...shortcut,
@@ -307,7 +334,15 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // 更新自定义快捷键
-  const updateCustomShortcut = async (id: string, updates: Partial<Pick<CustomShortcut, 'key' | 'actionId' | 'type' | 'description' | 'enabled'>>) => {
+  const updateCustomShortcut = async (
+    id: string,
+    updates: Partial<
+      Pick<
+        CustomShortcut,
+        'key' | 'actionId' | 'type' | 'description' | 'enabled'
+      >
+    >,
+  ) => {
     const index = settings.value.customShortcuts.findIndex(s => s.id === id)
     if (index !== -1) {
       const existing = settings.value.customShortcuts[index]
@@ -316,7 +351,8 @@ export const useSettingsStore = defineStore('settings', () => {
         if (updates.key !== undefined) existing.key = updates.key
         if (updates.actionId !== undefined) existing.actionId = updates.actionId
         if (updates.type !== undefined) existing.type = updates.type
-        if (updates.description !== undefined) existing.description = updates.description
+        if (updates.description !== undefined)
+          existing.description = updates.description
         if (updates.enabled !== undefined) existing.enabled = updates.enabled
         existing.modifiedAt = new Date().toISOString()
 
@@ -371,11 +407,15 @@ export const useSettingsStore = defineStore('settings', () => {
     }
 
     // 检查自定义快捷键
-    const conflict = settings.value.customShortcuts.find(s =>
-      s.key === key && s.enabled && s.id !== excludeId,
+    const conflict = settings.value.customShortcuts.find(
+      s => s.key === key && s.enabled && s.id !== excludeId,
     )
     if (conflict) {
-      return { type: 'custom', name: conflict.description || conflict.actionId, conflict: true }
+      return {
+        type: 'custom',
+        name: conflict.description || conflict.actionId,
+        conflict: true,
+      }
     }
 
     return { conflict: false }
@@ -417,7 +457,11 @@ export const useSettingsStore = defineStore('settings', () => {
       const importData = JSON.parse(data)
 
       // 验证导入数据格式
-      if (!importData.version || !importData.systemShortcuts || !Array.isArray(importData.customShortcuts)) {
+      if (
+        !importData.version ||
+        !importData.systemShortcuts ||
+        !Array.isArray(importData.customShortcuts)
+      ) {
         throw new Error('Invalid import data format')
       }
 
@@ -440,19 +484,29 @@ export const useSettingsStore = defineStore('settings', () => {
             settings.value.customShortcuts = importData.customShortcuts
           } else {
             // 合并模式：避免ID冲突
-            const existingIds = new Set(settings.value.customShortcuts.map(s => s.id))
-            const newShortcuts = importData.customShortcuts.filter((s: CustomShortcut) => !existingIds.has(s.id))
+            const existingIds = new Set(
+              settings.value.customShortcuts.map(s => s.id),
+            )
+            const newShortcuts = importData.customShortcuts.filter(
+              (s: CustomShortcut) => !existingIds.has(s.id),
+            )
             settings.value.customShortcuts.push(...newShortcuts)
           }
         }
 
         // 导入偏好设置
         if (importData.preferences) {
-          Object.assign(settings.value.shortcutPreferences, importData.preferences)
+          Object.assign(
+            settings.value.shortcutPreferences,
+            importData.preferences,
+          )
         }
 
         await saveSettings()
-        return { success: true, imported: importData.customShortcuts?.length || 0 }
+        return {
+          success: true,
+          imported: importData.customShortcuts?.length || 0,
+        }
       } catch (saveError) {
         // 恢复备份
         settings.value.shortcuts = backup.systemShortcuts
@@ -462,7 +516,10 @@ export const useSettingsStore = defineStore('settings', () => {
       }
     } catch (error) {
       console.error('Failed to import shortcuts:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
     }
   }
 
@@ -488,8 +545,15 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // 更新特定设置
-  const updateSetting = async (category: keyof AppSettings, key: string, value: any) => {
-    if (settings.value[category] && settings.value[category].hasOwnProperty(key)) {
+  const updateSetting = async (
+    category: keyof AppSettings,
+    key: string,
+    value: any,
+  ) => {
+    if (
+      settings.value[category] &&
+      settings.value[category].hasOwnProperty(key)
+    ) {
       (settings.value[category] as any)[key] = value
       await saveSettings()
     }

@@ -4,8 +4,17 @@
 import { useGridStore } from '@/stores/grid'
 import { usePageStore } from '@/stores/page'
 import { usePluginStore } from '@/stores/plugin'
-import type { SearchableItem, SearchOptions, SearchResult } from '@/utils/search'
-import { debounce, highlightText, performSearch, SearchHistory } from '@/utils/search'
+import type {
+  SearchableItem,
+  SearchOptions,
+  SearchResult,
+} from '@/utils/search'
+import {
+  debounce,
+  highlightText,
+  performSearch,
+  SearchHistory,
+} from '@/utils/search'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 /**
@@ -18,7 +27,12 @@ const launchApplication = async (path: string, name: string) => {
       const { Command } = await import('@tauri-apps/plugin-shell')
 
       // 根据文件扩展名或路径类型决定启动方式
-      if (path.endsWith('.exe') || path.endsWith('.app') || path.endsWith('.deb') || path.endsWith('.dmg')) {
+      if (
+        path.endsWith('.exe') ||
+        path.endsWith('.app') ||
+        path.endsWith('.deb') ||
+        path.endsWith('.dmg')
+      ) {
         // 直接执行可执行文件
         const command = Command.create('run-executable', [path])
         await command.execute()
@@ -88,7 +102,9 @@ export const useSearch = (options: UseSearchOptions = {}) => {
   // 计算属性
   const hasResults = computed(() => searchResults.value.length > 0)
   const hasQuery = computed(() => searchQuery.value.trim().length > 0)
-  const selectedResult = computed(() => searchResults.value[selectedIndex.value])
+  const selectedResult = computed(
+    () => searchResults.value[selectedIndex.value],
+  )
 
   // 获取搜索数据源
   const getSearchItems = (): SearchableItem[] => {
@@ -260,7 +276,9 @@ export const useSearch = (options: UseSearchOptions = {}) => {
 
     // 自动聚焦搜索框
     requestAnimationFrame(() => {
-      const searchInput = document.querySelector('#quick-search-input') as HTMLInputElement
+      const searchInput = document.querySelector(
+        '#quick-search-input',
+      ) as HTMLInputElement
       if (searchInput) {
         searchInput.focus()
       }
@@ -306,11 +324,14 @@ export const useSearch = (options: UseSearchOptions = {}) => {
       if (plugin) {
         if (plugin.state === 'loaded' || plugin.state === 'inactive') {
           // 激活插件
-          pluginStore.activatePlugin(target.id).then(() => {
-            console.log('插件已激活:', target.name)
-          }).catch((error) => {
-            console.error('激活插件失败:', error)
-          })
+          pluginStore
+            .activatePlugin(target.id)
+            .then(() => {
+              console.log('插件已激活:', target.name)
+            })
+            .catch(error => {
+              console.error('激活插件失败:', error)
+            })
         } else if (plugin.state === 'active') {
           // 插件已激活，可以显示配置界面或其他操作
           console.log('打开插件配置:', target.name)
@@ -328,7 +349,10 @@ export const useSearch = (options: UseSearchOptions = {}) => {
     case 'ArrowDown':
       event.preventDefault()
       if (hasResults.value) {
-        selectedIndex.value = Math.min(selectedIndex.value + 1, searchResults.value.length - 1)
+        selectedIndex.value = Math.min(
+          selectedIndex.value + 1,
+          searchResults.value.length - 1,
+        )
       }
       break
 
@@ -357,7 +381,8 @@ export const useSearch = (options: UseSearchOptions = {}) => {
     case 'Tab':
       event.preventDefault()
       if (hasResults.value) {
-        selectedIndex.value = (selectedIndex.value + 1) % searchResults.value.length
+        selectedIndex.value =
+            (selectedIndex.value + 1) % searchResults.value.length
       }
       break
     }
@@ -406,7 +431,7 @@ export const useSearch = (options: UseSearchOptions = {}) => {
   }
 
   // 监听搜索查询变化
-  watch(searchQuery, (newQuery) => {
+  watch(searchQuery, newQuery => {
     if (newQuery.trim()) {
       debouncedSearch(newQuery)
     } else {

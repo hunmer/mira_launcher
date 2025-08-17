@@ -1,5 +1,7 @@
 <template>
-    <h3 class="font-medium text-gray-900 dark:text-white inline-flex items-center gap-2">
+    <h3
+        class="font-medium text-gray-900 dark:text-white inline-flex items-center gap-2"
+    >
         <slot />
         <i
             v-tooltip.top="tooltipConfig"
@@ -37,7 +39,8 @@ const tooltipConfig = computed(() => ({
             class: 'max-w-xs',
         },
         text: {
-            class: 'text-sm font-medium bg-gray-900 dark:bg-gray-700 text-white px-3 py-2 rounded-lg shadow-lg',
+            class:
+                'text-sm font-medium bg-gray-900 dark:bg-gray-700 text-white px-3 py-2 rounded-lg shadow-lg',
         },
         arrow: {
             style: {

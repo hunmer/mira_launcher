@@ -3,14 +3,14 @@
  * 管理插件相关的配置设置，包括插件路径、加载选项等
  */
 export interface PluginSettings {
-    pluginPath: string
-    autoLoadPlugins: boolean
-    hotReloadEnabled: boolean
-    showPluginErrors: boolean
-    verifySignature: boolean
-    sandboxMode: boolean
-    maxPlugins?: number
-    loadTimeout?: number
+  pluginPath: string
+  autoLoadPlugins: boolean
+  hotReloadEnabled: boolean
+  showPluginErrors: boolean
+  verifySignature: boolean
+  sandboxMode: boolean
+  maxPlugins?: number
+  loadTimeout?: number
 }
 
 export class PluginSettingsService {
@@ -27,8 +27,8 @@ export class PluginSettingsService {
   }
 
   /**
-     * 获取插件设置
-     */
+   * 获取插件设置
+   */
   static getSettings(): PluginSettings {
     try {
       const saved = localStorage.getItem(this.STORAGE_KEY)
@@ -43,8 +43,8 @@ export class PluginSettingsService {
   }
 
   /**
-     * 保存插件设置
-     */
+   * 保存插件设置
+   */
   static saveSettings(settings: Partial<PluginSettings>): void {
     try {
       const current = this.getSettings()
@@ -56,8 +56,8 @@ export class PluginSettingsService {
   }
 
   /**
-     * 获取插件目录路径列表
-     */
+   * 获取插件目录路径列表
+   */
   static getPluginDirectories(): string[] {
     const settings = this.getSettings()
     const directories: string[] = []
@@ -80,8 +80,8 @@ export class PluginSettingsService {
   }
 
   /**
-     * 获取插件发现配置
-     */
+   * 获取插件发现配置
+   */
   static getDiscoveryConfig() {
     const settings = this.getSettings()
     return {
@@ -94,8 +94,8 @@ export class PluginSettingsService {
   }
 
   /**
-     * 获取插件加载配置
-     */
+   * 获取插件加载配置
+   */
   static getLoaderConfig() {
     const settings = this.getSettings()
     return {
@@ -117,22 +117,22 @@ export class PluginSettingsService {
   }
 
   /**
-     * 重置为默认设置
-     */
+   * 重置为默认设置
+   */
   static resetToDefaults(): void {
     localStorage.removeItem(this.STORAGE_KEY)
   }
 
   /**
-     * 检查是否启用自动加载
-     */
+   * 检查是否启用自动加载
+   */
   static isAutoLoadEnabled(): boolean {
     return this.getSettings().autoLoadPlugins
   }
 
   /**
-     * 检查是否显示插件错误
-     */
+   * 检查是否显示插件错误
+   */
   static shouldShowErrors(): boolean {
     return this.getSettings().showPluginErrors
   }

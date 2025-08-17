@@ -13,8 +13,14 @@ import { useSettingsStore } from './stores/settings'
 import 'primeicons/primeicons.css'
 
 // 插件导入
-import { registerGlobalComponents, setupComponentDevtools } from './plugins/components'
-import { monitorMemoryUsage, setupPerformanceMonitor } from './plugins/performance'
+import {
+  registerGlobalComponents,
+  setupComponentDevtools,
+} from './plugins/components'
+import {
+  monitorMemoryUsage,
+  setupPerformanceMonitor,
+} from './plugins/performance'
 // Initialize plugin registry for development
 import './plugins/registry'
 // 初始化快捷键系统
@@ -83,8 +89,8 @@ if (import.meta.env.DEV) {
 // 生產環境下的配置
 if (import.meta.env.PROD) {
   // 移除 console.log
-  console.log = () => { }
-  console.warn = () => { }
+  console.log = () => {}
+  console.warn = () => {}
 }
 
 // 全局錯誤處理
@@ -124,7 +130,6 @@ const initializeAppSystems = async () => {
     // 初始化窗口管理器
     await initWindowManager()
     console.log('[WindowManager] Window manager initialized')
-
   } catch (error) {
     console.error('[App] Failed to initialize app systems:', error)
   }

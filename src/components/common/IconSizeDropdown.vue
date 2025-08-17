@@ -137,7 +137,7 @@ const getSizeDotClass = (value: string) => {
         '8': 'size-dot-xxxxs',
         '9': 'size-dot-xxxxxs',
         '10': 'size-dot-xxxxxxs',
-        'auto': 'size-dot-auto',
+        auto: 'size-dot-auto',
     }
     return sizeMap[value] || 'size-dot-sm'
 }
@@ -147,7 +147,9 @@ const handleWheel = (event: WheelEvent) => {
     event.preventDefault()
 
     const availableOptions = sizeOptions.value
-    const currentIndex = availableOptions.findIndex(opt => opt.value === currentSize.value)
+    const currentIndex = availableOptions.findIndex(
+        opt => opt.value === currentSize.value,
+    )
 
     let newIndex = currentIndex
 
@@ -159,7 +161,11 @@ const handleWheel = (event: WheelEvent) => {
         newIndex = currentIndex > 0 ? currentIndex - 1 : availableOptions.length - 1
     }
 
-    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < availableOptions.length) {
+    if (
+        newIndex !== currentIndex &&
+        newIndex >= 0 &&
+        newIndex < availableOptions.length
+    ) {
         const newOption = availableOptions[newIndex]
         if (newOption) {
             const newValue = newOption.value
@@ -172,150 +178,150 @@ const handleWheel = (event: WheelEvent) => {
 
 <style scoped>
 .icon-size-dropdown {
-    position: relative;
+  position: relative;
 }
 
 .size-trigger-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid rgb(229 231 235);
-    border-radius: 0.375rem;
-    background-color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 48px;
-    height: 38px;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 48px;
+  height: 38px;
+  justify-content: center;
 }
 
 .size-trigger-btn:hover {
-    background-color: rgba(243, 244, 246, 0.9);
-    border-color: rgb(99 102 241);
-    transform: translateY(-1px);
+  background-color: rgba(243, 244, 246, 0.9);
+  border-color: rgb(99 102 241);
+  transform: translateY(-1px);
 }
 
 .size-trigger-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .trigger-icon {
-    font-size: 0.75rem;
-    color: rgb(107 114 128);
-    transition: transform 0.2s ease;
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+  transition: transform 0.2s ease;
 }
 
 .size-trigger-btn:hover .trigger-icon {
-    color: rgb(99 102 241);
+  color: rgb(99 102 241);
 }
 
 .size-menu {
-    min-width: 140px;
+  min-width: 140px;
 }
 
 .size-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
 }
 
 .size-dot {
-    border-radius: 50%;
-    background-color: currentColor;
-    transition: all 0.2s ease;
+  border-radius: 50%;
+  background-color: currentColor;
+  transition: all 0.2s ease;
 }
 
 /* 不同大小的圆点 */
 .size-dot-xl {
-    width: 14px;
-    height: 14px;
+  width: 14px;
+  height: 14px;
 }
 
 .size-dot-lg {
-    width: 12px;
-    height: 12px;
+  width: 12px;
+  height: 12px;
 }
 
 .size-dot-md {
-    width: 10px;
-    height: 10px;
+  width: 10px;
+  height: 10px;
 }
 
 .size-dot-sm {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 .size-dot-xs {
-    width: 6px;
-    height: 6px;
+  width: 6px;
+  height: 6px;
 }
 
 .size-dot-xxs {
-    width: 5px;
-    height: 5px;
+  width: 5px;
+  height: 5px;
 }
 
 .size-dot-xxxs {
-    width: 4px;
-    height: 4px;
+  width: 4px;
+  height: 4px;
 }
 
 .size-dot-xxxxs {
-    width: 3px;
-    height: 3px;
+  width: 3px;
+  height: 3px;
 }
 
 .size-dot-xxxxxs {
-    width: 2px;
-    height: 2px;
+  width: 2px;
+  height: 2px;
 }
 
 .size-dot-xxxxxxs {
-    width: 2px;
-    height: 2px;
+  width: 2px;
+  height: 2px;
 }
 
 .size-dot-auto {
-    width: 8px;
-    height: 8px;
-    background: linear-gradient(45deg, currentColor 50%, transparent 50%);
-    border-radius: 2px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(45deg, currentColor 50%, transparent 50%);
+  border-radius: 2px;
 }
 
 /* 深色模式适配 */
 .dark .size-trigger-btn {
-    background-color: rgba(55, 65, 81, 0.8);
-    border-color: rgb(75 85 99);
-    color: rgb(243 244 246);
+  background-color: rgba(55, 65, 81, 0.8);
+  border-color: rgb(75 85 99);
+  color: rgb(243 244 246);
 }
 
 .dark .size-trigger-btn:hover {
-    background-color: rgba(55, 65, 81, 0.9);
-    border-color: rgb(99 102 241);
+  background-color: rgba(55, 65, 81, 0.9);
+  border-color: rgb(99 102 241);
 }
 
 .dark .trigger-icon {
-    color: rgb(156 163 175);
+  color: rgb(156 163 175);
 }
 
 .dark .size-trigger-btn:hover .trigger-icon {
-    color: rgb(129 140 248);
+  color: rgb(129 140 248);
 }
 
 :global(.dark .p-menu) {
-    background-color: rgb(31 41 55) !important;
-    border-color: rgb(75 85 99) !important;
+  background-color: rgb(31 41 55) !important;
+  border-color: rgb(75 85 99) !important;
 }
 
 :global(.dark .p-menuitem-link) {
-    color: rgb(243 244 246) !important;
+  color: rgb(243 244 246) !important;
 }
 
 :global(.dark .p-menuitem-link:hover) {
-    background-color: rgb(55 65 81) !important;
+  background-color: rgb(55 65 81) !important;
 }
 </style>

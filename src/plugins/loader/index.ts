@@ -8,19 +8,28 @@ export type { PluginDiscoveryResult } from './Discovery'
 export { PluginLoader } from './PluginLoader'
 export type { PluginLoadResult } from './PluginLoader'
 
-export { PluginValidator, createPluginValidator, globalPluginValidator, validationUtils } from './Validation'
-export type { 
-  ValidationRule, 
-  ValidationContext, 
-  ValidationResult, 
-  PluginValidationResult, 
-  ValidatorConfig, 
+export {
+  PluginValidator,
+  createPluginValidator,
+  globalPluginValidator,
+  validationUtils,
+} from './Validation'
+export type {
+  ValidationRule,
+  ValidationContext,
+  ValidationResult,
+  PluginValidationResult,
+  ValidatorConfig,
 } from './Validation'
 
-export { PluginRegistry, createPluginRegistry, globalPluginRegistry } from './PluginRegistry'
-export type { 
-  RegisteredPlugin, 
-  PluginStats as RegistryPluginStats, 
-  RegistryEvents, 
-  RegistryConfig, 
+export {
+  PluginRegistry,
+  createPluginRegistry,
+  globalPluginRegistry,
+} from './PluginRegistry'
+export type {
+  RegisteredPlugin,
+  PluginStats as RegistryPluginStats,
+  RegistryEvents,
+  RegistryConfig,
 } from './PluginRegistry'

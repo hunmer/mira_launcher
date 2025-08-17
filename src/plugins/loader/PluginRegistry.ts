@@ -62,11 +62,19 @@ export interface RegistryEvents {
   /** 插件注销 */
   'plugin:unregistered': { pluginId: string }
   /** 插件状态变更 */
-  'plugin:state-changed': { pluginId: string; oldState: PluginState; newState: PluginState }
+  'plugin:state-changed': {
+    pluginId: string
+    oldState: PluginState
+    newState: PluginState
+  }
   /** 插件错误 */
   'plugin:error': { pluginId: string; error: string }
   /** 依赖关系变更 */
-  'dependency:changed': { pluginId: string; dependencies: string[]; dependents: string[] }
+  'dependency:changed': {
+    pluginId: string
+    dependencies: string[]
+    dependents: string[]
+  }
 }
 
 /**
@@ -125,7 +133,7 @@ export class PluginRegistry {
   private initializeEventSystem(): void {
     const eventTypes: (keyof RegistryEvents)[] = [
       'plugin:registered',
-      'plugin:unregistered', 
+      'plugin:unregistered',
       'plugin:state-changed',
       'plugin:error',
       'dependency:changed',
@@ -152,17 +160,24 @@ export class PluginRegistry {
   /**
    * 注册插件
    */
-  async register(loadResult: PluginLoadResult, validationResult: PluginValidationResult): Promise<void> {
+  async register(
+    loadResult: PluginLoadResult,
+    validationResult: PluginValidationResult,
+  ): Promise<void> {
     const { pluginId, metadata, pluginClass } = loadResult
 
     // 检查插件类是否有效
     if (!pluginClass) {
-      throw new Error(`Cannot register plugin ${pluginId}: Plugin class is not available`)
+      throw new Error(
+        `Cannot register plugin ${pluginId}: Plugin class is not available`,
+      )
     }
 
     // 检查插件数量限制
     if (this.plugins.size >= this.config.maxPlugins) {
-      throw new Error(`Cannot register plugin ${pluginId}: Maximum plugin limit (${this.config.maxPlugins}) reached`)
+      throw new Error(
+        `Cannot register plugin ${pluginId}: Maximum plugin limit (${this.config.maxPlugins}) reached`,
+      )
     }
 
     // 检查插件是否已注册
@@ -172,9 +187,13 @@ export class PluginRegistry {
 
     // 验证依赖关系
     if (this.config.enableDependencyCheck) {
-      const dependencyErrors = await this.validateDependencies(metadata.dependencies || [])
+      const dependencyErrors = await this.validateDependencies(
+        metadata.dependencies || [],
+      )
       if (dependencyErrors.length > 0) {
-        throw new Error(`Dependency validation failed: ${dependencyErrors.join(', ')}`)
+        throw new Error(
+          `Dependency validation failed: ${dependencyErrors.join(', ')}`,
+        )
       }
     }
 
@@ -230,7 +249,9 @@ export class PluginRegistry {
 
     // 检查是否有其他插件依赖此插件
     if (plugin.dependents.length > 0) {
-      throw new Error(`Cannot unregister plugin ${pluginId}: It is required by ${plugin.dependents.join(', ')}`)
+      throw new Error(
+        `Cannot unregister plugin ${pluginId}: It is required by ${plugin.dependents.join(', ')}`,
+      )
     }
 
     // 如果插件已激活，先停用
@@ -293,7 +314,11 @@ export class PluginRegistry {
   /**
    * 更新插件状态
    */
-  updatePluginState(pluginId: string, newState: PluginState, error?: string): void {
+  updatePluginState(
+    pluginId: string,
+    newState: PluginState,
+    error?: string,
+  ): void {
     const plugin = this.plugins.get(pluginId)
     if (!plugin) {
       throw new Error(`Plugin ${pluginId} is not registered`)
@@ -310,7 +335,7 @@ export class PluginRegistry {
       plugin.stats.activationCount++
     } else if (newState === 'inactive' && oldState === 'active') {
       plugin.lastDeactivatedAt = now
-      
+
       // 计算运行时间
       if (plugin.lastActivatedAt) {
         const runtime = now.getTime() - plugin.lastActivatedAt.getTime()
@@ -334,7 +359,9 @@ export class PluginRegistry {
       this.persistState()
     }
 
-    console.log(`[PluginRegistry] Plugin ${pluginId} state changed: ${oldState} -> ${newState}`)
+    console.log(
+      `[PluginRegistry] Plugin ${pluginId} state changed: ${oldState} -> ${newState}`,
+    )
   }
 
   /**
@@ -364,7 +391,9 @@ export class PluginRegistry {
       }
 
       if (visiting.has(pluginId)) {
-        throw new Error(`Circular dependency detected involving plugin: ${pluginId}`)
+        throw new Error(
+          `Circular dependency detected involving plugin: ${pluginId}`,
+        )
       }
 
       visiting.add(pluginId)
@@ -394,7 +423,9 @@ export class PluginRegistry {
   /**
    * 验证依赖关系
    */
-  private async validateDependencies(dependencies: string[]): Promise<string[]> {
+  private async validateDependencies(
+    dependencies: string[],
+  ): Promise<string[]> {
     const errors: string[] = []
 
     for (const dep of dependencies) {
@@ -409,7 +440,10 @@ export class PluginRegistry {
   /**
    * 更新依赖关系图
    */
-  private updateDependencyGraph(pluginId: string, dependencies: string[]): void {
+  private updateDependencyGraph(
+    pluginId: string,
+    dependencies: string[],
+  ): void {
     // 更新正向依赖图
     this.dependencyGraph.set(pluginId, new Set(dependencies))
 
@@ -451,11 +485,13 @@ export class PluginRegistry {
       const dependents = this.reverseDependencyGraph.get(dep)
       if (dependents) {
         dependents.delete(pluginId)
-        
+
         // 更新被依赖插件的 dependents 列表
         const depPlugin = this.plugins.get(dep)
         if (depPlugin) {
-          depPlugin.dependents = depPlugin.dependents.filter(id => id !== pluginId)
+          depPlugin.dependents = depPlugin.dependents.filter(
+            id => id !== pluginId,
+          )
         }
       }
     }
@@ -527,15 +563,19 @@ export class PluginRegistry {
 
     for (const [pluginId, plugin] of this.plugins) {
       // 清理过期的错误信息
-      if (plugin.stats.lastErrorAt && 
-          now.getTime() - plugin.stats.lastErrorAt.getTime() > threshold) {
+      if (
+        plugin.stats.lastErrorAt &&
+        now.getTime() - plugin.stats.lastErrorAt.getTime() > threshold
+      ) {
         plugin.stats.lastError = null
         plugin.stats.lastErrorAt = null
       }
 
       // 重置统计计数器（如果超过一定阈值）
       if (plugin.stats.activationCount > 10000) {
-        plugin.stats.activationCount = Math.floor(plugin.stats.activationCount / 10)
+        plugin.stats.activationCount = Math.floor(
+          plugin.stats.activationCount / 10,
+        )
       }
     }
 
@@ -583,7 +623,9 @@ export class PluginRegistry {
       }
 
       const state = JSON.parse(stored)
-      console.log(`[PluginRegistry] Loaded persisted state with ${state.plugins?.length || 0} plugins`)
+      console.log(
+        `[PluginRegistry] Loaded persisted state with ${state.plugins?.length || 0} plugins`,
+      )
     } catch (error) {
       console.warn('[PluginRegistry] Failed to load persisted state:', error)
     }
@@ -592,7 +634,10 @@ export class PluginRegistry {
   /**
    * 事件监听
    */
-  on<T extends keyof RegistryEvents>(event: T, listener: (data: RegistryEvents[T]) => void): void {
+  on<T extends keyof RegistryEvents>(
+    event: T,
+    listener: (data: RegistryEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -601,7 +646,10 @@ export class PluginRegistry {
   /**
    * 移除事件监听
    */
-  off<T extends keyof RegistryEvents>(event: T, listener: (data: RegistryEvents[T]) => void): void {
+  off<T extends keyof RegistryEvents>(
+    event: T,
+    listener: (data: RegistryEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -612,13 +660,19 @@ export class PluginRegistry {
   /**
    * 触发事件
    */
-  private emit<T extends keyof RegistryEvents>(event: T, data: RegistryEvents[T]): void {
+  private emit<T extends keyof RegistryEvents>(
+    event: T,
+    data: RegistryEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
         listener(data)
       } catch (error) {
-        console.error(`[PluginRegistry] Event listener error for ${event}:`, error)
+        console.error(
+          `[PluginRegistry] Event listener error for ${event}:`,
+          error,
+        )
       }
     }
   }
@@ -636,17 +690,22 @@ export class PluginRegistry {
     avgLoadTime: number
     } {
     const plugins = this.getAllPlugins()
-    
+
     return {
       totalPlugins: plugins.length,
       activePlugins: plugins.filter(p => p.state === 'active').length,
       inactivePlugins: plugins.filter(p => p.state === 'inactive').length,
       errorPlugins: plugins.filter(p => p.state === 'error').length,
-      totalActivations: plugins.reduce((sum, p) => sum + p.stats.activationCount, 0),
+      totalActivations: plugins.reduce(
+        (sum, p) => sum + p.stats.activationCount,
+        0,
+      ),
       totalRuntime: plugins.reduce((sum, p) => sum + p.stats.totalRuntime, 0),
-      avgLoadTime: plugins.length > 0 
-        ? plugins.reduce((sum, p) => sum + p.stats.avgLoadTime, 0) / plugins.length 
-        : 0,
+      avgLoadTime:
+        plugins.length > 0
+          ? plugins.reduce((sum, p) => sum + p.stats.avgLoadTime, 0) /
+            plugins.length
+          : 0,
     }
   }
 
@@ -655,11 +714,14 @@ export class PluginRegistry {
    */
   searchPlugins(query: string): RegisteredPlugin[] {
     const lowerQuery = query.toLowerCase()
-    return this.getAllPlugins().filter(plugin => 
-      plugin.id.toLowerCase().includes(lowerQuery) ||
-      plugin.metadata.name.toLowerCase().includes(lowerQuery) ||
-      plugin.metadata.description?.toLowerCase().includes(lowerQuery) ||
-      plugin.metadata.keywords?.some(keyword => keyword.toLowerCase().includes(lowerQuery)),
+    return this.getAllPlugins().filter(
+      plugin =>
+        plugin.id.toLowerCase().includes(lowerQuery) ||
+        plugin.metadata.name.toLowerCase().includes(lowerQuery) ||
+        plugin.metadata.description?.toLowerCase().includes(lowerQuery) ||
+        plugin.metadata.keywords?.some(keyword =>
+          keyword.toLowerCase().includes(lowerQuery),
+        ),
     )
   }
 
@@ -720,7 +782,7 @@ export class PluginRegistry {
     this.plugins.clear()
     this.dependencyGraph.clear()
     this.reverseDependencyGraph.clear()
-    
+
     if (this.config.enableStatePersistence) {
       localStorage.removeItem(this.config.persistenceKey)
     }
@@ -739,7 +801,7 @@ export class PluginRegistry {
 
     this.clear()
     this.eventListeners.clear()
-    
+
     console.log('[PluginRegistry] Registry destroyed')
   }
 
@@ -755,7 +817,7 @@ export class PluginRegistry {
    */
   updateConfig(newConfig: Partial<RegistryConfig>): void {
     this.config = { ...this.config, ...newConfig }
-    
+
     // 重启清理定时器
     if (newConfig.cleanupInterval !== undefined) {
       this.startCleanupTimer()
@@ -768,7 +830,9 @@ export class PluginRegistry {
 /**
  * 创建插件注册表实例
  */
-export function createPluginRegistry(config?: Partial<RegistryConfig>): PluginRegistry {
+export function createPluginRegistry(
+  config?: Partial<RegistryConfig>,
+): PluginRegistry {
   return new PluginRegistry(config)
 }
 

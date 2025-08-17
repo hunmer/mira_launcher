@@ -62,9 +62,15 @@ export class PluginManager {
     // 监听插件生命周期事件
     this.eventBus.on('plugin:beforeLoad', this.handleBeforeLoad.bind(this))
     this.eventBus.on('plugin:loaded', this.handleLoaded.bind(this))
-    this.eventBus.on('plugin:beforeActivate', this.handleBeforeActivate.bind(this))
+    this.eventBus.on(
+      'plugin:beforeActivate',
+      this.handleBeforeActivate.bind(this),
+    )
     this.eventBus.on('plugin:activated', this.handleActivated.bind(this))
-    this.eventBus.on('plugin:beforeDeactivate', this.handleBeforeDeactivate.bind(this))
+    this.eventBus.on(
+      'plugin:beforeDeactivate',
+      this.handleBeforeDeactivate.bind(this),
+    )
     this.eventBus.on('plugin:deactivated', this.handleDeactivated.bind(this))
     this.eventBus.on('plugin:beforeUnload', this.handleBeforeUnload.bind(this))
     this.eventBus.on('plugin:unloaded', this.handleUnloaded.bind(this))
@@ -74,7 +80,10 @@ export class PluginManager {
   /**
    * 注册插件
    */
-  async register(pluginClass: new () => BasePlugin, metadata: PluginMetadata): Promise<boolean> {
+  async register(
+    pluginClass: new () => BasePlugin,
+    metadata: PluginMetadata,
+  ): Promise<boolean> {
     if (this.isDestroyed) {
       throw new Error('Plugin manager has been destroyed')
     }
@@ -85,13 +94,17 @@ export class PluginManager {
 
       // 检查重复
       if (!this.config.allowDuplicates && this.plugins.has(metadata.id)) {
-        console.warn(`[PluginManager] Plugin ${metadata.id} is already registered`)
+        console.warn(
+          `[PluginManager] Plugin ${metadata.id} is already registered`,
+        )
         return false
       }
 
       // 检查最大插件数量
       if (this.plugins.size >= this.config.maxPlugins) {
-        throw new Error(`Maximum number of plugins (${this.config.maxPlugins}) exceeded`)
+        throw new Error(
+          `Maximum number of plugins (${this.config.maxPlugins}) exceeded`,
+        )
       }
 
       // 创建插件实例
@@ -103,7 +116,9 @@ export class PluginManager {
         pluginInstance._setAPI(pluginAPI)
         console.log(`[PluginManager] Set API for plugin ${metadata.id}`)
       } else {
-        console.log(`[PluginManager] Plugin ${metadata.id} doesn't support API injection (external plugin)`)
+        console.log(
+          `[PluginManager] Plugin ${metadata.id} doesn't support API injection (external plugin)`,
+        )
         // 对于不支持API的插件，我们可以将API作为属性添加
         const externalPlugin = pluginInstance as any
         if (!externalPlugin.api) {
@@ -129,7 +144,9 @@ export class PluginManager {
         metadata,
       })
 
-      console.log(`[PluginManager] Plugin ${metadata.id} registered successfully`)
+      console.log(
+        `[PluginManager] Plugin ${metadata.id} registered successfully`,
+      )
 
       // 自动激活（如果配置）
       if (this.config.autoActivate) {
@@ -138,7 +155,10 @@ export class PluginManager {
 
       return true
     } catch (error) {
-      console.error(`[PluginManager] Failed to register plugin ${metadata.id}:`, error)
+      console.error(
+        `[PluginManager] Failed to register plugin ${metadata.id}:`,
+        error,
+      )
       await this.eventBus.emit('plugin:error', {
         pluginId: metadata.id,
         error,
@@ -158,7 +178,9 @@ export class PluginManager {
     }
 
     if (entry.state !== 'registered') {
-      console.warn(`[PluginManager] Plugin ${pluginId} is not in registered state (current: ${entry.state})`)
+      console.warn(
+        `[PluginManager] Plugin ${pluginId} is not in registered state (current: ${entry.state})`,
+      )
       return false
     }
 
@@ -233,19 +255,26 @@ export class PluginManager {
     }
 
     if (entry.state !== 'loaded') {
-      console.warn(`[PluginManager] Plugin ${pluginId} is not in loaded state (current: ${entry.state})`)
+      console.warn(
+        `[PluginManager] Plugin ${pluginId} is not in loaded state (current: ${entry.state})`,
+      )
       return false
     }
 
     try {
       // 发布激活前事件
-      const canActivate = await this.eventBus.emitCancelable('plugin:beforeActivate', {
-        pluginId,
-        metadata: entry.metadata,
-      })
+      const canActivate = await this.eventBus.emitCancelable(
+        'plugin:beforeActivate',
+        {
+          pluginId,
+          metadata: entry.metadata,
+        },
+      )
 
       if (!canActivate) {
-        console.log(`[PluginManager] Plugin ${pluginId} activation was cancelled`)
+        console.log(
+          `[PluginManager] Plugin ${pluginId} activation was cancelled`,
+        )
         return false
       }
 
@@ -271,7 +300,8 @@ export class PluginManager {
       await this.eventBus.emit('plugin:activated', {
         pluginId,
         metadata: entry.metadata,
-        activationTime: entry.activatedAt! - (entry.loadedAt || entry.activatedAt!),
+        activationTime:
+          entry.activatedAt! - (entry.loadedAt || entry.activatedAt!),
       })
 
       console.log(`[PluginManager] Plugin ${pluginId} activated successfully`)
@@ -279,7 +309,10 @@ export class PluginManager {
     } catch (error) {
       entry.state = 'error'
       entry.error = error
-      console.error(`[PluginManager] Failed to activate plugin ${pluginId}:`, error)
+      console.error(
+        `[PluginManager] Failed to activate plugin ${pluginId}:`,
+        error,
+      )
 
       await this.eventBus.emit('plugin:error', {
         pluginId,
@@ -301,19 +334,26 @@ export class PluginManager {
     }
 
     if (entry.state !== 'active') {
-      console.warn(`[PluginManager] Plugin ${pluginId} is not active (current: ${entry.state})`)
+      console.warn(
+        `[PluginManager] Plugin ${pluginId} is not active (current: ${entry.state})`,
+      )
       return false
     }
 
     try {
       // 发布停用前事件
-      const canDeactivate = await this.eventBus.emitCancelable('plugin:beforeDeactivate', {
-        pluginId,
-        metadata: entry.metadata,
-      })
+      const canDeactivate = await this.eventBus.emitCancelable(
+        'plugin:beforeDeactivate',
+        {
+          pluginId,
+          metadata: entry.metadata,
+        },
+      )
 
       if (!canDeactivate) {
-        console.log(`[PluginManager] Plugin ${pluginId} deactivation was cancelled`)
+        console.log(
+          `[PluginManager] Plugin ${pluginId} deactivation was cancelled`,
+        )
         return false
       }
 
@@ -336,7 +376,8 @@ export class PluginManager {
       await this.eventBus.emit('plugin:deactivated', {
         pluginId,
         metadata: entry.metadata,
-        deactivationTime: entry.deactivatedAt! - (entry.activatedAt || entry.deactivatedAt!),
+        deactivationTime:
+          entry.deactivatedAt! - (entry.activatedAt || entry.deactivatedAt!),
       })
 
       console.log(`[PluginManager] Plugin ${pluginId} deactivated successfully`)
@@ -344,7 +385,10 @@ export class PluginManager {
     } catch (error) {
       entry.state = 'error'
       entry.error = error
-      console.error(`[PluginManager] Failed to deactivate plugin ${pluginId}:`, error)
+      console.error(
+        `[PluginManager] Failed to deactivate plugin ${pluginId}:`,
+        error,
+      )
 
       await this.eventBus.emit('plugin:error', {
         pluginId,
@@ -375,10 +419,13 @@ export class PluginManager {
       }
 
       // 发布卸载前事件
-      const canUnload = await this.eventBus.emitCancelable('plugin:beforeUnload', {
-        pluginId,
-        metadata: entry.metadata,
-      })
+      const canUnload = await this.eventBus.emitCancelable(
+        'plugin:beforeUnload',
+        {
+          pluginId,
+          metadata: entry.metadata,
+        },
+      )
 
       if (!canUnload) {
         console.log(`[PluginManager] Plugin ${pluginId} unload was cancelled`)
@@ -406,7 +453,10 @@ export class PluginManager {
         entry.state = 'error'
         entry.error = error
       }
-      console.error(`[PluginManager] Failed to unload plugin ${pluginId}:`, error)
+      console.error(
+        `[PluginManager] Failed to unload plugin ${pluginId}:`,
+        error,
+      )
 
       await this.eventBus.emit('plugin:error', {
         pluginId,
@@ -421,9 +471,14 @@ export class PluginManager {
   /**
    * 验证插件
    */
-  private validatePlugin(pluginClass: new () => BasePlugin, metadata: PluginMetadata): void {
+  private validatePlugin(
+    pluginClass: new () => BasePlugin,
+    metadata: PluginMetadata,
+  ): void {
     if (!pluginClass || typeof pluginClass !== 'function') {
-      throw new Error('Plugin class is required and must be a constructor function')
+      throw new Error(
+        'Plugin class is required and must be a constructor function',
+      )
     }
 
     if (!metadata.id || typeof metadata.id !== 'string') {
@@ -487,7 +542,9 @@ export class PluginManager {
 
       for (const menu of metadata.contextMenus) {
         if (!menu.id || !menu.title || !menu.contexts) {
-          throw new Error('contextMenus items must have id, title, and contexts')
+          throw new Error(
+            'contextMenus items must have id, title, and contexts',
+          )
         }
       }
     }
@@ -500,7 +557,9 @@ export class PluginManager {
 
       for (const hotkey of metadata.hotkeys) {
         if (!hotkey.id || !hotkey.combination || !hotkey.handler) {
-          throw new Error('hotkeys items must have id, combination, and handler')
+          throw new Error(
+            'hotkeys items must have id, combination, and handler',
+          )
         }
       }
     }
@@ -508,7 +567,10 @@ export class PluginManager {
     // 验证存储配置
     if (metadata.storage) {
       const validTypes = ['localStorage', 'sessionStorage', 'indexedDB', 'file']
-      if (metadata.storage.type && !validTypes.includes(metadata.storage.type)) {
+      if (
+        metadata.storage.type &&
+        !validTypes.includes(metadata.storage.type)
+      ) {
         throw new Error(`Invalid storage type: ${metadata.storage.type}`)
       }
     }
@@ -516,7 +578,10 @@ export class PluginManager {
     // 验证队列配置
     if (metadata.queue) {
       const validQueueTypes = ['fifo', 'priority', 'delayed', 'circular']
-      if (metadata.queue.type && !validQueueTypes.includes(metadata.queue.type)) {
+      if (
+        metadata.queue.type &&
+        !validQueueTypes.includes(metadata.queue.type)
+      ) {
         throw new Error(`Invalid queue type: ${metadata.queue.type}`)
       }
     }
@@ -530,13 +595,17 @@ export class PluginManager {
   /**
    * 注册插件扩展功能
    */
-  private async registerPluginExtensions(entry: PluginRegistryEntry): Promise<void> {
+  private async registerPluginExtensions(
+    entry: PluginRegistryEntry,
+  ): Promise<void> {
     const { metadata, instance } = entry
 
     try {
       // 注册右键菜单
       if (metadata.contextMenus && metadata.contextMenus.length > 0) {
-        console.log(`[PluginManager] Registering ${metadata.contextMenus.length} context menus for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Registering ${metadata.contextMenus.length} context menus for plugin ${metadata.id}`,
+        )
         // 通过插件实例的保护方法注册
         if (typeof (instance as any).registerContextMenus === 'function') {
           (instance as any).registerContextMenus()
@@ -545,7 +614,9 @@ export class PluginManager {
 
       // 注册快捷键
       if (metadata.hotkeys && metadata.hotkeys.length > 0) {
-        console.log(`[PluginManager] Registering ${metadata.hotkeys.length} hotkeys for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Registering ${metadata.hotkeys.length} hotkeys for plugin ${metadata.id}`,
+        )
         if (typeof (instance as any).registerHotkeys === 'function') {
           (instance as any).registerHotkeys()
         }
@@ -553,7 +624,9 @@ export class PluginManager {
 
       // 订阅事件
       if (metadata.subscriptions && metadata.subscriptions.length > 0) {
-        console.log(`[PluginManager] Subscribing to ${metadata.subscriptions.length} events for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Subscribing to ${metadata.subscriptions.length} events for plugin ${metadata.id}`,
+        )
         if (typeof (instance as any).subscribeEvents === 'function') {
           (instance as any).subscribeEvents()
         }
@@ -561,7 +634,9 @@ export class PluginManager {
 
       // 初始化存储
       if (metadata.storage) {
-        console.log(`[PluginManager] Initializing storage for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Initializing storage for plugin ${metadata.id}`,
+        )
         if (typeof (instance as any).getStorage === 'function') {
           (instance as any).getStorage()
         }
@@ -569,7 +644,9 @@ export class PluginManager {
 
       // 初始化队列
       if (metadata.queue) {
-        console.log(`[PluginManager] Initializing queue for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Initializing queue for plugin ${metadata.id}`,
+        )
         if (typeof (instance as any).getQueue === 'function') {
           (instance as any).getQueue()
         }
@@ -577,15 +654,22 @@ export class PluginManager {
 
       // 执行构建器函数
       if (metadata.builder) {
-        console.log(`[PluginManager] Executing builder function for plugin ${metadata.id}`)
+        console.log(
+          `[PluginManager] Executing builder function for plugin ${metadata.id}`,
+        )
         if (typeof (instance as any).executeBuilder === 'function') {
           (instance as any).executeBuilder()
         }
       }
 
-      console.log(`[PluginManager] Plugin extensions registered successfully for ${metadata.id}`)
+      console.log(
+        `[PluginManager] Plugin extensions registered successfully for ${metadata.id}`,
+      )
     } catch (error) {
-      console.error(`[PluginManager] Failed to register extensions for plugin ${metadata.id}:`, error)
+      console.error(
+        `[PluginManager] Failed to register extensions for plugin ${metadata.id}:`,
+        error,
+      )
       throw error
     }
   }
@@ -607,7 +691,9 @@ export class PluginManager {
       }
 
       if (depEntry.state === 'error') {
-        throw new Error(`Dependency ${depId} is in error state for plugin ${pluginId}`)
+        throw new Error(
+          `Dependency ${depId} is in error state for plugin ${pluginId}`,
+        )
       }
 
       // 确保依赖已加载
@@ -675,21 +761,41 @@ export class PluginManager {
       route: this.createSimpleRouteAPI(pluginId),
       plugins: this.createSimplePluginsAPI(pluginId),
       events: {
-        on: <T = unknown>(type: PluginEventType, listener: EventListener<T>, options?: EventListenerOptions) => {
+        on: <T = unknown>(
+          type: PluginEventType,
+          listener: EventListener<T>,
+          options?: EventListenerOptions,
+        ) => {
           this.eventBus.on(type, listener as any, options as any)
         },
-        once: <T = unknown>(type: PluginEventType, listener: EventListener<T>) => {
+        once: <T = unknown>(
+          type: PluginEventType,
+          listener: EventListener<T>,
+        ) => {
           this.eventBus.once(type, listener as any)
         },
-        off: <T = unknown>(type: PluginEventType, listener: EventListener<T>) => {
+        off: <T = unknown>(
+          type: PluginEventType,
+          listener: EventListener<T>,
+        ) => {
           this.eventBus.off(type, listener as any)
         },
-        emit: <T = unknown>(type: PluginEventType, data: T, source?: string) => {
+        emit: <T = unknown>(
+          type: PluginEventType,
+          data: T,
+          source?: string,
+        ) => {
           this.eventBus.emit(type, data, source)
         },
-        emitCancelable: <T = unknown>(type: PluginEventType, data: T, source?: string) => {
+        emitCancelable: <T = unknown>(
+          type: PluginEventType,
+          data: T,
+          source?: string,
+        ) => {
           // 同步包装异步方法
-          this.eventBus.emitCancelable(type, data, source).then(result => result)
+          this.eventBus
+            .emitCancelable(type, data, source)
+            .then(result => result)
           return true // 临时返回值，将在后续优化
         },
       },
@@ -703,7 +809,11 @@ export class PluginManager {
   private createSimpleMenuAPI(pluginId: string) {
     return {
       register: (items: any[], position?: string) => {
-        console.log(`[Plugin ${pluginId}] Register menu items:`, items, position)
+        console.log(
+          `[Plugin ${pluginId}] Register menu items:`,
+          items,
+          position,
+        )
         // TODO: 实际菜单集成
       },
       unregister: (itemId: string) => {
@@ -739,7 +849,10 @@ export class PluginManager {
             })
           }
         } catch (error) {
-          console.error(`[Plugin ${pluginId}] Failed to register shortcut:`, error)
+          console.error(
+            `[Plugin ${pluginId}] Failed to register shortcut:`,
+            error,
+          )
           return null
         }
       },
@@ -748,14 +861,20 @@ export class PluginManager {
           this.globalShortcutManager.unregister(id)
           console.log(`[Plugin ${pluginId}] Unregistered shortcut: ${id}`)
         } catch (error) {
-          console.error(`[Plugin ${pluginId}] Failed to unregister shortcut:`, error)
+          console.error(
+            `[Plugin ${pluginId}] Failed to unregister shortcut:`,
+            error,
+          )
         }
       },
       hasConflict: (combination: string) => {
         try {
           return this.globalShortcutManager.hasConflict(combination)
         } catch (error) {
-          console.error(`[Plugin ${pluginId}] Failed to check shortcut conflict:`, error)
+          console.error(
+            `[Plugin ${pluginId}] Failed to check shortcut conflict:`,
+            error,
+          )
           return false
         }
       },
@@ -783,14 +902,20 @@ export class PluginManager {
           })
           console.log(`[Plugin ${pluginId}] Registered action: ${action.id}`)
         } catch (error) {
-          console.error(`[Plugin ${pluginId}] Failed to register action:`, error)
+          console.error(
+            `[Plugin ${pluginId}] Failed to register action:`,
+            error,
+          )
         }
       },
       getAvailableActions: () => {
         try {
           return this.globalShortcutManager.getAvailableActions()
         } catch (error) {
-          console.error(`[Plugin ${pluginId}] Failed to get available actions:`, error)
+          console.error(
+            `[Plugin ${pluginId}] Failed to get available actions:`,
+            error,
+          )
           return []
         }
       },
@@ -818,7 +943,9 @@ export class PluginManager {
         console.log(`[Plugin ${pluginId}] ERROR: ${title || ''} ${message}`)
       },
       show: (type: string, message: string, title?: string, options?: any) => {
-        console.log(`[Plugin ${pluginId}] ${type.toUpperCase()}: ${title || ''} ${message}`)
+        console.log(
+          `[Plugin ${pluginId}] ${type.toUpperCase()}: ${title || ''} ${message}`,
+        )
       },
     }
   }
@@ -978,14 +1105,20 @@ export class PluginManager {
           return obj
         }
       },
-      debounce: <T extends (...args: unknown[]) => unknown>(fn: T, delay: number): T => {
+      debounce: <T extends (...args: unknown[]) => unknown>(
+        fn: T,
+        delay: number,
+      ): T => {
         let timeoutId: number | undefined
         return ((...args: unknown[]) => {
           if (timeoutId) clearTimeout(timeoutId)
           timeoutId = setTimeout(() => fn(...args), delay)
         }) as T
       },
-      throttle: <T extends (...args: unknown[]) => unknown>(fn: T, delay: number): T => {
+      throttle: <T extends (...args: unknown[]) => unknown>(
+        fn: T,
+        delay: number,
+      ): T => {
         let lastCall = 0
         return ((...args: unknown[]) => {
           const now = Date.now()
@@ -1010,7 +1143,10 @@ export class PluginManager {
           const value = localStorage.getItem(prefix + key)
           return value ? JSON.parse(value) : null
         } catch (error) {
-          console.error(`[PluginManager] Failed to get storage for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to get storage for ${pluginId}:`,
+            error,
+          )
           return null
         }
       },
@@ -1020,7 +1156,10 @@ export class PluginManager {
           localStorage.setItem(prefix + key, JSON.stringify(value))
           return true
         } catch (error) {
-          console.error(`[PluginManager] Failed to set storage for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to set storage for ${pluginId}:`,
+            error,
+          )
           return false
         }
       },
@@ -1030,18 +1169,26 @@ export class PluginManager {
           localStorage.removeItem(prefix + key)
           return true
         } catch (error) {
-          console.error(`[PluginManager] Failed to remove storage for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to remove storage for ${pluginId}:`,
+            error,
+          )
           return false
         }
       },
 
       clear: () => {
         try {
-          const keys = Object.keys(localStorage).filter(key => key.startsWith(prefix))
+          const keys = Object.keys(localStorage).filter(key =>
+            key.startsWith(prefix),
+          )
           keys.forEach(key => localStorage.removeItem(key))
           return true
         } catch (error) {
-          console.error(`[PluginManager] Failed to clear storage for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to clear storage for ${pluginId}:`,
+            error,
+          )
           return false
         }
       },
@@ -1052,7 +1199,10 @@ export class PluginManager {
             .filter(key => key.startsWith(prefix))
             .map(key => key.substring(prefix.length))
         } catch (error) {
-          console.error(`[PluginManager] Failed to get keys for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to get keys for ${pluginId}:`,
+            error,
+          )
           return []
         }
       },
@@ -1061,7 +1211,10 @@ export class PluginManager {
         try {
           return localStorage.getItem(prefix + key) !== null
         } catch (error) {
-          console.error(`[PluginManager] Failed to check key for ${pluginId}:`, error)
+          console.error(
+            `[PluginManager] Failed to check key for ${pluginId}:`,
+            error,
+          )
           return false
         }
       },
@@ -1074,7 +1227,10 @@ export class PluginManager {
   private createUIAPI(pluginId: string) {
     return {
       // 这里将在后续任务中实现具体的UI集成
-      showNotification: (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+      showNotification: (
+        message: string,
+        type: 'info' | 'success' | 'warning' | 'error' = 'info',
+      ) => {
         console.log(`[Plugin ${pluginId}] ${type.toUpperCase()}: ${message}`)
         // TODO: 集成 PrimeVue Toast
       },
@@ -1158,7 +1314,9 @@ export class PluginManager {
     console.log(`[PluginManager] Loaded: ${event.data.pluginId}`)
   }
 
-  private async handleBeforeActivate(event: PluginLifecycleEvent): Promise<void> {
+  private async handleBeforeActivate(
+    event: PluginLifecycleEvent,
+  ): Promise<void> {
     console.log(`[PluginManager] Before activate: ${event.data.pluginId}`)
   }
 
@@ -1166,7 +1324,9 @@ export class PluginManager {
     console.log(`[PluginManager] Activated: ${event.data.pluginId}`)
   }
 
-  private async handleBeforeDeactivate(event: PluginLifecycleEvent): Promise<void> {
+  private async handleBeforeDeactivate(
+    event: PluginLifecycleEvent,
+  ): Promise<void> {
     console.log(`[PluginManager] Before deactivate: ${event.data.pluginId}`)
   }
 
@@ -1206,7 +1366,9 @@ export class PluginManager {
    * 获取指定状态的插件
    */
   getPluginsByState(state: PluginState): PluginRegistryEntry[] {
-    return Array.from(this.plugins.values()).filter(entry => entry.state === state)
+    return Array.from(this.plugins.values()).filter(
+      entry => entry.state === state,
+    )
   }
 
   /**
@@ -1219,7 +1381,10 @@ export class PluginManager {
   /**
    * 配置插件
    */
-  configurePlugin(pluginId: string, configuration: PluginConfiguration): boolean {
+  configurePlugin(
+    pluginId: string,
+    configuration: PluginConfiguration,
+  ): boolean {
     const entry = this.plugins.get(pluginId)
     if (!entry) {
       return false
@@ -1240,10 +1405,13 @@ export class PluginManager {
    * 获取统计信息
    */
   getStats() {
-    const states = Array.from(this.plugins.values()).reduce((acc, entry) => {
-      acc[entry.state] = (acc[entry.state] || 0) + 1
-      return acc
-    }, {} as Record<PluginState, number>)
+    const states = Array.from(this.plugins.values()).reduce(
+      (acc, entry) => {
+        acc[entry.state] = (acc[entry.state] || 0) + 1
+        return acc
+      },
+      {} as Record<PluginState, number>,
+    )
 
     return {
       total: this.plugins.size,

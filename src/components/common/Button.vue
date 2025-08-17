@@ -6,7 +6,7 @@
             ...(primeVueSize !== undefined && { size: primeVueSize }),
             ...(loading !== undefined && { loading }),
             ...(disabled !== undefined && { disabled }),
-            class: buttonClass
+            class: buttonClass,
         }"
         @click="handleClick"
     >
@@ -64,7 +64,9 @@ const buttonClass = computed(() => {
         'transition-all duration-200',
         props.block ? 'w-full' : '',
         props.class,
-    ].filter(Boolean).join(' ')
+    ]
+        .filter(Boolean)
+        .join(' ')
 })
 
 // 点击处理

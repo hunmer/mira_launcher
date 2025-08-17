@@ -4,7 +4,7 @@
         v-model="sliderValue"
         v-bind="{
             ...$attrs,
-            class: sliderClass
+            class: sliderClass,
         }"
         @change="handleChange"
         @slideend="handleSlideEnd"
@@ -39,12 +39,15 @@ const themeStore = useThemeStore()
 const sliderValue = ref(props.modelValue || 0)
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    sliderValue.value = newValue || 0
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        sliderValue.value = newValue || 0
+    },
+)
 
 // 监听内部值变化
-watch(sliderValue, (newValue) => {
+watch(sliderValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -59,11 +62,11 @@ const handleSlideEnd = (event: { value: number | number[] }) => {
 // 计算滑块样式类
 const sliderClass = computed(() => {
     const classes = ['custom-slider']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

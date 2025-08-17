@@ -14,7 +14,19 @@ import { computed } from 'vue'
 interface Props {
     content?: string
     trigger?: 'hover' | 'focus' | 'click' | 'manual'
-    placement?: 'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end'
+    placement?:
+        | 'top'
+        | 'bottom'
+        | 'left'
+        | 'right'
+        | 'top-start'
+        | 'top-end'
+        | 'bottom-start'
+        | 'bottom-end'
+        | 'left-start'
+        | 'left-end'
+        | 'right-start'
+        | 'right-end'
     delay?: number
     disabled?: boolean
     class?: string
@@ -32,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Tooltip 配置
 const tooltipOptions = computed(() => {
     if (props.disabled) return null
-  
+
     return {
         value: props.content,
         placement: props.placement,
@@ -42,9 +54,6 @@ const tooltipOptions = computed(() => {
 
 // 样式类
 const tooltipClass = computed(() => {
-    return [
-        'inline-block',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['inline-block', props.class].filter(Boolean).join(' ')
 })
 </script>

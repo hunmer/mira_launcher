@@ -2,10 +2,7 @@
     <div class="about-page">
         <Container class="max-w-2xl mx-auto text-center">
             <div class="mb-8">
-                <AppIcon
-                    :size="96"
-                    class="mx-auto mb-6 text-blue-500"
-                />
+                <AppIcon :size="96" class="mx-auto mb-6 text-blue-500" />
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                     Mira Launcher
                 </h1>
@@ -87,22 +84,13 @@
             </Card>
 
             <div class="flex justify-center space-x-4">
-                <Button
-                    class="btn-primary"
-                    @click="checkUpdate"
-                >
+                <Button class="btn-primary" @click="checkUpdate">
                     检查更新
                 </Button>
-                <Button
-                    variant="outline"
-                    @click="openGithub"
-                >
+                <Button variant="outline" @click="openGithub">
                     GitHub 仓库
                 </Button>
-                <Button
-                    variant="outline"
-                    @click="$router.back()"
-                >
+                <Button variant="outline" @click="$router.back()">
                     返回
                 </Button>
             </div>
@@ -143,7 +131,7 @@ const openGithub = () => {
 
 onMounted(async () => {
     document.title = 'Mira Launcher - 关于'
-  
+
     // 这里可以调用 Tauri API 获取系统信息
     // const info = await invoke('get_system_info')
     // systemInfo.value = info

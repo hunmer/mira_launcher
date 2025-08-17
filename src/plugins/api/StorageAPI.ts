@@ -60,10 +60,13 @@ export interface StorageStats {
   /** 過期項目數 */
   expiredItems: number
   /** 按插件分組的統計 */
-  byPlugin: Record<string, {
-    items: number
-    size: number
-  }>
+  byPlugin: Record<
+    string,
+    {
+      items: number
+      size: number
+    }
+  >
 }
 
 /**
@@ -87,7 +90,7 @@ export class PluginStorageAPIImpl {
 
     this.initializeEventSystem()
     this.startCleanupTimer()
-    
+
     if (this.config.enableWatcher) {
       this.setupStorageWatcher()
     }
@@ -129,7 +132,7 @@ export class PluginStorageAPIImpl {
    */
   private setupStorageWatcher(): void {
     // 監聽localStorage變化
-    window.addEventListener('storage', (event) => {
+    window.addEventListener('storage', event => {
       if (event.key && event.key.startsWith(this.config.namespacePrefix)) {
         const pluginKey = this.extractPluginKey(event.key)
         if (pluginKey) {
@@ -150,7 +153,9 @@ export class PluginStorageAPIImpl {
   /**
    * 從命名空間鍵提取插件鍵信息
    */
-  private extractPluginKey(namespacedKey: string): { pluginId: string; key: string } | null {
+  private extractPluginKey(
+    namespacedKey: string,
+  ): { pluginId: string; key: string } | null {
     const prefix = `${this.config.namespacePrefix}:`
     if (!namespacedKey.startsWith(prefix)) {
       return null
@@ -175,17 +180,22 @@ export class PluginStorageAPIImpl {
   /**
    * 序列化存儲項目
    */
-  private serializeItem<T>(value: T, options?: {
-    expiresIn?: number
-    encrypted?: boolean
-    metadata?: Record<string, any>
-  }): string {
+  private serializeItem<T>(
+    value: T,
+    options?: {
+      expiresIn?: number
+      encrypted?: boolean
+      metadata?: Record<string, any>
+    },
+  ): string {
     const now = new Date()
     const item: StorageItem<T> = {
       value,
       createdAt: now,
       updatedAt: now,
-      ...(options?.expiresIn && { expiresAt: new Date(now.getTime() + options.expiresIn) }),
+      ...(options?.expiresIn && {
+        expiresAt: new Date(now.getTime() + options.expiresIn),
+      }),
       ...(options?.encrypted && { encrypted: options.encrypted }),
       ...(options?.metadata && { metadata: options.metadata }),
     }
@@ -203,7 +213,10 @@ export class PluginStorageAPIImpl {
   /**
    * 反序列化存儲項目
    */
-  private deserializeItem<T>(serialized: string, encrypted = false): StorageItem<T> | null {
+  private deserializeItem<T>(
+    serialized: string,
+    encrypted = false,
+  ): StorageItem<T> | null {
     try {
       let data = serialized
 
@@ -213,7 +226,7 @@ export class PluginStorageAPIImpl {
       }
 
       const item: StorageItem<T> = JSON.parse(data)
-      
+
       // 轉換日期
       item.createdAt = new Date(item.createdAt)
       item.updatedAt = new Date(item.updatedAt)
@@ -283,7 +296,10 @@ export class PluginStorageAPIImpl {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key && key.startsWith(`${this.config.namespacePrefix}:${pluginId}:`)) {
+      if (
+        key &&
+        key.startsWith(`${this.config.namespacePrefix}:${pluginId}:`)
+      ) {
         const value = localStorage.getItem(key)
         if (value) {
           items++
@@ -318,13 +334,16 @@ export class PluginStorageAPIImpl {
 
     try {
       localStorage.setItem(namespacedKey, serialized)
-      
+
       // 觸發事件
       this.emit('storage:set', { key, value, pluginId })
-      
+
       console.log(`[StorageAPI] Set item: ${pluginId}:${key}`)
     } catch (error) {
-      console.error(`[StorageAPI] Failed to set item ${pluginId}:${key}:`, error)
+      console.error(
+        `[StorageAPI] Failed to set item ${pluginId}:${key}:`,
+        error,
+      )
       throw error
     }
   }
@@ -334,7 +353,7 @@ export class PluginStorageAPIImpl {
    */
   get<T>(key: string, pluginId: string, defaultValue?: T): T | undefined {
     const namespacedKey = this.getNamespacedKey(pluginId, key)
-    
+
     try {
       const serialized = localStorage.getItem(namespacedKey)
       if (serialized === null) {
@@ -351,10 +370,13 @@ export class PluginStorageAPIImpl {
 
       // 觸發事件
       this.emit('storage:get', { key, value: item.value, pluginId })
-      
+
       return item.value
     } catch (error) {
-      console.error(`[StorageAPI] Failed to get item ${pluginId}:${key}:`, error)
+      console.error(
+        `[StorageAPI] Failed to get item ${pluginId}:${key}:`,
+        error,
+      )
       return defaultValue
     }
   }
@@ -364,16 +386,19 @@ export class PluginStorageAPIImpl {
    */
   remove(key: string, pluginId: string): void {
     const namespacedKey = this.getNamespacedKey(pluginId, key)
-    
+
     try {
       localStorage.removeItem(namespacedKey)
-      
+
       // 觸發事件
       this.emit('storage:remove', { key, pluginId })
-      
+
       console.log(`[StorageAPI] Removed item: ${pluginId}:${key}`)
     } catch (error) {
-      console.error(`[StorageAPI] Failed to remove item ${pluginId}:${key}:`, error)
+      console.error(
+        `[StorageAPI] Failed to remove item ${pluginId}:${key}:`,
+        error,
+      )
       throw error
     }
   }
@@ -384,7 +409,7 @@ export class PluginStorageAPIImpl {
   has(key: string, pluginId: string): boolean {
     const namespacedKey = this.getNamespacedKey(pluginId, key)
     const value = localStorage.getItem(namespacedKey)
-    
+
     if (value === null) {
       return false
     }
@@ -410,7 +435,7 @@ export class PluginStorageAPIImpl {
       const key = localStorage.key(i)
       if (key && key.startsWith(prefix)) {
         const originalKey = key.slice(prefix.length)
-        
+
         // 檢查項目是否有效
         const value = localStorage.getItem(key)
         if (value) {
@@ -448,7 +473,7 @@ export class PluginStorageAPIImpl {
 
     // 觸發事件
     this.emit('storage:clear', { pluginId })
-    
+
     console.log(`[StorageAPI] Cleared all data for plugin: ${pluginId}`)
   }
 
@@ -458,7 +483,7 @@ export class PluginStorageAPIImpl {
   getItem<T>(key: string, pluginId: string): StorageItem<T> | null {
     const namespacedKey = this.getNamespacedKey(pluginId, key)
     const serialized = localStorage.getItem(namespacedKey)
-    
+
     if (serialized === null) {
       return null
     }
@@ -484,14 +509,17 @@ export class PluginStorageAPIImpl {
   /**
    * 批量操作
    */
-  batch(operations: Array<{
-    operation: 'set' | 'remove'
-    key: string
-    value?: any
-    options?: any
-  }>, pluginId: string): void {
+  batch(
+    operations: Array<{
+      operation: 'set' | 'remove'
+      key: string
+      value?: any
+      options?: any
+    }>,
+    pluginId: string,
+  ): void {
     const results: any[] = []
-    
+
     for (const op of operations) {
       try {
         switch (op.operation) {
@@ -505,15 +533,18 @@ export class PluginStorageAPIImpl {
           break
         }
       } catch (error) {
-        results.push({ 
-          success: false, 
-          key: op.key, 
-          error: error instanceof Error ? error.message : 'Unknown error', 
+        results.push({
+          success: false,
+          key: op.key,
+          error: error instanceof Error ? error.message : 'Unknown error',
         })
       }
     }
 
-    console.log(`[StorageAPI] Batch operation completed for plugin ${pluginId}:`, results)
+    console.log(
+      `[StorageAPI] Batch operation completed for plugin ${pluginId}:`,
+      results,
+    )
   }
 
   /**
@@ -538,12 +569,12 @@ export class PluginStorageAPIImpl {
 
     for (const key of expiredKeys) {
       localStorage.removeItem(key)
-      
+
       const keyInfo = this.extractPluginKey(key)
       if (keyInfo) {
-        this.emit('storage:expired', { 
-          key: keyInfo.key, 
-          pluginId: keyInfo.pluginId, 
+        this.emit('storage:expired', {
+          key: keyInfo.key,
+          pluginId: keyInfo.pluginId,
         })
       }
     }
@@ -600,7 +631,11 @@ export class PluginStorageAPIImpl {
   /**
    * 監聽鍵變化
    */
-  watch<T>(key: string, pluginId: string, callback: (newValue: T | undefined, oldValue: T | undefined) => void): () => void {
+  watch<T>(
+    key: string,
+    pluginId: string,
+    callback: (newValue: T | undefined, oldValue: T | undefined) => void,
+  ): () => void {
     const watchKey = `${pluginId}:${key}`
     let currentValue = this.get<T>(key, pluginId)
 
@@ -615,7 +650,7 @@ export class PluginStorageAPIImpl {
 
     // 使用定時器模擬監聽（實際實現可以使用更高效的方式）
     const interval = setInterval(watcher, 1000)
-    
+
     const unwatch = () => {
       clearInterval(interval)
       this.watchers.delete(watchKey)
@@ -628,7 +663,10 @@ export class PluginStorageAPIImpl {
   /**
    * 事件監聽
    */
-  on<T extends keyof StorageEvents>(event: T, listener: (data: StorageEvents[T]) => void): void {
+  on<T extends keyof StorageEvents>(
+    event: T,
+    listener: (data: StorageEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -637,7 +675,10 @@ export class PluginStorageAPIImpl {
   /**
    * 移除事件監聽
    */
-  off<T extends keyof StorageEvents>(event: T, listener: (data: StorageEvents[T]) => void): void {
+  off<T extends keyof StorageEvents>(
+    event: T,
+    listener: (data: StorageEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -648,7 +689,10 @@ export class PluginStorageAPIImpl {
   /**
    * 觸發事件
    */
-  private emit<T extends keyof StorageEvents>(event: T, data: StorageEvents[T]): void {
+  private emit<T extends keyof StorageEvents>(
+    event: T,
+    data: StorageEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
@@ -787,7 +831,9 @@ export class PluginStorageAPI implements StorageAPI {
 /**
  * 創建存儲 API 實例
  */
-export function createStorageAPI(config?: Partial<StorageConfig>): PluginStorageAPI {
+export function createStorageAPI(
+  config?: Partial<StorageConfig>,
+): PluginStorageAPI {
   return new PluginStorageAPI(config)
 }
 
@@ -838,4 +884,3 @@ export const storageUtils = {
     return key.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 250)
   },
 }
-  

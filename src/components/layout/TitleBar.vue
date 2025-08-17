@@ -1,8 +1,5 @@
 <template>
-    <div
-        data-tauri-drag-region
-        class="title-bar"
-    >
+    <div data-tauri-drag-region class="title-bar">
         <!-- 应用标题 -->
         <div class="title-section">
             <AppTitle />
@@ -62,10 +59,16 @@ const handleClose = () => {
   /* Tauri拖拽区域 - 使用 data-tauri-drag-region 属性 */
   user-select: none;
   height: 3rem;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.95),
+    rgba(249, 250, 251, 0.95)
+  );
   backdrop-filter: blur(16px);
   border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 
   /* 关键：确保单行布局 */
   display: flex;
@@ -78,7 +81,11 @@ const handleClose = () => {
 }
 
 .dark .title-bar {
-  background: linear-gradient(to right, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.95));
+  background: linear-gradient(
+    to right,
+    rgba(31, 41, 55, 0.95),
+    rgba(17, 24, 39, 0.95)
+  );
   border-bottom-color: #374151;
 }
 

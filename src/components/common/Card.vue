@@ -1,16 +1,10 @@
 <template>
-    <Card
-        :class="cardClass"
-        v-bind="$attrs"
-    >
+    <Card :class="cardClass" v-bind="$attrs">
         <!-- Header slot for images or custom header content -->
-        <template
-            v-if="$slots['header']"
-            #header
-        >
+        <template v-if="$slots['header']" #header>
             <slot name="header" />
         </template>
-    
+
         <!-- Title slot with enhanced layout -->
         <template
             v-if="title || subtitle || closable || $slots['title-extra']"
@@ -18,8 +12,8 @@
         >
             <div class="flex items-start justify-between">
                 <div class="flex-1 min-w-0">
-                    <h3 
-                        v-if="title" 
+                    <h3
+                        v-if="title"
                         class="text-lg font-semibold text-gray-900 dark:text-gray-100 m-0 truncate"
                     >
                         {{ title }}
@@ -40,33 +34,24 @@
                 </div>
             </div>
         </template>
-    
+
         <!-- Subtitle slot -->
-        <template
-            v-if="subtitle || $slots['subtitle']"
-            #subtitle
-        >
-            <p 
-                v-if="subtitle"
-                class="text-sm text-gray-600 dark:text-gray-400 m-0"
-            >
+        <template v-if="subtitle || $slots['subtitle']" #subtitle>
+            <p v-if="subtitle" class="text-sm text-gray-600 dark:text-gray-400 m-0">
                 {{ subtitle }}
             </p>
             <slot name="subtitle" />
         </template>
-    
+
         <!-- Content slot -->
         <template #content>
             <div :class="contentClass">
                 <slot />
             </div>
         </template>
-    
+
         <!-- Footer slot -->
-        <template
-            v-if="$slots['footer']"
-            #footer
-        >
+        <template v-if="$slots['footer']" #footer>
             <slot name="footer" />
         </template>
     </Card>
@@ -114,14 +99,15 @@ const cardClass = computed(() => {
             'cursor-pointer transform hover:-translate-y-0.5',
         ],
         props.class,
-    ].flat().filter(Boolean).join(' ')
+    ]
+        .flat()
+        .filter(Boolean)
+        .join(' ')
 })
 
 // 内容区域样式
 const contentClass = computed(() => {
-    return [
-        props.contentPadding ? 'p-0' : '',
-    ].filter(Boolean).join(' ')
+    return [props.contentPadding ? 'p-0' : ''].filter(Boolean).join(' ')
 })
 
 // 事件处理

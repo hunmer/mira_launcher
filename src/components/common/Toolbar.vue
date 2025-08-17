@@ -3,7 +3,7 @@
     <Toolbar
         v-bind="{
             ...$attrs,
-            class: toolbarClass
+            class: toolbarClass,
         }"
     >
         <template #start>
@@ -29,18 +29,20 @@ const themeStore = useThemeStore()
 // 计算工具栏样式类
 const toolbarClass = computed(() => {
     const classes = ['custom-toolbar']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>
 
 <style scoped>
 .custom-toolbar {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .custom-toolbar.dark-theme {

@@ -67,7 +67,9 @@ export class PluginDiscovery {
         for (const fullPath of possiblePaths) {
           // 检查目录是否存在
           if (await exists(fullPath)) {
-            console.log(`[PluginDiscovery] Scanning plugin directory: ${fullPath}`)
+            console.log(
+              `[PluginDiscovery] Scanning plugin directory: ${fullPath}`,
+            )
             const dirResults = await this.scanDirectory(fullPath)
             results.push(...dirResults)
             break // 找到第一个存在的路径就退出
@@ -113,7 +115,9 @@ export class PluginDiscovery {
         const resDir = await resourceDir()
         paths.push(await join(resDir, pluginDir))
       } catch (e) {
-        console.debug('[PluginDiscovery] Resource dir not available in dev mode')
+        console.debug(
+          '[PluginDiscovery] Resource dir not available in dev mode',
+        )
       }
 
       // 4. 生产环境：应用配置目录
@@ -127,7 +131,10 @@ export class PluginDiscovery {
       console.log(`[PluginDiscovery] Possible paths for ${pluginDir}:`, paths)
       return paths
     } catch (error) {
-      console.error(`[PluginDiscovery] Failed to get paths for ${pluginDir}:`, error)
+      console.error(
+        `[PluginDiscovery] Failed to get paths for ${pluginDir}:`,
+        error,
+      )
       return [pluginDir] // 降级到相对路径
     }
   }
@@ -144,7 +151,10 @@ export class PluginDiscovery {
   /**
    * 扫描指定目录
    */
-  private async scanDirectory(dirPath: string, depth = 0): Promise<PluginDiscoveryResult[]> {
+  private async scanDirectory(
+    dirPath: string,
+    depth = 0,
+  ): Promise<PluginDiscoveryResult[]> {
     const results: PluginDiscoveryResult[] = []
 
     if (depth > this.config.maxDepth) {
@@ -169,7 +179,10 @@ export class PluginDiscovery {
         }
       }
     } catch (error) {
-      console.error(`[PluginDiscovery] Failed to scan directory ${dirPath}:`, error)
+      console.error(
+        `[PluginDiscovery] Failed to scan directory ${dirPath}:`,
+        error,
+      )
     }
 
     return results
@@ -178,7 +191,9 @@ export class PluginDiscovery {
   /**
    * 解析插件目录
    */
-  private async parsePluginDirectory(pluginPath: string): Promise<PluginDiscoveryResult | null> {
+  private async parsePluginDirectory(
+    pluginPath: string,
+  ): Promise<PluginDiscoveryResult | null> {
     try {
       // 读取 plugin.json
       const manifestPath = await join(pluginPath, 'plugin.json')
@@ -232,7 +247,10 @@ export class PluginDiscovery {
 
       return result
     } catch (error) {
-      console.error(`[PluginDiscovery] Failed to parse plugin directory ${pluginPath}:`, error)
+      console.error(
+        `[PluginDiscovery] Failed to parse plugin directory ${pluginPath}:`,
+        error,
+      )
       return null
     }
   }
@@ -268,7 +286,9 @@ export class PluginDiscovery {
   /**
    * 按依赖关系排序插件
    */
-  sortPluginsByDependencies(plugins?: PluginDiscoveryResult[]): PluginDiscoveryResult[] {
+  sortPluginsByDependencies(
+    plugins?: PluginDiscoveryResult[],
+  ): PluginDiscoveryResult[] {
     const pluginsToSort = plugins || this.getValidPlugins()
     const sorted: PluginDiscoveryResult[] = []
     const visited = new Set<string>()
@@ -276,7 +296,9 @@ export class PluginDiscovery {
 
     const visit = (plugin: PluginDiscoveryResult) => {
       if (visiting.has(plugin.metadata.id)) {
-        console.warn(`[PluginDiscovery] Circular dependency detected for plugin: ${plugin.metadata.id}`)
+        console.warn(
+          `[PluginDiscovery] Circular dependency detected for plugin: ${plugin.metadata.id}`,
+        )
         return
       }
 
@@ -377,7 +399,9 @@ export class PluginDiscovery {
 /**
  * 创建默认插件发现实例
  */
-export function createPluginDiscovery(config?: Partial<PluginDiscoveryConfig>): PluginDiscovery {
+export function createPluginDiscovery(
+  config?: Partial<PluginDiscoveryConfig>,
+): PluginDiscovery {
   return new PluginDiscovery(config)
 }
 
@@ -411,7 +435,9 @@ export const discoveryUtils = {
 
     // ID 格式验证
     if (manifest.id && !/^[a-z0-9-_]+$/.test(manifest.id)) {
-      errors.push('Invalid plugin ID format (only lowercase letters, numbers, hyphens, and underscores allowed)')
+      errors.push(
+        'Invalid plugin ID format (only lowercase letters, numbers, hyphens, and underscores allowed)',
+      )
     }
 
     return errors

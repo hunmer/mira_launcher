@@ -41,7 +41,13 @@ export interface NotificationConfig {
   /** 最大通知數量 */
   maxNotifications: number
   /** 通知位置 */
-  position: 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center'
+  position:
+    | 'top-left'
+    | 'top-right'
+    | 'top-center'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'bottom-center'
   /** 是否啟用音效 */
   enableSound: boolean
   /** 是否啟用動畫 */
@@ -61,7 +67,11 @@ export interface NotificationEvents {
   'notification:click': { notification: NotificationItem }
   'notification:timeout': { notification: NotificationItem }
   'notification:clear': { pluginId?: string }
-  'notification:limit-exceeded': { pluginId: string; count: number; limit: number }
+  'notification:limit-exceeded': {
+    pluginId: string
+    count: number
+    limit: number
+  }
 }
 
 /**
@@ -73,10 +83,13 @@ export interface NotificationStats {
   /** 按類型分組 */
   byType: Record<NotificationType, number>
   /** 按插件分組 */
-  byPlugin: Record<string, {
-    total: number
-    byType: Record<NotificationType, number>
-  }>
+  byPlugin: Record<
+    string,
+    {
+      total: number
+      byType: Record<NotificationType, number>
+    }
+  >
   /** 當前活躍通知數 */
   active: number
 }
@@ -87,7 +100,9 @@ export interface NotificationStats {
 export class PluginNotificationAPI implements NotificationAPI {
   private config: NotificationConfig
   private notifications = reactive(new Map<string, NotificationItem>())
-  private eventListeners = reactive(new Map<keyof NotificationEvents, Function[]>())
+  private eventListeners = reactive(
+    new Map<keyof NotificationEvents, Function[]>(),
+  )
   private cleanupTimer: number | null = null
   private notificationCounter = 0
 
@@ -104,7 +119,7 @@ export class PluginNotificationAPI implements NotificationAPI {
     }
 
     this.initializeEventSystem()
-    
+
     if (this.config.autoCleanup) {
       this.startCleanupTimer()
     }
@@ -152,8 +167,9 @@ export class PluginNotificationAPI implements NotificationAPI {
    * 檢查通知限制
    */
   private checkLimit(pluginId: string): boolean {
-    const pluginNotifications = Array.from(this.notifications.values())
-      .filter(n => n.pluginId === pluginId && !n.closed)
+    const pluginNotifications = Array.from(this.notifications.values()).filter(
+      n => n.pluginId === pluginId && !n.closed,
+    )
 
     if (pluginNotifications.length >= this.config.maxNotifications) {
       this.emit('notification:limit-exceeded', {
@@ -226,13 +242,18 @@ export class PluginNotificationAPI implements NotificationAPI {
       this.playNotificationSound(notification.type)
     }
 
-    console.log(`[NotificationAPI] Showed ${notification.type} notification: ${notification.message}`)
+    console.log(
+      `[NotificationAPI] Showed ${notification.type} notification: ${notification.message}`,
+    )
   }
 
   /**
    * 關閉通知
    */
-  private closeNotification(id: string, reason: 'user' | 'timeout' | 'auto' = 'user'): void {
+  private closeNotification(
+    id: string,
+    reason: 'user' | 'timeout' | 'auto' = 'user',
+  ): void {
     const notification = this.notifications.get(id)
     if (!notification || notification.closed) {
       return
@@ -264,7 +285,9 @@ export class PluginNotificationAPI implements NotificationAPI {
       }
     }
 
-    console.log(`[NotificationAPI] Closed notification ${id} (reason: ${reason})`)
+    console.log(
+      `[NotificationAPI] Closed notification ${id} (reason: ${reason})`,
+    )
   }
 
   /**
@@ -279,7 +302,10 @@ export class PluginNotificationAPI implements NotificationAPI {
         // 使用系統通知的音效
       }
     } catch (error) {
-      console.warn('[NotificationAPI] Failed to play notification sound:', error)
+      console.warn(
+        '[NotificationAPI] Failed to play notification sound:',
+        error,
+      )
     }
   }
 
@@ -301,7 +327,9 @@ export class PluginNotificationAPI implements NotificationAPI {
     }
 
     if (closedIds.length > 0) {
-      console.log(`[NotificationAPI] Cleaned up ${closedIds.length} old notifications`)
+      console.log(
+        `[NotificationAPI] Cleaned up ${closedIds.length} old notifications`,
+      )
     }
   }
 
@@ -315,7 +343,11 @@ export class PluginNotificationAPI implements NotificationAPI {
   /**
    * 顯示成功通知
    */
-  success(message: string, title?: string, options?: NotificationOptions): void {
+  success(
+    message: string,
+    title?: string,
+    options?: NotificationOptions,
+  ): void {
     this.show('success', message, title, options)
   }
 
@@ -336,8 +368,19 @@ export class PluginNotificationAPI implements NotificationAPI {
   /**
    * 顯示自定義通知
    */
-  show(type: NotificationType, message: string, title?: string, options?: NotificationOptions): void {
-    const notification = this.createNotification(type, message, title, options, 'system')
+  show(
+    type: NotificationType,
+    message: string,
+    title?: string,
+    options?: NotificationOptions,
+  ): void {
+    const notification = this.createNotification(
+      type,
+      message,
+      title,
+      options,
+      'system',
+    )
     this.showNotification(notification)
   }
 
@@ -351,7 +394,13 @@ export class PluginNotificationAPI implements NotificationAPI {
     title?: string,
     options?: NotificationOptions,
   ): string {
-    const notification = this.createNotification(type, message, title, options, pluginId)
+    const notification = this.createNotification(
+      type,
+      message,
+      title,
+      options,
+      pluginId,
+    )
     this.showNotification(notification)
     return notification.id
   }
@@ -370,7 +419,10 @@ export class PluginNotificationAPI implements NotificationAPI {
     const toClose: string[] = []
 
     for (const [id, notification] of Array.from(this.notifications.entries())) {
-      if (!notification.closed && (!pluginId || notification.pluginId === pluginId)) {
+      if (
+        !notification.closed &&
+        (!pluginId || notification.pluginId === pluginId)
+      ) {
         toClose.push(id)
       }
     }
@@ -382,7 +434,9 @@ export class PluginNotificationAPI implements NotificationAPI {
     // 觸發清空事件
     this.emit('notification:clear', pluginId ? { pluginId } : {})
 
-    console.log(`[NotificationAPI] Closed ${toClose.length} notifications${pluginId ? ` for plugin ${pluginId}` : ''}`)
+    console.log(
+      `[NotificationAPI] Closed ${toClose.length} notifications${pluginId ? ` for plugin ${pluginId}` : ''}`,
+    )
   }
 
   /**
@@ -390,11 +444,11 @@ export class PluginNotificationAPI implements NotificationAPI {
    */
   getAll(pluginId?: string): NotificationItem[] {
     const notifications = Array.from(this.notifications.values())
-    
+
     if (pluginId) {
       return notifications.filter(n => n.pluginId === pluginId)
     }
-    
+
     return notifications
   }
 
@@ -481,7 +535,10 @@ export class PluginNotificationAPI implements NotificationAPI {
   /**
    * 事件監聽
    */
-  on<T extends keyof NotificationEvents>(event: T, listener: (data: NotificationEvents[T]) => void): void {
+  on<T extends keyof NotificationEvents>(
+    event: T,
+    listener: (data: NotificationEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -490,7 +547,10 @@ export class PluginNotificationAPI implements NotificationAPI {
   /**
    * 移除事件監聽
    */
-  off<T extends keyof NotificationEvents>(event: T, listener: (data: NotificationEvents[T]) => void): void {
+  off<T extends keyof NotificationEvents>(
+    event: T,
+    listener: (data: NotificationEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -501,13 +561,19 @@ export class PluginNotificationAPI implements NotificationAPI {
   /**
    * 觸發事件
    */
-  private emit<T extends keyof NotificationEvents>(event: T, data: NotificationEvents[T]): void {
+  private emit<T extends keyof NotificationEvents>(
+    event: T,
+    data: NotificationEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
         listener(data)
       } catch (error) {
-        console.error(`[NotificationAPI] Event listener error for ${event}:`, error)
+        console.error(
+          `[NotificationAPI] Event listener error for ${event}:`,
+          error,
+        )
       }
     }
   }
@@ -519,12 +585,15 @@ export class PluginNotificationAPI implements NotificationAPI {
     this.config = { ...this.config, ...newConfig }
 
     // 重啟清理定時器
-    if (newConfig.cleanupInterval !== undefined || newConfig.autoCleanup !== undefined) {
+    if (
+      newConfig.cleanupInterval !== undefined ||
+      newConfig.autoCleanup !== undefined
+    ) {
       if (this.cleanupTimer) {
         clearInterval(this.cleanupTimer)
         this.cleanupTimer = null
       }
-      
+
       if (this.config.autoCleanup) {
         this.startCleanupTimer()
       }
@@ -562,7 +631,10 @@ export class PluginNotificationAPI implements NotificationAPI {
       console.log(`[NotificationAPI] Notification permission: ${permission}`)
       return permission
     } catch (error) {
-      console.error('[NotificationAPI] Failed to request notification permission:', error)
+      console.error(
+        '[NotificationAPI] Failed to request notification permission:',
+        error,
+      )
       return 'denied'
     }
   }
@@ -588,7 +660,7 @@ export class PluginNotificationAPI implements NotificationAPI {
 
     try {
       const notification = new Notification(title, options)
-      
+
       notification.onclick = () => {
         // 聚焦到應用窗口
         window.focus()
@@ -597,7 +669,10 @@ export class PluginNotificationAPI implements NotificationAPI {
 
       return notification
     } catch (error) {
-      console.error('[NotificationAPI] Failed to show native notification:', error)
+      console.error(
+        '[NotificationAPI] Failed to show native notification:',
+        error,
+      )
       return null
     }
   }
@@ -650,7 +725,9 @@ export class PluginNotificationAPI implements NotificationAPI {
 /**
  * 創建通知 API 實例
  */
-export function createNotificationAPI(config?: Partial<NotificationConfig>): PluginNotificationAPI {
+export function createNotificationAPI(
+  config?: Partial<NotificationConfig>,
+): PluginNotificationAPI {
   return new PluginNotificationAPI(config)
 }
 
@@ -667,7 +744,11 @@ export const notificationUtils = {
    * 驗證通知消息
    */
   isValidMessage(message: string): boolean {
-    return typeof message === 'string' && message.trim().length > 0 && message.length <= 500
+    return (
+      typeof message === 'string' &&
+      message.trim().length > 0 &&
+      message.length <= 500
+    )
   },
 
   /**
@@ -684,11 +765,14 @@ export const notificationUtils = {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
 
-    if (diff < 60000) { // 小於1分鐘
+    if (diff < 60000) {
+      // 小於1分鐘
       return '剛剛'
-    } else if (diff < 3600000) { // 小於1小時
+    } else if (diff < 3600000) {
+      // 小於1小時
       return `${Math.floor(diff / 60000)}分鐘前`
-    } else if (diff < 86400000) { // 小於1天
+    } else if (diff < 86400000) {
+      // 小於1天
       return `${Math.floor(diff / 3600000)}小時前`
     } else {
       return date.toLocaleDateString()

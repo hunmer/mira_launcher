@@ -1,8 +1,9 @@
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
-<!-- eslint-disable vue/custom-event-name-casing -->
+/* eslint-disable */
 <template>
-    <div class="app-page" @contextmenu.prevent="$emit('blank-context-menu', $event)">
+    <div
+        class="app-page"
+        @contextmenu.prevent="$emit('blank-context-menu', $event)"
+    >
         <!-- 空白占位网格 -->
         <div
             v-if="applications.length === 0"
@@ -22,82 +23,48 @@
         <!-- 应用网格 -->
         <VueDraggable
             v-else
-            v-model="modelApplications"
-            animation="150"
-            :delay="0"
-            :delay-on-touch-start="true"
-            :delay-on-touch-only="false"
-            :force-fallback="true"
-            :fallback-on-body="false"
-            :disabled="false"
-            :group="{ name: 'applications' }"
-            :sort="true"
-            :swap-threshold="0.65"
-            :empty-insert-threshold="5"
-            :class="[
-                layoutMode === 'grid' ? 'app-grid' : 'app-list'
-            ]"
-            :style="layoutMode === 'grid' ? {
-                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-                gap: '12px'
-            } : {}"
+            v-model="modelApplicationsList"
             item-key="id"
-            ghost-class="ghost"
-            chosen-class="chosen"
-            drag-class="dragging"
+            :class="[layoutMode === 'grid' ? 'app-grid' : 'app-list']"
+            :style="
+                layoutMode === 'grid'
+                    ? {
+                        gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                        gap: '12px',
+                    }
+                    : {}
+            "
+            animation="200"
+            ghost-class="drag-ghost"
+            chosen-class="drag-chosen"
+            drag-class="drag-dragging"
+            :disabled="false"
+            :force-fallback="false"
+            :fallback-on-body="true"
+            :swap-threshold="0.5"
+            :direction="layoutMode === 'grid' ? 'grid' : 'vertical'"
+            :empty-insert-threshold="10"
+            :scroll-sensitivity="100"
+            :scroll-speed="10"
+            :bubble-scroll="true"
             @start="onDragStart"
             @end="onDragEnd"
-            @update="onDragUpdate"
             @change="onDragChange"
         >
             <template #item="{ element: app }">
                 <div
                     :class="[
                         'app-item-wrapper',
-                        layoutMode === 'list' ? 'list-item' : 'grid-item'
+                        layoutMode === 'list' ? 'list-item' : 'grid-item',
                     ]"
                 >
-                    <div
-                        :class="[
-                            'app-item',
-                            layoutMode === 'list' ? 'list-layout' : 'grid-layout'
-                        ]"
-                        style="cursor: grab; user-select: none;"
-                        @click.stop="$emit('launch-app', app)"
-                        @contextmenu.prevent.stop="$emit('app-context-menu', app, $event)"
-                    >
-                        <div class="app-icon">
-                            <img
-                                v-if="app.icon"
-                                :src="app.icon"
-                                :alt="app.name"
-                                :style="{
-                                    width: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
-                                    height: (layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize) + 'px',
-                                    maxWidth: '200px',
-                                    maxHeight: '200px',
-                                }"
-                                class="object-contain"
-                                draggable="false"
-                                @dragstart.prevent
-                                @selectstart.prevent
-                            >
-                            <AppIcon
-                                v-else
-                                name="monitor"
-                                :size="layoutMode === 'list' ? Math.min(iconSize, 48) : iconSize"
-                                class="text-gray-400"
-                            />
-                        </div>
-                        <div class="app-info">
-                            <div class="app-label">
-                                {{ app.name }}
-                            </div>
-                            <div v-if="layoutMode === 'list'" class="app-path">
-                                {{ app.path }}
-                            </div>
-                        </div>
-                    </div>
+                    <ApplicationCard
+                        :app="app"
+                        :layout-mode="layoutMode"
+                        :icon-size="iconSize"
+                        @launch="$emit('launch-app', app)"
+                        @context-menu="(application, event) => $emit('app-context-menu', application, event)"
+                    />
                 </div>
             </template>
         </VueDraggable>
@@ -105,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import AppIcon from '@/components/icons/AppIcon.vue'
+import ApplicationCard from '@/components/business/ApplicationCard.vue'
 import type { Application } from '@/stores/applications'
 import { computed } from 'vue'
 import VueDraggable from 'vuedraggable'
@@ -141,52 +108,50 @@ interface Emits {
     (e: 'launch-app', app: Application): void
     (e: 'app-context-menu', app: Application, event: MouseEvent): void
     (e: 'blank-context-menu', event: MouseEvent): void
-    (e: 'dragStart', event: DragEvent): void
-    (e: 'dragEnd', event: DragEvent): void
-    (e: 'dragChange', event: DragEvent): void
+    (e: 'drag-start', event: DragEvent): void
+    (e: 'drag-end', event: DragEvent): void
+    (e: 'drag-change', event: DragEvent): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// 双向绑定的应用列表
-const modelApplications = computed({
-    get: () => props.applications,
-    set: (value) => {
-        console.log('更新应用列表:', value.map(app => app.name))
+// 正确的 v-model 实现
+const modelApplicationsList = computed({
+    get: () => {
+        console.log('📥 ApplicationGrid - 获取应用列表:', props.applications.map(app => app.name))
+        return props.applications
+    },
+    set: (value: Application[]) => {
+        console.log('📤 ApplicationGrid - 更新应用列表:', value.map(app => app.name))
         emit('update:applications', value)
     },
 })
 
 // 拖拽事件处理
 const onDragStart = (evt: DragEvent) => {
-    console.log('开始拖拽:', evt)
-    emit('dragStart', evt)
+    console.log('🟢 ApplicationGrid - 开始拖拽:', evt)
+    emit('drag-start', evt)
 }
 
 const onDragEnd = (evt: DragEvent) => {
-    console.log('拖拽结束:', evt)
-    emit('dragEnd', evt)
-}
-
-const onDragUpdate = (evt: DragEvent) => {
-    // vuedraggable 在同列表内排序会触发 update 事件
-    console.log('拖拽更新:', evt)
-    emit('dragChange', evt)
+    console.log('🔴 ApplicationGrid - 拖拽结束:', evt)
+    emit('drag-end', evt)
 }
 
 const onDragChange = (evt: DragEvent) => {
-    console.log('拖拽变化:', evt)
-    emit('dragChange', evt)
+    console.log('🔄 ApplicationGrid - 拖拽变化:', evt)
+    emit('drag-change', evt)
 }
 </script>
 
 <style scoped>
+/* 页面容器样式 */
 .app-page {
-    flex: 1;
-    padding: 0;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
     overflow-y: auto;
-    min-height: 0;
 }
 
 /* 空状态样式 */
@@ -194,307 +159,179 @@ const onDragChange = (evt: DragEvent) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
-    padding: 2rem;
-    border: 2px dashed rgb(209 213 219);
-    border-radius: 12px;
-    background-color: rgba(243, 244, 246, 0.5);
+    min-height: 400px;
     cursor: pointer;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
     transition: all 0.2s ease-in-out;
 }
 
 .empty-grid:hover {
-    border-color: rgb(59, 130, 246);
-    background-color: rgba(59, 130, 246, 0.05);
-}
-
-.dark .empty-grid {
-    border-color: rgb(55, 65, 81);
-    background-color: rgba(31, 41, 55, 0.5);
-}
-
-.dark .empty-grid:hover {
-    border-color: rgb(59, 130, 246);
-    background-color: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    background: #f1f5f9;
 }
 
 .empty-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    text-align: center;
+    color: #64748b;
 }
 
 .empty-icon {
-    font-size: 3rem;
-    color: rgb(156, 163, 175);
-    transition: color 0.2s ease-in-out;
-}
-
-.empty-grid:hover .empty-icon {
-    color: rgb(59, 130, 246);
+    font-size: 48px;
+    margin-bottom: 12px;
 }
 
 .empty-text {
-    font-size: 1.125rem;
-    color: rgb(107, 114, 128);
+    font-size: 16px;
     font-weight: 500;
-    transition: color 0.2s ease-in-out;
 }
 
-.empty-grid:hover .empty-text {
-    color: rgb(59, 130, 246);
-}
-
-.dark .empty-icon {
-    color: rgb(107, 114, 128);
-}
-
-.dark .empty-text {
-    color: rgb(156, 163, 175);
-}
-
-.dark .empty-grid:hover .empty-icon,
-.dark .empty-grid:hover .empty-text {
-    color: rgb(59, 130, 246);
-}
-
+/* 网格布局容器 */
 .app-grid {
     display: grid;
+    gap: 12px;
     width: 100%;
-    min-height: 100%;
-    align-content: start;
 }
 
+/* 网格项目包装器 */
+.app-grid .grid-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease-in-out;
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+}
+
+.app-grid .grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
+.app-grid .grid-item:active {
+    cursor: grabbing;
+}
+
+/* 列表布局容器 */
 .app-list {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    min-height: 100%;
-    gap: 0.5rem;
-}
-
-.app-item-wrapper {
+    gap: 8px;
     width: 100%;
 }
 
-.app-item-wrapper.grid-item {
-    height: 100%;
-    min-height: 120px;
-}
-
-.app-item-wrapper.list-item {
-    height: auto;
-}
-
-.app-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.6);
-    border: 2px solid transparent;
+/* 列表项目包装器 */
+.app-list .list-item {
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
     transition: all 0.2s ease-in-out;
     cursor: grab;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    user-select: none;
+    overflow: hidden;
 }
 
-.app-item:active {
+.app-list .list-item:hover {
+    background: #f8fafc;
+    border-color: #3b82f6;
+}
+
+.app-list .list-item:active {
     cursor: grabbing;
 }
 
-.app-item.grid-layout {
-    flex-direction: column;
-    text-align: center;
+/* 应用项目内容容器 - 让ApplicationCard组件完全控制内部样式 */
+.app-item-wrapper {
+    width: 100%;
+    height: 100%;
 }
 
-.app-item.list-layout {
-    flex-direction: row;
-    justify-content: flex-start;
-    text-align: left;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-}
-
-.dark .app-item {
-    background-color: rgba(55, 65, 81, 0.6);
-}
-
-.app-item:hover {
-    background-color: rgba(243, 244, 246, 0.8);
-    border-color: rgba(59, 130, 246, 0.5);
-    transform: translateY(-2px);
-}
-
-.dark .app-item:hover {
-    background-color: rgba(55, 65, 81, 0.8);
-}
-
-.app-item:active {
-    transform: translateY(0);
-}
-
-.app-icon {
+.grid-item .app-item-wrapper {
+    padding: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-}
-
-.app-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-    flex: 1;
-}
-
-.app-label {
-    font-size: 0.875rem;
-    line-height: 1.25;
-    color: rgb(55 65 81);
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-weight: 500;
-}
-
-.app-item.list-layout .app-label {
-    text-align: left;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.app-path {
-    font-size: 0.75rem;
-    color: rgb(107 114 128);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.dark .app-label {
-    color: #e5e7eb;
-}
-
-.dark .app-path {
-    color: rgb(156 163 175);
 }
 
 /* 拖拽状态样式 */
-.ghost {
-    opacity: 0 !important;
-    background-color: rgba(59, 130, 246, 0.1) !important;
-    border: 2px dashed rgba(59, 130, 246, 0.4) !important;
-    border-radius: 12px;
-    cursor: grabbing !important;
+.drag-ghost {
+    opacity: 0.4 !important;
+    background: #e0e7ff !important;
+    border: 2px dashed #3b82f6 !important;
     transform: scale(0.95) !important;
-}
-
-.ghost .app-item {
-    background-color: transparent !important;
-    border: none !important;
-    cursor: grabbing !important;
-    opacity: 0 !important;
-}
-
-.chosen {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-    border-color: rgba(59, 130, 246, 0.7) !important;
-    transform: scale(1.02) !important;
-    cursor: grabbing !important;
-    z-index: 1000 !important;
-}
-
-.chosen .app-item {
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    border-color: rgba(59, 130, 246, 0.8) !important;
-    cursor: grabbing !important;
-}
-
-.dragging {
-    opacity: 0.9 !important;
-    transform: rotate(2deg) scale(1.05) !important;
-    z-index: 2000 !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
-    transition: none !important;
-    cursor: grabbing !important;
     pointer-events: none !important;
 }
 
-.dragging .app-item {
-    background-color: rgba(55, 65, 81, 0.95) !important;
-    border-color: rgba(59, 130, 246, 0.9) !important;
+.drag-chosen {
     cursor: grabbing !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+    transform: scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1000 !important;
 }
 
-/* 确保拖拽时显示正确的游标 */
-.app-item-wrapper:hover {
-    cursor: grab;
+.drag-dragging {
+    opacity: 0.9 !important;
+    transform: scale(1.05) rotate(3deg) !important;
+    z-index: 1001 !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2) !important;
 }
 
-.app-item-wrapper:active {
-    cursor: grabbing;
+/* 拖拽动画优化 */
+.app-grid:has(.drag-chosen) {
+    transition: all 0.2s ease-out;
 }
 
-/* 应用图标样式优化 */
-.app-icon img {
-    transition: transform 0.2s ease-in-out;
-    user-select: none;
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    pointer-events: none;
-    border-radius: 8px;
+.app-grid .grid-item:not(.drag-chosen):not(.drag-ghost) {
+    transition: transform 0.2s ease-out;
 }
 
-.app-item:hover .app-icon img {
-    transform: scale(1.05);
+.app-list:has(.drag-chosen) {
+    transition: all 0.2s ease-out;
 }
 
-/* 确保SVG图标正确渲染 */
-.app-icon svg {
-    transition: transform 0.2s ease-in-out;
-    user-select: none;
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    pointer-events: none;
+.app-list .list-item:not(.drag-chosen):not(.drag-ghost) {
+    transition: transform 0.2s ease-out;
 }
 
-.app-item:hover .app-icon svg {
-    transform: scale(1.05);
+/* 深色主题 */
+.dark .app-grid .grid-item,
+.dark .app-list .list-item {
+    background: #1f2937;
+    border-color: #374151;
 }
 
-/* 响应式布局优化 */
-@media (max-width: 800px) {
-    .app-item {
-        padding: 0.5rem;
-        min-height: 100px;
+.dark .app-grid .grid-item:hover,
+.dark .app-list .list-item:hover {
+    background: #111827;
+    border-color: #3b82f6;
+}
+
+.dark .empty-grid {
+    background: #111827;
+    border-color: #374151;
+}
+
+.dark .empty-grid:hover {
+    border-color: #3b82f6;
+    background: #1f2937;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .app-page {
+        padding: 12px;
     }
-
-    .app-label {
-        font-size: 0.75rem;
+    
+    .app-grid {
+        gap: 8px;
     }
-}
-
-/* 全局拖拽样式覆盖 */
-:global(.sortable-ghost) {
-    cursor: grabbing !important;
-}
-
-:global(.sortable-chosen) {
-    cursor: grabbing !important;
-}
-
-:global(.sortable-drag) {
-    cursor: grabbing !important;
+    
+    .grid-item .app-item-wrapper {
+        padding: 12px;
+    }
 }
 </style>

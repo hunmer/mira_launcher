@@ -1,8 +1,5 @@
 <template>
-    <div
-        v-if="show"
-        :class="spinnerClass"
-    >
+    <div v-if="show" :class="spinnerClass">
         <ProgressSpinner
             :style="{ width: spinSize + 'px', height: spinSize + 'px' }"
             stroke-width="4"
@@ -43,7 +40,7 @@ const spinSize = computed(() => {
     if (typeof props.size === 'number') {
         return props.size
     }
-  
+
     const sizeMap = {
         small: 14,
         medium: 20,
@@ -54,9 +51,8 @@ const spinSize = computed(() => {
 
 // 样式类
 const spinnerClass = computed(() => {
-    return [
-        'inline-flex items-center justify-center',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['inline-flex items-center justify-center', props.class]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>

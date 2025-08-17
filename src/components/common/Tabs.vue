@@ -27,11 +27,11 @@ const themeStore = useThemeStore()
 // 计算标签页样式类
 const tabsClass = computed(() => {
     const classes = ['custom-tabs']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

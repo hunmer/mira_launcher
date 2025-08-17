@@ -10,7 +10,12 @@ Mira Launcher 使用基于 `lucide-vue-next` 的统一图标组件系统。所�
 
 ```typescript
 // 单个导入
-import { AppIcon, MinimizeIcon, MaximizeIcon, CloseIcon } from '@/components/icons'
+import {
+  AppIcon,
+  MinimizeIcon,
+  MaximizeIcon,
+  CloseIcon,
+} from '@/components/icons'
 
 // 或者具体路径导入
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -22,13 +27,13 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 <template>
   <!-- 基础使用 -->
   <AppIcon />
-  
+
   <!-- 自定义尺寸 -->
   <AppIcon :size="24" />
-  
+
   <!-- 自定义颜色 -->
   <AppIcon color="#3b82f6" />
-  
+
   <!-- 自定义样式类 -->
   <AppIcon class="hover:scale-110 transition-transform" />
 </template>
@@ -40,11 +45,11 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 
 所有图标组件都支持以下 props：
 
-| 属性    | 类型               | 默认值          | 说明             |
-|---------|-------------------|----------------|------------------|
-| size    | string \| number  | 16             | 图标尺寸         |
-| color   | string            | 'currentColor' | 图标颜色         |
-| class   | string            | -              | 自定义样式类     |
+| 属性  | 类型             | 默认值         | 说明         |
+| ----- | ---------------- | -------------- | ------------ |
+| size  | string \| number | 16             | 图标尺寸     |
+| color | string           | 'currentColor' | 图标颜色     |
+| class | string           | -              | 自定义样式类 |
 
 ### 事件
 
@@ -53,28 +58,34 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 ## 可用图标
 
 ### 应用图标
+
 - `AppIcon` - 应用主图标 (Zap)
 
 ### 窗口控制图标
+
 - `MinimizeIcon` - 最小化图标 (Minus)
 - `MaximizeIcon` - 最大化图标 (Square)
 - `CloseIcon` - 关闭图标 (X)
 
 ### 功能图标
+
 - `SettingsIcon` - 设置图标 (Settings)
 - `SearchIcon` - 搜索图标 (Search)
 
 ### 主题图标
+
 - `SunIcon` - 浅色主题图标 (Sun)
 - `MoonIcon` - 深色主题图标 (Moon)
 
 ## 颜色规范
 
 ### 默认颜色
+
 - 继承父元素颜色 (`currentColor`)
 - 支持主题切换的响应式颜色
 
 ### 预设颜色类
+
 ```css
 /* 应用图标 */
 .text-primary-600.dark:text-primary-400
@@ -99,8 +110,8 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 
 ```vue
 <template>
-  <BaseIcon 
-    :icon-component="Heart" 
+  <BaseIcon
+    :icon-component="Heart"
     :size="size"
     :color="color"
     :class="iconClass"
@@ -121,14 +132,13 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   size: 16,
-  color: 'currentColor'
+  color: 'currentColor',
 })
 
 const iconClass = computed(() => {
-  return [
-    'text-red-500 hover:text-red-600 transition-colors',
-    props.class
-  ].filter(Boolean).join(' ')
+  return ['text-red-500 hover:text-red-600 transition-colors', props.class]
+    .filter(Boolean)
+    .join(' ')
 })
 </script>
 ```
@@ -154,12 +164,12 @@ export { default as HeartIcon } from './HeartIcon.vue'
     <!-- 应用标题 -->
     <AppIcon class="w-4 h-4" />
     <span>Mira Launcher</span>
-    
+
     <!-- 窗口控制 -->
     <button @click="minimize" title="最小化">
       <MinimizeIcon class="w-3 h-3" />
     </button>
-    
+
     <!-- 主题切换 -->
     <button @click="toggleTheme">
       <SunIcon v-if="isDark" />

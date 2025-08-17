@@ -1,13 +1,18 @@
 /**
  * 插件系统核心模块导出
- * 
+ *
  * 这个文件统一导出插件系统的所有核心组件，
  * 方便其他模块进行导入和使用
  */
 
 // 核心类
 export { BasePlugin } from './BasePlugin'
-export { createReactiveEventBus, EventBus, eventBusUtils, globalEventBus } from './EventBus'
+export {
+  createReactiveEventBus,
+  EventBus,
+  eventBusUtils,
+  globalEventBus,
+} from './EventBus'
 export { PluginAutoStartService } from './PluginAutoStartService'
 export { createReactivePluginManager, PluginManager } from './PluginManager'
 export { PluginSettingsService } from './PluginSettingsService'
@@ -15,15 +20,19 @@ export { PluginSettingsService } from './PluginSettingsService'
 // 队列系统
 export { BaseQueue } from './BaseQueue'
 export {
-  CircularQueue, DelayedQueue, FIFOQueue,
-  PriorityQueue, QueueFactory,
+  CircularQueue,
+  DelayedQueue,
+  FIFOQueue,
+  PriorityQueue,
+  QueueFactory,
 } from './QueueFactory'
 export { TaskExecutor } from './TaskExecutor'
 
 // 任务调度系统 (Task 2)
 export { default as ConcurrencyController } from './ConcurrencyController'
 export {
-  globalSchedulerMonitor, default as SchedulerPerformanceMonitor,
+  globalSchedulerMonitor,
+  default as SchedulerPerformanceMonitor,
 } from './SchedulerPerformanceMonitor'
 export { default as TaskScheduler } from './TaskScheduler'
 
@@ -39,7 +48,14 @@ export { default as RetryHandler } from './RetryHandler'
 // } from './QueueTest'
 
 export {
-  runSchedulerTests, testConcurrencyController, testMixedMode, testModeSwitch, testParallelMode, testRateLimit, testSerialMode, testTaskCancellation,
+  runSchedulerTests,
+  testConcurrencyController,
+  testMixedMode,
+  testModeSwitch,
+  testParallelMode,
+  testRateLimit,
+  testSerialMode,
+  testTaskCancellation,
 } from './SchedulerTest'
 
 // 工具函数
@@ -48,8 +64,27 @@ export { usePluginStore } from '@/stores/plugin'
 // 类型定义 (从 types 模块重新导出，方便使用)
 export type {
   EventListener,
-  EventListenerOptions, ITaskQueue, PluginAPI, PluginConfiguration, PluginEvent, PluginEventType, PluginInfo, PluginLifecycleEvent, PluginMetadata, PluginRegistryEntry, PluginState, PluginStats, QueueConfig, QueueEventContext, QueueStats, QueueType, Task, TaskExecutorOptions,
-  TaskExecutorStats, TaskMetadata, TaskState,
+  EventListenerOptions,
+  ITaskQueue,
+  PluginAPI,
+  PluginConfiguration,
+  PluginEvent,
+  PluginEventType,
+  PluginInfo,
+  PluginLifecycleEvent,
+  PluginMetadata,
+  PluginRegistryEntry,
+  PluginState,
+  PluginStats,
+  QueueConfig,
+  QueueEventContext,
+  QueueStats,
+  QueueType,
+  Task,
+  TaskExecutorOptions,
+  TaskExecutorStats,
+  TaskMetadata,
+  TaskState,
 } from '@/types/plugin'
 
 // 导入核心类用于函数内部使用
@@ -60,7 +95,7 @@ import { PluginManager } from './PluginManager'
 
 /**
  * 插件系统快速初始化函数
- * 
+ *
  * @param config 插件系统配置
  * @returns 插件管理器实例
  */
@@ -79,7 +114,10 @@ export function createPluginSystem(config?: {
     pluginManager,
 
     // 便捷方法
-    async register(pluginClass: new () => BasePlugin, metadata: PluginMetadata) {
+    async register(
+      pluginClass: new () => BasePlugin,
+      metadata: PluginMetadata,
+    ) {
       return await pluginManager.register(pluginClass, metadata)
     },
 

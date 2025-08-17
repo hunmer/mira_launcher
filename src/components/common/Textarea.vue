@@ -4,7 +4,7 @@
         v-model="textareaValue"
         v-bind="{
             ...$attrs,
-            class: textareaClass
+            class: textareaClass,
         }"
         @input="handleInput"
         @change="handleChange"
@@ -43,12 +43,15 @@ const themeStore = useThemeStore()
 const textareaValue = ref(props.modelValue || '')
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    textareaValue.value = newValue || ''
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        textareaValue.value = newValue || ''
+    },
+)
 
 // 监听内部值变化
-watch(textareaValue, (newValue) => {
+watch(textareaValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -71,11 +74,11 @@ const handleBlur = (event: FocusEvent) => {
 // 计算文本区域样式类
 const textareaClass = computed(() => {
     const classes = ['custom-textarea']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

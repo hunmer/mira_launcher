@@ -1,9 +1,6 @@
 <template>
     <div class="app-title-container">
-        <AppIcon
-            :size="18"
-            class="text-primary-600 dark:text-primary-400"
-        />
+        <AppIcon :size="18" class="text-primary-600 dark:text-primary-400" />
         <span class="app-title-text">
             {{ appName }}
         </span>

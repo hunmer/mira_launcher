@@ -22,7 +22,9 @@ export function registerPlugin(id: string, factory: () => Promise<any>): void {
 /**
  * Get a registered plugin
  */
-export function getRegisteredPlugin(id: string): (() => Promise<any>) | undefined {
+export function getRegisteredPlugin(
+  id: string,
+): (() => Promise<any>) | undefined {
   return pluginRegistry.get(id)
 }
 
@@ -43,7 +45,11 @@ export function isPluginRegistered(id: string): boolean {
 /**
  * Register a plugin with better error handling and logging
  */
-function registerPluginSafely(id: string, importPath: string, isJavaScript = false): void {
+function registerPluginSafely(
+  id: string,
+  importPath: string,
+  isJavaScript = false,
+): void {
   registerPlugin(id, async () => {
     console.log(`[PluginRegistry] Loading ${id}...`)
     try {
@@ -71,14 +77,31 @@ console.log('[PluginRegistry] Starting plugin registration...')
 
 try {
   // JavaScript plugins
-  registerPluginSafely('minimal-test-plugin', '../../../plugins/minimal-test-plugin/index', true)
-  registerPluginSafely('simple-test-plugin-js', '../../../plugins/simple-test-plugin-js/index', true)
+  registerPluginSafely(
+    'minimal-test-plugin',
+    '../../../plugins/minimal-test-plugin/index',
+    true,
+  )
+  registerPluginSafely(
+    'simple-test-plugin-js',
+    '../../../plugins/simple-test-plugin-js/index',
+    true,
+  )
 
   // TypeScript plugins
-  registerPluginSafely('simple-test-plugin', '../../../plugins/simple-test-plugin/index')
-  registerPluginSafely('file-system-plugin', '../../../plugins/file-system-plugin/index')
+  registerPluginSafely(
+    'simple-test-plugin',
+    '../../../plugins/simple-test-plugin/index',
+  )
+  registerPluginSafely(
+    'file-system-plugin',
+    '../../../plugins/file-system-plugin/index',
+  )
   registerPluginSafely('test-plugin', '../../../plugins/test-plugin/index')
-  registerPluginSafely('web-link-plugin', '../../../plugins/web-link-plugin/index')
+  registerPluginSafely(
+    'web-link-plugin',
+    '../../../plugins/web-link-plugin/index',
+  )
 
   console.log('[PluginRegistry] All plugins registered successfully')
 } catch (error) {
@@ -95,5 +118,7 @@ if (import.meta.env.DEV) {
     isPluginRegistered,
     registrySize: () => pluginRegistry.size,
   }
-  console.log('[PluginRegistry] Registry exposed to window.__PLUGIN_REGISTRY__ for debugging')
+  console.log(
+    '[PluginRegistry] Registry exposed to window.__PLUGIN_REGISTRY__ for debugging',
+  )
 }

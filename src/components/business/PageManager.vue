@@ -27,7 +27,9 @@
                 v-if="pageState.loading"
                 class="loading-overlay absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 flex items-center justify-center z-50"
             >
-                <div class="loading-spinner animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                <div
+                    class="loading-spinner animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+                />
             </div>
 
             <!-- 错误状态 -->
@@ -39,7 +41,9 @@
                     <div class="error-icon text-red-500 text-4xl mb-4">
                         ⚠
                     </div>
-                    <h3 class="error-title text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    <h3
+                        class="error-title text-lg font-semibold text-gray-900 dark:text-white mb-2"
+                    >
                         页面加载失败
                     </h3>
                     <p class="error-message text-gray-600 dark:text-gray-300 mb-4">
@@ -312,7 +316,11 @@ const showPageMenu = (event: MouseEvent) => {
     contextMenuVisible.value = true
 }
 
-const showPageContextMenu = (data: { page: Page; index: number; event: MouseEvent }) => {
+const showPageContextMenu = (data: {
+    page: Page
+    index: number
+    event: MouseEvent
+}) => {
     contextMenuPage.value = data.page
     contextMenuPosition.value = { x: data.event.clientX, y: data.event.clientY }
     contextMenuVisible.value = true
@@ -331,21 +339,28 @@ const renamePage = (page: Page) => {
 }
 
 // 监听页面切换，同步路由
-watch(currentPage, (newPage) => {
-    if (newPage && router.currentRoute.value.path !== newPage.route) {
-        router.push(newPage.route).catch(() => {
-            // 路由跳转失败，保持当前状态
-        })
-    }
-}, { immediate: true })
+watch(
+    currentPage,
+    newPage => {
+        if (newPage && router.currentRoute.value.path !== newPage.route) {
+            router.push(newPage.route).catch(() => {
+                // 路由跳转失败，保持当前状态
+            })
+        }
+    },
+    { immediate: true },
+)
 
 // 监听路由变化，同步页面
-watch(() => router.currentRoute.value.path, (newPath) => {
-    const pageIndex = pages.value.findIndex(p => p.route === newPath)
-    if (pageIndex !== -1 && pageIndex !== currentPageIndex.value) {
-        switchToPage(pageIndex)
-    }
-})
+watch(
+    () => router.currentRoute.value.path,
+    newPath => {
+        const pageIndex = pages.value.findIndex(p => p.route === newPath)
+        if (pageIndex !== -1 && pageIndex !== currentPageIndex.value) {
+            switchToPage(pageIndex)
+        }
+    },
+)
 
 // 生命周期
 onMounted(() => {
@@ -369,93 +384,93 @@ onUnmounted(() => {
 
 <style scoped>
 .page-manager {
-    background-color: rgb(249 250 251);
+  background-color: rgb(249 250 251);
 }
 
 .dark .page-manager {
-    background-color: rgb(17 24 39);
+  background-color: rgb(17 24 39);
 }
 
 .page-content {
-    overflow: auto;
+  overflow: auto;
 }
 
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-    opacity: 0;
+  opacity: 0;
 }
 
 .slide-left-enter-active,
 .slide-left-leave-active {
-    transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out;
 }
 
 .slide-left-enter-from {
-    transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 .slide-left-leave-to {
-    transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 .slide-right-enter-active,
 .slide-right-leave-active {
-    transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out;
 }
 
 .slide-right-enter-from {
-    transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 .slide-right-leave-to {
-    transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 /* 加载和错误状态样式 */
 .loading-overlay,
 .error-overlay {
-    backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 
 .loading-spinner {
-    animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
 
-    to {
-        transform: rotate(360deg);
-    }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-content {
-    max-width: 300px;
+  max-width: 300px;
 }
 
 .retry-btn {
-    transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .retry-btn:hover {
-    background-color: rgb(37 99 235);
+  background-color: rgb(37 99 235);
 }
 
 /* 焦点样式 */
 .page-manager:focus {
-    outline: 2px solid rgb(59 130 246);
-    outline-offset: -2px;
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: -2px;
 }
 
 .page-manager:focus:not(:focus-visible) {
-    outline: none;
+  outline: none;
 }
 </style>

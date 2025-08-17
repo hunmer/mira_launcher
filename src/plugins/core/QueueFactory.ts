@@ -134,15 +134,15 @@ export class CircularQueue extends BaseQueue {
   }
 
   /**
-     * 获取队列使用率
-     */
+   * 获取队列使用率
+   */
   getUtilization(): number {
     return this.queue.length / this.maxSize
   }
 
   /**
-     * 设置最大队列大小
-     */
+   * 设置最大队列大小
+   */
   setMaxSize(newSize: number): void {
     this.maxSize = newSize
 
@@ -182,8 +182,8 @@ export class QueueFactory {
   private static queues = new Map<string, BaseQueue>()
 
   /**
-     * 创建队列
-     */
+   * 创建队列
+   */
   static createQueue(
     id: string,
     type: QueueType,
@@ -219,15 +219,15 @@ export class QueueFactory {
   }
 
   /**
-     * 获取队列
-     */
+   * 获取队列
+   */
   static getQueue(id: string): BaseQueue | undefined {
     return this.queues.get(id)
   }
 
   /**
-     * 销毁队列
-     */
+   * 销毁队列
+   */
   static destroyQueue(id: string): boolean {
     const queue = this.queues.get(id)
     if (queue) {
@@ -239,15 +239,15 @@ export class QueueFactory {
   }
 
   /**
-     * 获取所有队列
-     */
+   * 获取所有队列
+   */
   static getAllQueues(): BaseQueue[] {
     return Array.from(this.queues.values())
   }
 
   /**
-     * 销毁所有队列
-     */
+   * 销毁所有队列
+   */
   static destroyAllQueues(): void {
     for (const queue of this.queues.values()) {
       queue.destroy()
@@ -256,8 +256,8 @@ export class QueueFactory {
   }
 
   /**
-     * 获取队列统计信息
-     */
+   * 获取队列统计信息
+   */
   static getGlobalStats() {
     const stats = {
       totalQueues: this.queues.size,
@@ -283,7 +283,8 @@ export class QueueFactory {
       stats.totalThroughput += queueStats.throughput
 
       if (queueStats.completedTasks > 0) {
-        totalExecutionTime += queueStats.averageExecutionTime * queueStats.completedTasks
+        totalExecutionTime +=
+          queueStats.averageExecutionTime * queueStats.completedTasks
         taskCountForAverage += queueStats.completedTasks
       }
     }

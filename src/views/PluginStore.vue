@@ -80,9 +80,9 @@
 
                     <template #loading>
                         <div class="text-center py-8">
-                            <ProgressSpinner 
-                                style="width: 50px; height: 50px" 
-                                stroke-width="8" 
+                            <ProgressSpinner
+                                style="width: 50px; height: 50px"
+                                stroke-width="8"
                             />
                             <p class="text-gray-500 mt-4">
                                 加载插件商城...
@@ -90,25 +90,32 @@
                         </div>
                     </template>
 
-                    <Column 
-                        field="name" 
-                        header="插件" 
-                        sortable 
+                    <Column
+                        field="name"
+                        header="插件"
+                        sortable
                         style="width: 280px"
                         frozen
                     >
                         <template #body="{ data }">
                             <div class="flex items-center gap-3">
-                                <Avatar 
+                                <Avatar
                                     :image="data.icon"
-                                    :label="data.name.charAt(0).toUpperCase()" 
-                                    shape="circle" 
+                                    :label="data.name.charAt(0).toUpperCase()"
+                                    shape="circle"
                                     size="normal"
-                                    :style="{ backgroundColor: data.icon ? 'transparent' : getPluginColor(data.id), color: 'white' }"
+                                    :style="{
+                                        backgroundColor: data.icon
+                                            ? 'transparent'
+                                            : getPluginColor(data.id),
+                                        color: 'white',
+                                    }"
                                 />
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                        <div
+                                            class="font-medium text-gray-900 dark:text-gray-100 truncate"
+                                        >
                                             {{ data.name }}
                                         </div>
                                         <i
@@ -124,7 +131,9 @@
                                             rounded
                                         />
                                     </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                    <div
+                                        class="text-sm text-gray-500 dark:text-gray-400 truncate"
+                                    >
                                         {{ data.description }}
                                     </div>
                                 </div>
@@ -132,33 +141,33 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="version" 
-                        header="版本" 
-                        sortable 
+                    <Column
+                        field="version"
+                        header="版本"
+                        sortable
                         style="width: 100px"
                     >
                         <template #body="{ data }">
-                            <Tag 
-                                :value="data.version" 
-                                severity="info" 
-                                rounded 
+                            <Tag
+                                :value="data.version"
+                                severity="info"
+                                rounded
                             />
                         </template>
                     </Column>
 
-                    <Column 
-                        field="author" 
-                        header="作者" 
-                        sortable 
+                    <Column
+                        field="author"
+                        header="作者"
+                        sortable
                         style="width: 120px"
                     >
                         <template #body="{ data }">
                             <div class="flex items-center gap-2">
-                                <Avatar 
+                                <Avatar
                                     :image="data.author.avatar"
-                                    :label="data.author.name.charAt(0)" 
-                                    size="small" 
+                                    :label="data.author.name.charAt(0)"
+                                    size="small"
                                     shape="circle"
                                 />
                                 <span class="text-gray-700 dark:text-gray-300 text-sm truncate">
@@ -168,32 +177,32 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="category" 
-                        header="分类" 
-                        sortable 
+                    <Column
+                        field="category"
+                        header="分类"
+                        sortable
                         style="width: 100px"
                     >
                         <template #body="{ data }">
-                            <Tag 
-                                :value="data.category" 
+                            <Tag
+                                :value="data.category"
                                 :severity="getCategorySeverity(data.category)"
-                                rounded 
+                                rounded
                             />
                         </template>
                     </Column>
 
-                    <Column 
-                        field="rating" 
-                        header="评分" 
-                        sortable 
+                    <Column
+                        field="rating"
+                        header="评分"
+                        sortable
                         style="width: 120px"
                     >
                         <template #body="{ data }">
                             <div class="flex items-center gap-1">
-                                <Rating 
-                                    :model-value="data.rating" 
-                                    readonly 
+                                <Rating
+                                    :model-value="data.rating"
+                                    readonly
                                     :stars="5"
                                     size="small"
                                 />
@@ -204,10 +213,10 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="downloads" 
-                        header="下载量" 
-                        sortable 
+                    <Column
+                        field="downloads"
+                        header="下载量"
+                        sortable
                         style="width: 100px"
                     >
                         <template #body="{ data }">
@@ -217,10 +226,10 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="size" 
-                        header="大小" 
-                        sortable 
+                    <Column
+                        field="size"
+                        header="大小"
+                        sortable
                         style="width: 80px"
                     >
                         <template #body="{ data }">
@@ -230,10 +239,10 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="lastUpdate" 
-                        header="更新时间" 
-                        sortable 
+                    <Column
+                        field="lastUpdate"
+                        header="更新时间"
+                        sortable
                         style="width: 100px"
                     >
                         <template #body="{ data }">
@@ -243,16 +252,13 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        field="features" 
-                        header="特性" 
+                    <Column
+                        field="features"
+                        header="特性"
                         style="width: 200px"
                     >
                         <template #body="{ data }">
-                            <div
-                                v-if="data.features"
-                                class="flex flex-wrap gap-1"
-                            >
+                            <div v-if="data.features" class="flex flex-wrap gap-1">
                                 <Tag
                                     v-for="(feature, index) in data.features.slice(0, 2)"
                                     :key="index"
@@ -274,8 +280,8 @@
                         </template>
                     </Column>
 
-                    <Column 
-                        header="操作" 
+                    <Column
+                        header="操作"
                         style="width: 180px"
                         frozen
                         align-frozen="right"
@@ -300,7 +306,9 @@
                                 />
                                 <Button
                                     v-tooltip="isFavorite(data.id) ? '取消收藏' : '收藏'"
-                                    :icon="isFavorite(data.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                                    :icon="
+                                        isFavorite(data.id) ? 'pi pi-heart-fill' : 'pi pi-heart'
+                                    "
                                     size="small"
                                     severity="danger"
                                     text
@@ -354,15 +362,12 @@
                 </div>
                 <template #footer>
                     <div class="flex justify-end gap-2">
-                        <Button 
-                            label="重置" 
-                            severity="secondary" 
-                            @click="resetFilters" 
+                        <Button
+                            label="重置"
+                            severity="secondary"
+                            @click="resetFilters"
                         />
-                        <Button 
-                            label="应用" 
-                            @click="applyFilters" 
-                        />
+                        <Button label="应用" @click="applyFilters" />
                     </div>
                 </template>
             </Dialog>
@@ -403,15 +408,12 @@
                 </div>
                 <template #footer>
                     <div class="flex justify-end gap-2">
-                        <Button 
-                            label="取消" 
-                            severity="secondary" 
-                            @click="showSubmitModal = false" 
+                        <Button
+                            label="取消"
+                            severity="secondary"
+                            @click="showSubmitModal = false"
                         />
-                        <Button 
-                            label="提交" 
-                            @click="submitPlugin" 
-                        />
+                        <Button label="提交" @click="submitPlugin" />
                     </div>
                 </template>
             </Dialog>
@@ -500,32 +502,32 @@ const fetchPlugins = async () => {
     isLoading.value = true
     try {
         const params = new URLSearchParams()
-    
+
         if (searchQuery.value) {
             params.append('search', searchQuery.value)
         }
-    
+
         if (selectedCategories.value.length > 0) {
             selectedCategories.value.forEach(category => {
                 params.append('category', category)
             })
         }
-    
+
         if (minRating.value > 0) {
             params.append('minRating', minRating.value.toString())
         }
-    
+
         if (showFavorites.value) {
             // 客户端筛选收藏
         }
-    
+
         params.append('sort', sortBy.value)
         params.append('page', '1')
         params.append('limit', '100')
-    
+
         const response = await fetch(`${API_BASE}/plugins?${params.toString()}`)
         const result = await response.json()
-    
+
         if (result.success) {
             storePlugins.value = result.data
             pagination.value = result.pagination
@@ -553,8 +555,14 @@ const fetchPlugins = async () => {
 // 工具函数
 const getPluginColor = (pluginId: string): string => {
     const colors = [
-        '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
-        '#8B5CF6', '#06B6D4', '#84CC16', '#F97316',
+        '#3B82F6',
+        '#EF4444',
+        '#10B981',
+        '#F59E0B',
+        '#8B5CF6',
+        '#06B6D4',
+        '#84CC16',
+        '#F97316',
     ]
     let hash = 0
     for (let i = 0; i < pluginId.length; i++) {
@@ -563,14 +571,32 @@ const getPluginColor = (pluginId: string): string => {
     return colors[Math.abs(hash) % colors.length] || '#3B82F6'
 }
 
-const getCategorySeverity = (category: string): 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast' => {
-    const severityMap: Record<string, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'> = {
-        'productivity': 'success',
-        'development': 'info',
-        'entertainment': 'warn',
-        'system': 'danger',
-        'network': 'secondary',
-        'design': 'contrast',
+const getCategorySeverity = (
+    category: string,
+):
+    | 'secondary'
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'warn'
+    | 'danger'
+    | 'contrast' => {
+    const severityMap: Record<
+        string,
+        | 'secondary'
+            | 'success'
+            | 'info'
+            | 'warning'
+            | 'warn'
+            | 'danger'
+            | 'contrast'
+    > = {
+        productivity: 'success',
+        development: 'info',
+        entertainment: 'warn',
+        system: 'danger',
+        network: 'secondary',
+        design: 'contrast',
     }
     return severityMap[category] || 'secondary'
 }
@@ -612,13 +638,13 @@ const installPlugin = async (plugin: any) => {
             detail: `正在安装 ${plugin.name}...`,
             life: 3000,
         })
-    
+
         // 下载插件
         const response = await fetch(`${API_BASE}/plugins/${plugin.id}/download`)
         if (!response.ok) {
             throw new Error('下载失败')
         }
-    
+
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -628,7 +654,7 @@ const installPlugin = async (plugin: any) => {
         link.click()
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-    
+
         toast.add({
             severity: 'success',
             summary: '下载成功',
@@ -703,14 +729,14 @@ const submitPlugin = async () => {
     try {
         // 模拟提交过程
         await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
         toast.add({
             severity: 'success',
             summary: '提交成功',
             detail: '插件已提交审核，我们会尽快处理',
             life: 3000,
         })
-    
+
         showSubmitModal.value = false
         submitForm.value = { name: '', description: '', packagePath: '' }
     } catch (error) {
@@ -730,7 +756,7 @@ onMounted(async () => {
 
 // 搜索防抖
 let searchTimeout: number | null = null
-watch(searchQuery, (_newValue) => {
+watch(searchQuery, _newValue => {
     if (searchTimeout) {
         clearTimeout(searchTimeout)
     }

@@ -5,44 +5,87 @@
 <template>
   <div class="applications-page">
     <!-- 工具栏 -->
-    <ApplicationToolbar :selected-category="applicationsStore.selectedCategory"
-      :categories="applicationsStore.categories" :layout-mode="layoutMode" :grid-columns="gridColumnsStr"
-      :container-width="containerWidth" @category-change="applicationsStore.setCategory"
-      @add-file="openAddDialog('file')" @add-folder="openAddDialog('folder')" @add-url="openAddDialog('url')"
-      @add-test-data="addTestData" @layout-change="setLayoutMode" @grid-size-change="onGridSizeChange" />
+    <ApplicationToolbar
+      :selected-category="applicationsStore.selectedCategory"
+      :categories="applicationsStore.categories"
+      :layout-mode="layoutMode"
+      :grid-columns="gridColumnsStr"
+      :container-width="containerWidth"
+      :current-sort-type="applicationsStore.currentSortType"
+      :sort-ascending="applicationsStore.sortAscending"
+      :sort-options="applicationsStore.sortOptions"
+      @category-change="applicationsStore.setCategory"
+      @add-file="openAddDialog('file')"
+      @add-folder="openAddDialog('folder')"
+      @add-url="openAddDialog('url')"
+      @add-test-data="addTestData"
+      @layout-change="setLayoutMode"
+      @grid-size-change="onGridSizeChange"
+      @sort-change="applicationsStore.setSortType"
+      @sort-order-toggle="applicationsStore.toggleSortOrder"
+    />
 
     <div class="page-container">
       <!-- 页面内容区域 -->
       <div class="pages-wrapper">
-        <ApplicationGrid v-model:applications="currentPageApps" :layout-mode="layoutMode"
-          :grid-columns="applicationsStore.gridColumns" :icon-size="iconSize" @launch-app="launchApp"
-          @app-context-menu="showContextMenu" @blank-context-menu="showBlankAreaContextMenu" @drag-start="onDragStart"
-          @drag-end="onDragEnd" @drag-change="onDragChange" />
+        <!-- GridStack 组件 -->
+        <ApplicationGridStack
+          v-model:applications="currentPageApps"
+          :layout-mode="layoutMode"
+          :grid-columns="applicationsStore.gridColumns"
+          :icon-size="iconSize"
+          @launch-app="launchApp"
+          @app-context-menu="showContextMenu"
+          @blank-context-menu="showBlankAreaContextMenu"
+          @drag-start="onDragStart"
+          @drag-end="onDragEnd"
+          @drag-change="onDragChange"
+        />
       </div>
 
       <!-- 页面控制栏 -->
-      <PageControls :current-page-index="applicationsStore.currentPageIndex" :total-pages="applicationsStore.totalPages"
-        @page-change="applicationsStore.goToPage" @add-page="applicationsStore.addPage" />
+      <PageControls
+        :current-page-index="applicationsStore.currentPageIndex"
+        :total-pages="applicationsStore.totalPages"
+        @page-change="applicationsStore.goToPage"
+        @add-page="applicationsStore.addPage"
+      />
     </div>
 
     <!-- 添加应用对话框 -->
-    <AddApplicationDialog v-model:show="showAddDialog" :type="addDialogType" :categories="applicationsStore.categories"
-      @confirm="onAddApplication" @cancel="showAddDialog = false" />
+    <AddApplicationDialog
+      v-model:show="showAddDialog"
+      :type="addDialogType"
+      :categories="applicationsStore.categories"
+      @confirm="onAddApplication"
+      @cancel="showAddDialog = false"
+    />
 
     <!-- Context Menu -->
-    <ContextMenu :show="contextMenuVisible" :x="contextMenuPosition.x" :y="contextMenuPosition.y"
-      :items="contextMenuItems" @update:show="contextMenuVisible = $event" @select="onContextMenuSelect" />
+    <ContextMenu
+      :show="contextMenuVisible"
+      :x="contextMenuPosition.x"
+      :y="contextMenuPosition.y"
+      :items="contextMenuItems"
+      @update:show="contextMenuVisible = $event"
+      @select="onContextMenuSelect"
+    />
 
     <!-- Blank Area Context Menu -->
-    <ContextMenu :show="blankAreaContextMenuVisible" :x="blankAreaContextMenuPosition.x"
-      :y="blankAreaContextMenuPosition.y" :items="blankAreaContextMenuItems"
-      @update:show="blankAreaContextMenuVisible = $event" @select="onBlankAreaContextMenuSelect" />
+    <ContextMenu
+      :show="blankAreaContextMenuVisible"
+      :x="blankAreaContextMenuPosition.x"
+      :y="blankAreaContextMenuPosition.y"
+      :items="blankAreaContextMenuItems"
+      @update:show="blankAreaContextMenuVisible = $event"
+      @select="onBlankAreaContextMenuSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import AddApplicationDialog from '@/components/business/AddApplicationDialog.vue'
-import ApplicationGrid from '@/components/business/ApplicationGrid.vue'
+import ApplicationGridStack from '@/components/business/ApplicationGridStack.vue'
 import ApplicationToolbar from '@/components/business/ApplicationToolbar.vue'
 import PageControls from '@/components/business/PageControls.vue'
 import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
@@ -51,7 +94,10 @@ import { useApplicationsStore, type Application } from '@/stores/applications'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 // 拖拽事件类型定义
-interface DragEvent {
+interface DragEventData {
+    element?: HTMLElement
+    event?: Event
+    items?: unknown[]
     oldIndex?: number
     newIndex?: number
     item?: HTMLElement
@@ -74,10 +120,7 @@ interface DragEvent {
 const applicationsStore = useApplicationsStore()
 
 // 图标尺寸配置和布局
-const {
-    setLayoutMode,
-    layoutMode,
-} = useApplicationLayout()
+const { setLayoutMode, layoutMode } = useApplicationLayout()
 
 const gridColumnsStr = ref('4') // 字符串形式的网格列数，用于下拉菜单
 const containerWidth = ref(1200) // 容器宽度
@@ -91,17 +134,23 @@ const addDialogType = ref<'file' | 'folder' | 'url'>('file')
 // 图标大小计算
 const iconSize = computed(() => {
     // 根据网格列数动态计算图标大小
-    const baseSize = Math.max(40, Math.min(200, (containerWidth.value / applicationsStore.gridColumns) * 0.6))
+    const baseSize = Math.max(
+        40,
+        Math.min(200, (containerWidth.value / applicationsStore.gridColumns) * 0.6),
+    )
     return Math.floor(baseSize)
 })
 
 // 当前页面的应用（双向绑定）
 const currentPageApps = computed({
-    get: () => applicationsStore.currentPageApps,
-    set: (value) => {
-        console.log('应用列表更新:', value.map(app => app.name))
-        // 更新当前页面的应用顺序
+    get: () => {
+        return applicationsStore.currentPageApps
+    },
+    set: value => {
+        // 统一在这里处理应用更新和保存
         applicationsStore.updateCurrentPageApps(value)
+        // 立即保存应用数据
+        applicationsStore.saveApplications()
     },
 })
 
@@ -190,6 +239,9 @@ const onGridSizeChange = (newSize: string) => {
     console.log('网格大小变更:', newSize)
     gridColumnsStr.value = newSize
 
+    // 保存到localStorage
+    localStorage.setItem('mira-grid-columns', newSize)
+
     if (newSize === 'auto') {
         // 自适应模式：根据容器宽度自动计算列数
         const autoColumns = Math.floor(containerWidth.value / 150)
@@ -215,19 +267,15 @@ const updateContainerWidth = () => {
 }
 
 // 拖拽事件处理
-const onDragStart = (evt: DragEvent) => {
-    console.log('开始拖拽:', evt)
+const onDragStart = (_evt: DragEventData) => {
+    console.log('🟢 Applications - 开始拖拽')
     isDragging.value = true
     sortSaved.value = false
 }
 
-const onDragEnd = (evt: DragEvent) => {
-    console.log('拖拽结束:', evt)
+const onDragEnd = (_evt: DragEventData) => {
+    console.log('🔴 Applications - 拖拽结束')
     isDragging.value = false
-
-    // 保存排序
-    applicationsStore.saveApplications()
-
     // 显示保存成功提示
     sortSaved.value = true
     setTimeout(() => {
@@ -235,10 +283,18 @@ const onDragEnd = (evt: DragEvent) => {
     }, 2000)
 }
 
-const onDragChange = (evt: DragEvent) => {
-    console.log('拖拽变化:', evt)
+const onDragChange = (evt: DragEventData) => {
+    console.log('🔧 Applications - 拖拽变化:', evt)
     if (evt.moved) {
-        console.log(`元素 "${evt.moved.element.name}" 从位置 ${evt.moved.oldIndex} 移动到 ${evt.moved.newIndex}`)
+        console.log(
+            `🔀 应用移动: "${evt.moved.element.name}" 从位置 ${evt.moved.oldIndex} 移动到 ${evt.moved.newIndex}`,
+        )
+    }
+    if (evt.added) {
+        console.log('➕ 添加了应用:', evt.added)
+    }
+    if (evt.removed) {
+        console.log('➖ 移除了应用:', evt.removed)
     }
 }
 
@@ -248,7 +304,9 @@ const openAddDialog = (type: 'file' | 'folder' | 'url') => {
     showAddDialog.value = true
 }
 
-const onAddApplication = (app: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>) => {
+const onAddApplication = (
+    app: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>,
+) => {
     applicationsStore.addApplication(app)
     showAddDialog.value = false
     console.log('添加应用:', app)
@@ -423,7 +481,9 @@ onUnmounted(() => {
 :global(.p-contextmenu) {
   background-color: #1f2937 !important;
   border: 1px solid #4b5563 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
 :global(.p-contextmenu .p-menuitem) {

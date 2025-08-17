@@ -14,10 +14,7 @@
                 @update:model-value="$emit('category-change', $event)"
             >
                 <template #value="{ value, placeholder }">
-                    <div
-                        v-if="value"
-                        class="flex items-center gap-3"
-                    >
+                    <div v-if="value" class="flex items-center gap-3">
                         <i :class="getCategoryIcon(value)" />
                         <span>{{ getCategoryLabel(value) }}</span>
                     </div>
@@ -34,10 +31,7 @@
 
         <div class="toolbar-right">
             <!-- 添加新项目下拉菜单 -->
-            <div
-                ref="addItemDropdownRef"
-                class="add-item-dropdown"
-            >
+            <div ref="addItemDropdownRef" class="add-item-dropdown">
                 <Button
                     icon="pi pi-plus-circle"
                     class="add-item-btn"
@@ -54,6 +48,40 @@
                     class="dropdown-menu-tiered"
                     @hide="showAddItemDropdown = false"
                 />
+            </div>
+
+            <!-- 排序控制 -->
+            <div class="sort-controls">
+                <FilterSelect
+                    :model-value="currentSortType"
+                    :options="sortOptions"
+                    option-label="label"
+                    option-value="value"
+                    placeholder="排序方式"
+                    class="sort-selector"
+                    @update:model-value="$emit('sort-change', $event)"
+                >
+                    <template #value="{ value }">
+                        <div v-if="value" class="flex items-center gap-2">
+                            <i :class="getSortIcon(value)" />
+                            <span>{{ getSortLabel(value) }}</span>
+                        </div>
+                        <span v-else>排序</span>
+                    </template>
+                    <template #option="{ option }">
+                        <div class="flex items-center gap-2">
+                            <i :class="option.icon" />
+                            <span>{{ option.label }}</span>
+                        </div>
+                    </template>
+                </FilterSelect>
+                <button
+                    :class="['sort-order-btn', { ascending: sortAscending }]"
+                    :title="sortAscending ? '升序' : '降序'"
+                    @click="$emit('sort-order-toggle')"
+                >
+                    <i :class="sortAscending ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down-alt'" />
+                </button>
             </div>
 
             <!-- 视图切换 -->
@@ -75,10 +103,7 @@
             </div>
 
             <!-- 图标大小控制 - 仅在网格模式下显示 -->
-            <div
-                v-if="layoutMode === 'grid'"
-                class="size-controls"
-            >
+            <div v-if="layoutMode === 'grid'" class="size-controls">
                 <IconSizeDropdown
                     :model-value="gridColumns"
                     :container-width="containerWidth"
@@ -102,12 +127,21 @@ interface Category {
     icon: string
 }
 
+interface SortOption {
+    label: string
+    value: string
+    icon: string
+}
+
 interface Props {
     selectedCategory: string
     categories: Category[]
     layoutMode: 'grid' | 'list'
     gridColumns: string
     containerWidth: number
+    currentSortType: string
+    sortAscending: boolean
+    sortOptions: SortOption[]
 }
 
 interface Emits {
@@ -118,6 +152,8 @@ interface Emits {
     (e: 'add-test-data'): void
     (e: 'layout-change', mode: 'grid' | 'list'): void
     (e: 'grid-size-change', size: string): void
+    (e: 'sort-change', sortType: string): void
+    (e: 'sort-order-toggle'): void
 }
 
 const props = defineProps<Props>()
@@ -179,6 +215,18 @@ const getCategoryLabel = (categoryValue: string) => {
     return category?.label || '全部应用'
 }
 
+// 获取排序图标
+const getSortIcon = (sortValue: string) => {
+    const sortOption = props.sortOptions.find(option => option.value === sortValue)
+    return sortOption?.icon || 'pi pi-sort'
+}
+
+// 获取排序标签
+const getSortLabel = (sortValue: string) => {
+    const sortOption = props.sortOptions.find(option => option.value === sortValue)
+    return sortOption?.label || '排序'
+}
+
 // 切换下拉菜单
 const toggleAddItemDropdown = () => {
     showAddItemDropdown.value = !showAddItemDropdown.value
@@ -191,7 +239,10 @@ const closeAddItemDropdown = () => {
 
 // 处理点击外部事件
 const handleClickOutside = (event: Event) => {
-    if (addItemDropdownRef.value && !addItemDropdownRef.value.contains(event.target as Node)) {
+    if (
+        addItemDropdownRef.value &&
+        !addItemDropdownRef.value.contains(event.target as Node)
+    ) {
         closeAddItemDropdown()
     }
 }
@@ -207,233 +258,291 @@ onUnmounted(() => {
 
 <style scoped>
 .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgb(229 231 235);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgb(229 231 235);
 }
 
 .dark .toolbar {
-    background-color: rgba(31, 41, 55, 0.8);
-    border-bottom: 1px solid rgb(75 85 99);
+  background-color: rgba(31, 41, 55, 0.8);
+  border-bottom: 1px solid rgb(75 85 99);
 }
 
 .toolbar-left {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .category-selector {
-    min-width: 200px;
-    max-width: 250px;
-    transition: all 0.2s ease;
+  min-width: 200px;
+  max-width: 250px;
+  transition: all 0.2s ease;
 }
 
 .category-selector:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .dark .category-selector:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .view-controls,
-.size-controls {
-    display: flex;
-    background-color: rgb(243 244 246);
-    border-radius: 0.5rem;
-    padding: 0.25rem;
-    gap: 0.125rem;
+.size-controls,
+.sort-controls {
+  display: flex;
+  background-color: rgb(243 244 246);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  gap: 0.125rem;
 }
 
 .dark .view-controls,
-.dark .size-controls {
-    background-color: rgb(55 65 81);
+.dark .size-controls,
+.dark .sort-controls {
+  background-color: rgb(55 65 81);
 }
 
 .view-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    border: none;
-    border-radius: 0.375rem;
-    background: transparent;
-    color: rgb(107 114 128);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
 .view-btn:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: rgb(59 130 246);
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59 130 246);
 }
 
 .view-btn.active {
-    background-color: rgb(59 130 246);
-    color: white;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: rgb(59 130 246);
+  color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .dark .view-btn {
-    color: rgb(156 163 175);
+  color: rgb(156 163 175);
 }
 
 .dark .view-btn:hover {
-    background-color: rgba(99, 102, 241, 0.2);
-    color: rgb(129 140 248);
+  background-color: rgba(99, 102, 241, 0.2);
+  color: rgb(129 140 248);
 }
 
 .dark .view-btn.active {
-    background-color: rgb(99 102 241);
-    color: white;
+  background-color: rgb(99 102 241);
+  color: white;
+}
+
+/* 排序控件样式 */
+.sort-controls {
+  align-items: center;
+}
+
+.sort-selector {
+  min-width: 120px;
+}
+
+.sort-order-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+}
+
+.sort-order-btn:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59 130 246);
+}
+
+.sort-order-btn.ascending {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: rgb(34 197 94);
+}
+
+.dark .sort-order-btn {
+  color: rgb(156 163 175);
+}
+
+.dark .sort-order-btn:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: rgb(129 140 248);
+}
+
+.dark .sort-order-btn.ascending {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: rgb(74 222 128);
 }
 
 .add-item-btn {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .add-item-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 添加项目下拉菜单 */
 .add-item-dropdown {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .dropdown-menu-tiered {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 9999;
-    margin-top: 0.5rem;
-    /* 确保不超出右边界 */
-    transform: translateX(0);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9999;
+  margin-top: 0.5rem;
+  /* 确保不超出右边界 */
+  transform: translateX(0);
 }
 
 /* 在小屏幕上调整位置 */
 @media (max-width: 640px) {
-    .dropdown-menu-tiered {
-        right: auto;
-        left: 0;
-        transform: translateX(-50%);
-    }
+  .dropdown-menu-tiered {
+    right: auto;
+    left: 0;
+    transform: translateX(-50%);
+  }
 }
 
 /* TieredMenu 样式定制 */
 :deep(.dropdown-menu-tiered .p-tieredmenu) {
-    min-width: 160px;
-    max-width: 250px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 160px;
+  max-width: 250px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 :deep(.dark .dropdown-menu-tiered .p-tieredmenu) {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 9999;
-    min-width: 160px;
-    margin-top: 0.5rem;
-    background-color: white;
-    border: 1px solid rgb(229 231 235);
-    border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9999;
+  min-width: 160px;
+  margin-top: 0.5rem;
+  background-color: white;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .dark .dropdown-menu {
-    background-color: rgb(31 41 55);
-    border-color: rgb(75 85 99);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  background-color: rgb(31 41 55);
+  border-color: rgb(75 85 99);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    color: rgb(55 65 81);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: rgb(55 65 81);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
 }
 
 .dropdown-item:hover {
-    background-color: rgb(243 244 246);
-    color: rgb(17 24 39);
+  background-color: rgb(243 244 246);
+  color: rgb(17 24 39);
 }
 
 .dropdown-item.test-item {
-    background-color: rgba(59, 130, 246, 0.05);
-    border-top: 1px solid rgba(59, 130, 246, 0.1);
+  background-color: rgba(59, 130, 246, 0.05);
+  border-top: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .dropdown-item.test-item:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: rgb(59, 130, 246);
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
 }
 
 .dark .dropdown-item {
-    color: rgb(229 231 235);
+  color: rgb(229 231 235);
 }
 
 .dark .dropdown-item:hover {
-    background-color: rgb(55 65 81);
-    color: rgb(243 244 246);
+  background-color: rgb(55 65 81);
+  color: rgb(243 244 246);
 }
 
 .dark .dropdown-item.test-item {
-    background-color: rgba(99, 102, 241, 0.05);
-    border-top: 1px solid rgba(99, 102, 241, 0.1);
+  background-color: rgba(99, 102, 241, 0.05);
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
 }
 
 .dark .dropdown-item.test-item:hover {
-    background-color: rgba(99, 102, 241, 0.1);
-    color: rgb(129, 140, 248);
+  background-color: rgba(99, 102, 241, 0.1);
+  color: rgb(129, 140, 248);
 }
 
 .dropdown-item i {
-    font-size: 1rem;
-    color: rgb(107 114 128);
+  font-size: 1rem;
+  color: rgb(107 114 128);
 }
 
 .dropdown-item.test-item i {
-    color: rgb(59, 130, 246);
+  color: rgb(59, 130, 246);
 }
 
 .dark .dropdown-item i {
-    color: rgb(156 163 175);
+  color: rgb(156 163 175);
 }
 
 .dark .dropdown-item.test-item i {
-    color: rgb(129, 140, 248);
+  color: rgb(129, 140, 248);
 }
 
 .dropdown-divider {
-    height: 1px;
-    background-color: rgb(229 231 235);
-    margin: 0.25rem 0;
+  height: 1px;
+  background-color: rgb(229 231 235);
+  margin: 0.25rem 0;
 }
 
 .dark .dropdown-divider {
-    background-color: rgb(75 85 99);
+  background-color: rgb(75 85 99);
 }
 </style>

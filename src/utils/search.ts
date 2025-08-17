@@ -34,53 +34,56 @@ export interface SearchResult extends SearchableItem {
 
 // 简单的拼音映射表（用于基础拼音搜索）
 const pinyinMap: Record<string, string> = {
-  '应': 'ying',
-  '用': 'yong',
-  '程': 'cheng',
-  '序': 'xu',
-  '设': 'she',
-  '置': 'zhi',
-  '文': 'wen',
-  '件': 'jian',
-  '图': 'tu',
-  '片': 'pian',
-  '音': 'yin',
-  '乐': 'le',
-  '视': 'shi',
-  '频': 'pin',
-  '浏': 'liu',
-  '览': 'lan',
-  '器': 'qi',
-  '编': 'bian',
-  '辑': 'ji',
-  '游': 'you',
-  '戏': 'xi',
-  '工': 'gong',
-  '具': 'ju',
-  '系': 'xi',
-  '统': 'tong',
-  '网': 'wang',
-  '络': 'luo',
-  '通': 'tong',
-  '信': 'xin',
-  '办': 'ban',
-  '公': 'gong',
-  '学': 'xue',
-  '习': 'xi',
-  '开': 'kai',
-  '发': 'fa',
-  '安': 'an',
-  '全': 'quan',
-  '娱': 'yu',
-  '社': 'she',
-  '交': 'jiao',
+  应: 'ying',
+  用: 'yong',
+  程: 'cheng',
+  序: 'xu',
+  设: 'she',
+  置: 'zhi',
+  文: 'wen',
+  件: 'jian',
+  图: 'tu',
+  片: 'pian',
+  音: 'yin',
+  乐: 'le',
+  视: 'shi',
+  频: 'pin',
+  浏: 'liu',
+  览: 'lan',
+  器: 'qi',
+  编: 'bian',
+  辑: 'ji',
+  游: 'you',
+  戏: 'xi',
+  工: 'gong',
+  具: 'ju',
+  系: 'xi',
+  统: 'tong',
+  网: 'wang',
+  络: 'luo',
+  通: 'tong',
+  信: 'xin',
+  办: 'ban',
+  公: 'gong',
+  学: 'xue',
+  习: 'xi',
+  开: 'kai',
+  发: 'fa',
+  安: 'an',
+  全: 'quan',
+  娱: 'yu',
+  社: 'she',
+  交: 'jiao',
 }
 
 /**
  * 简单拼音转换
  */
 export const getPinyin = (text: string): string => {
-  return text.split('').map(char => pinyinMap[char] || char).join('')
+  return text
+    .split('')
+    .map(char => pinyinMap[char] || char)
+    .join('')
 }
 
 /**
@@ -94,10 +97,14 @@ export const pinyinSearch = (text: string, query: string): boolean => {
   if (pinyin.includes(queryLower)) return true
 
   // 拼音首字母匹配
-  const pinyinInitials = text.split('').map(char => {
-    const py = pinyinMap[char]
-    return py ? py[0] : char
-  }).join('').toLowerCase()
+  const pinyinInitials = text
+    .split('')
+    .map(char => {
+      const py = pinyinMap[char]
+      return py ? py[0] : char
+    })
+    .join('')
+    .toLowerCase()
 
   return pinyinInitials.includes(queryLower)
 }
@@ -147,9 +154,11 @@ export const matchPlugin = (plugin: SearchableItem, query: string): boolean => {
   const queryLower = query.toLowerCase()
 
   // 基础匹配（名称、描述、标签）
-  if (plugin.name?.toLowerCase().includes(queryLower) ||
+  if (
+    plugin.name?.toLowerCase().includes(queryLower) ||
     plugin.description?.toLowerCase().includes(queryLower) ||
-    plugin.tags?.some(tag => tag.toLowerCase().includes(queryLower))) {
+    plugin.tags?.some(tag => tag.toLowerCase().includes(queryLower))
+  ) {
     return true
   }
 
@@ -164,7 +173,10 @@ export const matchPlugin = (plugin: SearchableItem, query: string): boolean => {
   }
 
   // 正则匹配（如果插件定义了search_regexps）
-  if (plugin['search_regexps'] && regexMatch(query, plugin['search_regexps'] as string[])) {
+  if (
+    plugin['search_regexps'] &&
+    regexMatch(query, plugin['search_regexps'] as string[])
+  ) {
     return true
   }
 
@@ -240,7 +252,10 @@ export const calculateScore = (
   // 插件特殊评分逻辑
   if (item.type === 'plugin') {
     // 正则匹配得分
-    if (item['search_regexps'] && regexMatch(query, item['search_regexps'] as string[])) {
+    if (
+      item['search_regexps'] &&
+      regexMatch(query, item['search_regexps'] as string[])
+    ) {
       score += 50 // 正则匹配获得高分
     }
 
@@ -310,9 +325,13 @@ export const highlightText = (
   for (let i = ranges.length - 1; i >= 0; i--) {
     const range = ranges[i]
     if (range) {
-      result = `${result.slice(0, range.start)
-      }<span class="${className}">${result.slice(range.start, range.end)
-      }</span>${result.slice(range.end)}`
+      result = `${result.slice(
+        0,
+        range.start,
+      )}<span class="${className}">${result.slice(
+        range.start,
+        range.end,
+      )}</span>${result.slice(range.end)}`
     }
   }
 
@@ -325,7 +344,7 @@ export const highlightText = (
 export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-): (...args: Parameters<T>) => void => {
+): ((...args: Parameters<T>) => void) => {
   let timeout: number | null = null
 
   return (...args: Parameters<T>) => {
@@ -361,7 +380,8 @@ export const performSearch = (
 
     if (score > 0) {
       const matchedFields: string[] = []
-      const highlightRanges: { field: string; start: number; end: number }[] = []
+      const highlightRanges: { field: string; start: number; end: number }[] =
+        []
 
       // 检查匹配的字段
       for (const field of searchFields) {
@@ -397,9 +417,7 @@ export const performSearch = (
   }
 
   // 按得分排序并限制结果数量
-  return results
-    .sort((a, b) => b.score - a.score)
-    .slice(0, maxResults)
+  return results.sort((a, b) => b.score - a.score).slice(0, maxResults)
 }
 
 /**

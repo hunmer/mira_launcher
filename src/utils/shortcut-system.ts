@@ -1,4 +1,7 @@
-import { createShortcutManager, type ShortcutManager } from '@/plugins/api/ShortcutAPI'
+import {
+  createShortcutManager,
+  type ShortcutManager,
+} from '@/plugins/api/ShortcutAPI'
 import router from '@/router'
 import { useSettingsStore } from '@/stores/settings'
 import { openQuickSearchWindow } from '@/utils/window-manager'
@@ -12,8 +15,8 @@ class ShortcutSystemManager {
   private isInitialized = false
 
   /**
-     * 初始化快捷键系统
-     */
+   * 初始化快捷键系统
+   */
   async initialize(): Promise<void> {
     try {
       console.log('[ShortcutSystem] Initializing shortcut system...')
@@ -42,8 +45,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 注册系统动作
-     */
+   * 注册系统动作
+   */
   private registerSystemActions(): void {
     if (!this.shortcutManager) return
 
@@ -136,8 +139,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 加载设置并注册快捷键
-     */
+   * 加载设置并注册快捷键
+   */
   private async loadAndRegisterShortcuts(): Promise<void> {
     if (!this.shortcutManager) return
 
@@ -160,57 +163,103 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 注册系统快捷键
-     */
+   * 注册系统快捷键
+   */
   private async registerSystemShortcuts(shortcuts: any): Promise<void> {
     if (!this.shortcutManager) return
 
     const systemMappings = [
-      { key: shortcuts.globalHotkey, actionId: 'app.toggle-window', type: 'global' as const },
-      { key: shortcuts.searchHotkey, actionId: 'app.focus-search', type: 'application' as const },
-      { key: shortcuts.quickSearchHotkey, actionId: 'app.open-quick-search', type: 'application' as const },
-      { key: shortcuts.settingsHotkey, actionId: 'app.open-settings', type: 'application' as const },
-      { key: shortcuts.homeHotkey, actionId: 'app.navigate-home', type: 'application' as const },
-      { key: shortcuts.applicationsHotkey, actionId: 'app.navigate-applications', type: 'application' as const },
-      { key: shortcuts.pluginsHotkey, actionId: 'app.navigate-plugins', type: 'application' as const },
-      { key: shortcuts.exitHotkey, actionId: 'system.exit', type: 'global' as const },
+      {
+        key: shortcuts.globalHotkey,
+        actionId: 'app.toggle-window',
+        type: 'global' as const,
+      },
+      {
+        key: shortcuts.searchHotkey,
+        actionId: 'app.focus-search',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.quickSearchHotkey,
+        actionId: 'app.open-quick-search',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.settingsHotkey,
+        actionId: 'app.open-settings',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.homeHotkey,
+        actionId: 'app.navigate-home',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.applicationsHotkey,
+        actionId: 'app.navigate-applications',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.pluginsHotkey,
+        actionId: 'app.navigate-plugins',
+        type: 'application' as const,
+      },
+      {
+        key: shortcuts.exitHotkey,
+        actionId: 'system.exit',
+        type: 'global' as const,
+      },
     ]
 
     for (const mapping of systemMappings) {
       if (mapping.key) {
         try {
-          this.shortcutManager.registerShortcutWithAction(mapping.key, mapping.actionId, {
-            shortcutType: mapping.type,
-            priority: 0, // 系统快捷键最高优先级
-          })
+          this.shortcutManager.registerShortcutWithAction(
+            mapping.key,
+            mapping.actionId,
+            {
+              shortcutType: mapping.type,
+              priority: 0, // 系统快捷键最高优先级
+            },
+          )
         } catch (error) {
-          console.warn(`[ShortcutSystem] Failed to register system shortcut ${mapping.key}:`, error)
+          console.warn(
+            `[ShortcutSystem] Failed to register system shortcut ${mapping.key}:`,
+            error,
+          )
         }
       }
     }
   }
 
   /**
-     * 注册自定义快捷键
-     */
+   * 注册自定义快捷键
+   */
   private async registerCustomShortcuts(customShortcuts: any[]): Promise<void> {
     if (!this.shortcutManager) return
 
     for (const shortcut of customShortcuts) {
       try {
-        this.shortcutManager.registerShortcutWithAction(shortcut.key, shortcut.actionId, {
-          shortcutType: shortcut.type,
-          priority: 1,
-        })
+        this.shortcutManager.registerShortcutWithAction(
+          shortcut.key,
+          shortcut.actionId,
+          {
+            shortcutType: shortcut.type,
+            priority: 1,
+          },
+        )
       } catch (error) {
-        console.warn(`[ShortcutSystem] Failed to register custom shortcut ${shortcut.key}:`, error)
+        console.warn(
+          `[ShortcutSystem] Failed to register custom shortcut ${shortcut.key}:`,
+          error,
+        )
       }
     }
   }
 
   /**
-     * 动作处理器 - 切换窗口显示
-     */
+   * 动作处理器 - 切换窗口显示
+   */
   private handleToggleWindow = async (): Promise<void> => {
     try {
       if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
@@ -227,7 +276,9 @@ class ShortcutSystemManager {
 
         console.log('[ShortcutSystem] Window toggled')
       } else {
-        console.warn('[ShortcutSystem] Toggle window not available in web environment')
+        console.warn(
+          '[ShortcutSystem] Toggle window not available in web environment',
+        )
       }
     } catch (error) {
       console.error('[ShortcutSystem] Failed to toggle window:', error)
@@ -235,12 +286,14 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 动作处理器 - 聚焦搜索
-     */
+   * 动作处理器 - 聚焦搜索
+   */
   private handleFocusSearch = (): void => {
     try {
       // 尝试找到搜索输入框并聚焦
-      const searchInput = document.querySelector('input[type="search"], input[placeholder*="搜索"], .search-input') as HTMLInputElement
+      const searchInput = document.querySelector(
+        'input[type="search"], input[placeholder*="搜索"], .search-input',
+      ) as HTMLInputElement
       if (searchInput) {
         searchInput.focus()
         searchInput.select()
@@ -254,8 +307,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 动作处理器 - 打开设置
-     */
+   * 动作处理器 - 打开设置
+   */
   private handleOpenSettings = (): void => {
     try {
       router.push('/settings')
@@ -266,8 +319,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 动作处理器 - 重新加载插件
-     */
+   * 动作处理器 - 重新加载插件
+   */
   private handleReloadPlugins = (): void => {
     try {
       // TODO: 实现插件重新加载逻辑
@@ -278,8 +331,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 动作处理器 - 打开快速搜索
-     */
+   * 动作处理器 - 打开快速搜索
+   */
   private handleOpenQuickSearch = async (): Promise<void> => {
     try {
       await openQuickSearchWindow()
@@ -290,8 +343,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 动作处理器 - 导航到指定路由
-     */
+   * 动作处理器 - 导航到指定路由
+   */
   private handleNavigate = (path: string): void => {
     try {
       router.push(path)
@@ -302,8 +355,8 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 重新加载快捷键配置
-     */
+   * 重新加载快捷键配置
+   */
   async reloadShortcuts(): Promise<void> {
     if (!this.shortcutManager || !this.isInitialized) {
       console.warn('[ShortcutSystem] System not initialized')
@@ -324,23 +377,23 @@ class ShortcutSystemManager {
   }
 
   /**
-     * 获取快捷键管理器实例
-     */
+   * 获取快捷键管理器实例
+   */
   getShortcutManager(): ShortcutManager | null {
     return this.shortcutManager
   }
 
   /**
-     * 获取系统统计信息
-     */
+   * 获取系统统计信息
+   */
   getStats() {
     if (!this.shortcutManager) return null
     return this.shortcutManager.getStatsWithActions()
   }
 
   /**
-     * 销毁快捷键系统
-     */
+   * 销毁快捷键系统
+   */
   async destroy(): Promise<void> {
     if (this.shortcutManager) {
       await this.shortcutManager.destroy()

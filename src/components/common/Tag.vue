@@ -4,7 +4,7 @@
         v-bind="{
             ...$attrs,
             severity: mappedSeverity,
-            class: tagClass
+            class: tagClass,
         }"
     >
         <slot />
@@ -17,7 +17,14 @@ import Tag from 'primevue/tag'
 import { useThemeStore } from '@/stores/theme'
 
 interface Props {
-    severity?: 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'
+    severity?:
+        | 'secondary'
+        | 'success'
+        | 'info'
+        | 'warning'
+        | 'warn'
+        | 'danger'
+        | 'contrast'
     variant?: 'default' | 'outlined'
 }
 
@@ -36,22 +43,25 @@ const mappedSeverity = computed(() => {
 // 计算标签样式类
 const tagClass = computed(() => {
     const classes = ['custom-tag']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     if (props.variant === 'outlined') {
         classes.push('outlined')
     }
-  
+
     return classes.join(' ')
 })
 </script>
 
 <style scoped>
 .custom-tag {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .custom-tag.dark-theme {

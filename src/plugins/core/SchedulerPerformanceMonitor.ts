@@ -10,44 +10,44 @@ import { globalEventBus } from './EventBus'
  * 调度器性能指标
  */
 export interface SchedulerPerformanceMetrics {
-    /** 调度器ID */
-    schedulerId: string
-    /** 总调度次数 */
-    totalSchedules: number
-    /** 平均调度延迟 */
-    averageScheduleLatency: number
-    /** 任务完成率 */
-    completionRate: number
-    /** 错误率 */
-    errorRate: number
-    /** 吞吐量趋势 */
-    throughputTrend: number[]
-    /** 资源利用率 */
-    resourceUtilization: number
-    /** 最后更新时间 */
-    lastUpdated: Date
+  /** 调度器ID */
+  schedulerId: string
+  /** 总调度次数 */
+  totalSchedules: number
+  /** 平均调度延迟 */
+  averageScheduleLatency: number
+  /** 任务完成率 */
+  completionRate: number
+  /** 错误率 */
+  errorRate: number
+  /** 吞吐量趋势 */
+  throughputTrend: number[]
+  /** 资源利用率 */
+  resourceUtilization: number
+  /** 最后更新时间 */
+  lastUpdated: Date
 }
 
 /**
  * 全局调度器性能统计
  */
 export interface GlobalSchedulerStats {
-    /** 活跃调度器数量 */
-    activeSchedulers: number
-    /** 总任务数 */
-    totalTasks: number
-    /** 系统吞吐量 */
-    systemThroughput: number
-    /** 平均响应时间 */
-    averageResponseTime: number
-    /** 系统负载 */
-    systemLoad: number
-    /** 内存使用情况 */
-    memoryUsage: {
-        heap: number
-        external: number
-        total: number
-    }
+  /** 活跃调度器数量 */
+  activeSchedulers: number
+  /** 总任务数 */
+  totalTasks: number
+  /** 系统吞吐量 */
+  systemThroughput: number
+  /** 平均响应时间 */
+  averageResponseTime: number
+  /** 系统负载 */
+  systemLoad: number
+  /** 内存使用情况 */
+  memoryUsage: {
+    heap: number
+    external: number
+    total: number
+  }
 }
 
 /**
@@ -78,45 +78,45 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     // 监听调度器事件
-    globalEventBus.on('scheduler:initialized', (event) => {
+    globalEventBus.on('scheduler:initialized', event => {
       const data = event.data as any
       this.registerScheduler(data.schedulerId)
     })
 
-    globalEventBus.on('scheduler:destroyed', (event) => {
+    globalEventBus.on('scheduler:destroyed', event => {
       const data = event.data as any
       this.unregisterScheduler(data.schedulerId)
     })
 
-    globalEventBus.on('scheduler:taskScheduled', (event) => {
+    globalEventBus.on('scheduler:taskScheduled', event => {
       const data = event.data as any
       this.recordTaskSchedule(data.schedulerId)
     })
 
-    globalEventBus.on('scheduler:taskCompleted', (event) => {
+    globalEventBus.on('scheduler:taskCompleted', event => {
       const data = event.data as any
       this.recordTaskCompletion(data.schedulerId, data.responseTime)
     })
 
-    globalEventBus.on('scheduler:taskFailed', (event) => {
+    globalEventBus.on('scheduler:taskFailed', event => {
       const data = event.data as any
       this.recordTaskFailure(data.schedulerId)
     })
 
     // 监听并发控制器事件
-    globalEventBus.on('concurrency:adjusted', (event) => {
+    globalEventBus.on('concurrency:adjusted', event => {
       const data = event.data as any
       this.recordConcurrencyAdjustment(data.controllerId, data.newConcurrency)
     })
   }
 
   /**
-     * 启动性能监控
-     */
+   * 启动性能监控
+   */
   start(): void {
     if (this.isRunning.value) {
       return
@@ -133,8 +133,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 停止性能监控
-     */
+   * 停止性能监控
+   */
   stop(): void {
     if (!this.isRunning.value) {
       return
@@ -151,8 +151,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 注册调度器
-     */
+   * 注册调度器
+   */
   private registerScheduler(schedulerId: string): void {
     if (!this.metrics.has(schedulerId)) {
       this.metrics.set(schedulerId, {
@@ -171,8 +171,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 注销调度器
-     */
+   * 注销调度器
+   */
   private unregisterScheduler(schedulerId: string): void {
     if (this.metrics.delete(schedulerId)) {
       this.globalStats.activeSchedulers--
@@ -180,8 +180,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 记录任务调度
-     */
+   * 记录任务调度
+   */
   private recordTaskSchedule(schedulerId: string): void {
     const metric = this.metrics.get(schedulerId)
     if (metric) {
@@ -192,14 +192,18 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 记录任务完成
-     */
-  private recordTaskCompletion(schedulerId: string, responseTime: number): void {
+   * 记录任务完成
+   */
+  private recordTaskCompletion(
+    schedulerId: string,
+    responseTime: number,
+  ): void {
     const metric = this.metrics.get(schedulerId)
     if (metric) {
       // 更新完成率（简化计算）
       const totalAttempts = metric.totalSchedules
-      const completedTasks = Math.floor(totalAttempts * metric.completionRate / 100) + 1
+      const completedTasks =
+        Math.floor((totalAttempts * metric.completionRate) / 100) + 1
       metric.completionRate = (completedTasks / totalAttempts) * 100
 
       metric.lastUpdated = new Date()
@@ -207,14 +211,15 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 记录任务失败
-     */
+   * 记录任务失败
+   */
   private recordTaskFailure(schedulerId: string): void {
     const metric = this.metrics.get(schedulerId)
     if (metric) {
       // 更新错误率（简化计算）
       const totalAttempts = metric.totalSchedules
-      const failedTasks = Math.floor(totalAttempts * metric.errorRate / 100) + 1
+      const failedTasks =
+        Math.floor((totalAttempts * metric.errorRate) / 100) + 1
       metric.errorRate = (failedTasks / totalAttempts) * 100
 
       metric.lastUpdated = new Date()
@@ -222,16 +227,19 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 记录并发调整
-     */
-  private recordConcurrencyAdjustment(controllerId: string, newConcurrency: number): void {
+   * 记录并发调整
+   */
+  private recordConcurrencyAdjustment(
+    controllerId: string,
+    newConcurrency: number,
+  ): void {
     // 在实际应用中，这里可以记录并发调整对性能的影响
     console.log(`并发控制器 ${controllerId} 调整并发数到 ${newConcurrency}`)
   }
 
   /**
-     * 收集性能指标
-     */
+   * 收集性能指标
+   */
   private collectMetrics(): void {
     this.updateGlobalStats()
     this.updateMemoryUsage()
@@ -245,8 +253,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 更新全局统计信息
-     */
+   * 更新全局统计信息
+   */
   private updateGlobalStats(): void {
     let totalThroughput = 0
     let totalResponseTime = 0
@@ -254,7 +262,8 @@ export class SchedulerPerformanceMonitor {
 
     for (const metric of this.metrics.values()) {
       if (metric.throughputTrend.length > 0) {
-        const lastThroughput = metric.throughputTrend[metric.throughputTrend.length - 1]
+        const lastThroughput =
+          metric.throughputTrend[metric.throughputTrend.length - 1]
         if (lastThroughput !== undefined) {
           totalThroughput += lastThroughput
           validMetrics++
@@ -272,8 +281,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 更新内存使用情况
-     */
+   * 更新内存使用情况
+   */
   private updateMemoryUsage(): void {
     if ('memory' in performance) {
       const memory = (performance as any).memory
@@ -286,40 +295,42 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 计算系统负载
-     */
+   * 计算系统负载
+   */
   private calculateSystemLoad(): void {
     // 基于活跃调度器数量和内存使用情况计算系统负载
     const schedulerLoad = this.globalStats.activeSchedulers / 10 // 假设最多支持10个调度器
-    const memoryLoad = this.globalStats.memoryUsage.heap / this.globalStats.memoryUsage.total
+    const memoryLoad =
+      this.globalStats.memoryUsage.heap / this.globalStats.memoryUsage.total
 
-    this.globalStats.systemLoad = Math.min((schedulerLoad + memoryLoad) / 2, 1) * 100
+    this.globalStats.systemLoad =
+      Math.min((schedulerLoad + memoryLoad) / 2, 1) * 100
   }
 
   /**
-     * 获取调度器指标
-     */
+   * 获取调度器指标
+   */
   getSchedulerMetrics(schedulerId: string): SchedulerPerformanceMetrics | null {
     return this.metrics.get(schedulerId) || null
   }
 
   /**
-     * 获取所有调度器指标
-     */
+   * 获取所有调度器指标
+   */
   getAllSchedulerMetrics(): Map<string, SchedulerPerformanceMetrics> {
     return new Map(this.metrics)
   }
 
   /**
-     * 获取全局统计信息
-     */
+   * 获取全局统计信息
+   */
   getGlobalStats(): GlobalSchedulerStats {
     return { ...this.globalStats }
   }
 
   /**
-     * 重置指标
-     */
+   * 重置指标
+   */
   resetMetrics(schedulerId?: string): void {
     if (schedulerId) {
       const metric = this.metrics.get(schedulerId)
@@ -357,18 +368,18 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 导出性能报告
-     */
+   * 导出性能报告
+   */
   generatePerformanceReport(): {
-        timestamp: Date
-        globalStats: GlobalSchedulerStats
-        schedulerMetrics: Record<string, SchedulerPerformanceMetrics>
-        summary: {
-            topPerformers: string[]
-            bottlenecks: string[]
-            recommendations: string[]
-        }
-        } {
+    timestamp: Date
+    globalStats: GlobalSchedulerStats
+    schedulerMetrics: Record<string, SchedulerPerformanceMetrics>
+    summary: {
+      topPerformers: string[]
+      bottlenecks: string[]
+      recommendations: string[]
+    }
+    } {
     const metrics = Object.fromEntries(this.metrics)
 
     // 分析性能表现
@@ -394,13 +405,20 @@ export class SchedulerPerformanceMonitor {
 
     const recommendations = []
     if (this.globalStats.systemLoad > 80) {
-      recommendations.push('系统负载较高，建议增加调度器并发数或优化任务执行逻辑')
+      recommendations.push(
+        '系统负载较高，建议增加调度器并发数或优化任务执行逻辑',
+      )
     }
-    if (this.globalStats.memoryUsage.heap / this.globalStats.memoryUsage.total > 0.8) {
+    if (
+      this.globalStats.memoryUsage.heap / this.globalStats.memoryUsage.total >
+      0.8
+    ) {
       recommendations.push('内存使用率较高，建议优化内存管理或增加系统内存')
     }
     if (bottlenecks.length > 0) {
-      recommendations.push(`发现性能瓶颈：${bottlenecks.join(', ')}，建议检查任务执行逻辑`)
+      recommendations.push(
+        `发现性能瓶颈：${bottlenecks.join(', ')}，建议检查任务执行逻辑`,
+      )
     }
 
     return {
@@ -416,8 +434,8 @@ export class SchedulerPerformanceMonitor {
   }
 
   /**
-     * 销毁监控器
-     */
+   * 销毁监控器
+   */
   destroy(): void {
     this.stop()
     this.metrics.clear()

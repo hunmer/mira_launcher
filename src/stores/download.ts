@@ -12,121 +12,121 @@ import { computed, reactive, ref } from 'vue'
  * 下载状态枚举
  */
 export type DownloadState =
-    | 'pending'     // 等待中
-    | 'starting'    // 启动中
-    | 'downloading' // 下载中
-    | 'paused'      // 已暂停
-    | 'completed'   // 已完成
-    | 'failed'      // 已失败
-    | 'cancelled'   // 已取消
-    | 'retrying'    // 重试中
+  | 'pending' // 等待中
+  | 'starting' // 启动中
+  | 'downloading' // 下载中
+  | 'paused' // 已暂停
+  | 'completed' // 已完成
+  | 'failed' // 已失败
+  | 'cancelled' // 已取消
+  | 'retrying' // 重试中
 
 /**
  * 下载任务接口
  */
 export interface DownloadTask {
-    /** 任务ID */
-    id: string
-    /** 下载URL */
-    url: string
-    /** 保存路径 */
-    savePath: string
-    /** 文件名 */
-    fileName: string
-    /** 文件大小（字节） */
-    fileSize: number
-    /** 已下载大小（字节） */
-    downloadedSize: number
-    /** 下载状态 */
-    state: DownloadState
-    /** 下载速度（字节/秒） */
-    speed: number
-    /** 进度百分比（0-100） */
-    progress: number
-    /** 剩余时间（秒） */
-    remainingTime: number
-    /** 创建时间 */
-    createdAt: Date
-    /** 开始时间 */
-    startedAt?: Date
-    /** 完成时间 */
-    completedAt?: Date
-    /** 错误信息 */
-    error?: string
-    /** 重试次数 */
-    retryCount: number
-    /** 最大重试次数 */
-    maxRetries: number
-    /** 优先级 */
-    priority: number
-    /** 任务元数据 */
-    metadata?: Record<string, unknown>
+  /** 任务ID */
+  id: string
+  /** 下载URL */
+  url: string
+  /** 保存路径 */
+  savePath: string
+  /** 文件名 */
+  fileName: string
+  /** 文件大小（字节） */
+  fileSize: number
+  /** 已下载大小（字节） */
+  downloadedSize: number
+  /** 下载状态 */
+  state: DownloadState
+  /** 下载速度（字节/秒） */
+  speed: number
+  /** 进度百分比（0-100） */
+  progress: number
+  /** 剩余时间（秒） */
+  remainingTime: number
+  /** 创建时间 */
+  createdAt: Date
+  /** 开始时间 */
+  startedAt?: Date
+  /** 完成时间 */
+  completedAt?: Date
+  /** 错误信息 */
+  error?: string
+  /** 重试次数 */
+  retryCount: number
+  /** 最大重试次数 */
+  maxRetries: number
+  /** 优先级 */
+  priority: number
+  /** 任务元数据 */
+  metadata?: Record<string, unknown>
 }
 
 /**
  * 下载统计信息
  */
 export interface DownloadStats {
-    /** 总任务数 */
-    totalTasks: number
-    /** 已完成任务数 */
-    completedTasks: number
-    /** 失败任务数 */
-    failedTasks: number
-    /** 下载中任务数 */
-    activeTasks: number
-    /** 总下载大小 */
-    totalSize: number
-    /** 已下载大小 */
-    downloadedSize: number
-    /** 总体进度 */
-    overallProgress: number
-    /** 平均下载速度 */
-    averageSpeed: number
-    /** 成功率 */
-    successRate: number
+  /** 总任务数 */
+  totalTasks: number
+  /** 已完成任务数 */
+  completedTasks: number
+  /** 失败任务数 */
+  failedTasks: number
+  /** 下载中任务数 */
+  activeTasks: number
+  /** 总下载大小 */
+  totalSize: number
+  /** 已下载大小 */
+  downloadedSize: number
+  /** 总体进度 */
+  overallProgress: number
+  /** 平均下载速度 */
+  averageSpeed: number
+  /** 成功率 */
+  successRate: number
 }
 
 /**
  * 下载历史记录
  */
 export interface DownloadHistory {
-    /** 记录ID */
-    id: string
-    /** 下载任务信息 */
-    task: DownloadTask
-    /** 下载结果 */
-    result: 'success' | 'failed' | 'cancelled'
-    /** 完成时间 */
-    completedAt: Date
-    /** 下载时长（秒） */
-    duration: number
-    /** 平均速度 */
-    averageSpeed: number
-    /** 错误信息（如果失败） */
-    error?: string
+  /** 记录ID */
+  id: string
+  /** 下载任务信息 */
+  task: DownloadTask
+  /** 下载结果 */
+  result: 'success' | 'failed' | 'cancelled'
+  /** 完成时间 */
+  completedAt: Date
+  /** 下载时长（秒） */
+  duration: number
+  /** 平均速度 */
+  averageSpeed: number
+  /** 错误信息（如果失败） */
+  error?: string
 }
 
 /**
  * 下载配置
  */
 export interface DownloadConfig {
-    /** 最大并发下载数 */
-    maxConcurrentDownloads: number
-    /** 默认下载路径 */
-    defaultDownloadPath: string
-    /** 自动重试次数 */
-    defaultMaxRetries: number
-    /** 重试间隔（毫秒） */
-    retryInterval: number
-    /** 是否自动开始下载 */
-    autoStart: boolean
-    /** 是否显示通知 */
-    showNotifications: boolean
-    /** 是否保存历史记录 */
-    saveHistory: boolean
-    /** 历史记录保留天数 */
-    historyRetentionDays: number
+  /** 最大并发下载数 */
+  maxConcurrentDownloads: number
+  /** 默认下载路径 */
+  defaultDownloadPath: string
+  /** 自动重试次数 */
+  defaultMaxRetries: number
+  /** 重试间隔（毫秒） */
+  retryInterval: number
+  /** 是否自动开始下载 */
+  autoStart: boolean
+  /** 是否显示通知 */
+  showNotifications: boolean
+  /** 是否保存历史记录 */
+  saveHistory: boolean
+  /** 历史记录保留天数 */
+  historyRetentionDays: number
 }
 
 /**
@@ -150,7 +150,9 @@ export const useDownloadStore = defineStore('download', () => {
   // 批量操作模式
   const isBatchMode = ref(false)
   const selectedTaskIds = reactive(new Set<string>())
-  const batchOperation = ref<'pause' | 'resume' | 'cancel' | 'retry' | null>(null)
+  const batchOperation = ref<'pause' | 'resume' | 'cancel' | 'retry' | null>(
+    null,
+  )
 
   // 计算属性
   const taskList = computed(() => Array.from(tasks.values()))
@@ -179,15 +181,26 @@ export const useDownloadStore = defineStore('download', () => {
     const failed = failedTasks.value.length
     const active = activeTasks.value.length
 
-    const totalSize = taskList.value.reduce((sum, task) => sum + task.fileSize, 0)
-    const downloadedSize = taskList.value.reduce((sum, task) => sum + task.downloadedSize, 0)
+    const totalSize = taskList.value.reduce(
+      (sum, task) => sum + task.fileSize,
+      0,
+    )
+    const downloadedSize = taskList.value.reduce(
+      (sum, task) => sum + task.downloadedSize,
+      0,
+    )
 
-    const overallProgress = totalSize > 0 ? (downloadedSize / totalSize) * 100 : 0
+    const overallProgress =
+      totalSize > 0 ? (downloadedSize / totalSize) * 100 : 0
 
-    const activeTasksWithSpeed = activeTasks.value.filter(task => task.speed > 0)
-    const averageSpeed = activeTasksWithSpeed.length > 0
-      ? activeTasksWithSpeed.reduce((sum, task) => sum + task.speed, 0) / activeTasksWithSpeed.length
-      : 0
+    const activeTasksWithSpeed = activeTasks.value.filter(
+      task => task.speed > 0,
+    )
+    const averageSpeed =
+      activeTasksWithSpeed.length > 0
+        ? activeTasksWithSpeed.reduce((sum, task) => sum + task.speed, 0) /
+          activeTasksWithSpeed.length
+        : 0
 
     const successRate = total > 0 ? (completed / total) * 100 : 0
 
@@ -204,20 +217,34 @@ export const useDownloadStore = defineStore('download', () => {
     }
   })
 
-  const canStartNewDownload = computed(() =>
-    activeTasks.value.length < config.maxConcurrentDownloads,
+  const canStartNewDownload = computed(
+    () => activeTasks.value.length < config.maxConcurrentDownloads,
   )
 
-  const selectedTasks = computed(() =>
-        Array.from(selectedTaskIds).map(id => tasks.get(id)).filter(Boolean) as DownloadTask[],
+  const selectedTasks = computed(
+    () =>
+      Array.from(selectedTaskIds)
+        .map(id => tasks.get(id))
+        .filter(Boolean) as DownloadTask[],
   )
 
   // Actions
 
   /**
-     * 添加下载任务
-     */
-  function addTask(taskData: Omit<DownloadTask, 'id' | 'createdAt' | 'downloadedSize' | 'progress' | 'speed' | 'remainingTime' | 'retryCount'>): string {
+   * 添加下载任务
+   */
+  function addTask(
+    taskData: Omit<
+      DownloadTask,
+      | 'id'
+      | 'createdAt'
+      | 'downloadedSize'
+      | 'progress'
+      | 'speed'
+      | 'remainingTime'
+      | 'retryCount'
+    >,
+  ): string {
     const id = `download_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     const task: DownloadTask = {
@@ -244,8 +271,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 移除任务
-     */
+   * 移除任务
+   */
   function removeTask(taskId: string): boolean {
     const task = tasks.get(taskId)
     if (!task) {
@@ -266,8 +293,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 开始下载任务
-     */
+   * 开始下载任务
+   */
   function startTask(taskId: string): boolean {
     const task = tasks.get(taskId)
     if (!task || task.state !== 'pending') {
@@ -287,11 +314,14 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 暂停下载任务
-     */
+   * 暂停下载任务
+   */
   function pauseTask(taskId: string): boolean {
     const task = tasks.get(taskId)
-    if (!task || !['starting', 'downloading', 'retrying'].includes(task.state)) {
+    if (
+      !task ||
+      !['starting', 'downloading', 'retrying'].includes(task.state)
+    ) {
       return false
     }
 
@@ -306,8 +336,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 恢复下载任务
-     */
+   * 恢复下载任务
+   */
   function resumeTask(taskId: string): boolean {
     const task = tasks.get(taskId)
     if (!task || task.state !== 'paused') {
@@ -326,8 +356,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 取消下载任务
-     */
+   * 取消下载任务
+   */
   function cancelTask(taskId: string): boolean {
     const task = tasks.get(taskId)
     if (!task || ['completed', 'cancelled'].includes(task.state)) {
@@ -352,8 +382,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 重试失败的任务
-     */
+   * 重试失败的任务
+   */
   function retryTask(taskId: string): boolean {
     const task = tasks.get(taskId)
     if (!task || task.state !== 'failed') {
@@ -378,13 +408,16 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 更新任务进度
-     */
-  function updateTaskProgress(taskId: string, progress: {
-        downloadedSize?: number
-        speed?: number
-        remainingTime?: number
-    }): void {
+   * 更新任务进度
+   */
+  function updateTaskProgress(
+    taskId: string,
+    progress: {
+      downloadedSize?: number
+      speed?: number
+      remainingTime?: number
+    },
+  ): void {
     const task = tasks.get(taskId)
     if (!task) {
       return
@@ -392,7 +425,8 @@ export const useDownloadStore = defineStore('download', () => {
 
     if (progress.downloadedSize !== undefined) {
       task.downloadedSize = progress.downloadedSize
-      task.progress = task.fileSize > 0 ? (task.downloadedSize / task.fileSize) * 100 : 0
+      task.progress =
+        task.fileSize > 0 ? (task.downloadedSize / task.fileSize) * 100 : 0
     }
 
     if (progress.speed !== undefined) {
@@ -407,8 +441,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 标记任务完成
-     */
+   * 标记任务完成
+   */
   function completeTask(taskId: string): void {
     const task = tasks.get(taskId)
     if (!task) {
@@ -441,8 +475,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 标记任务失败
-     */
+   * 标记任务失败
+   */
   function failTask(taskId: string, error: string): void {
     const task = tasks.get(taskId)
     if (!task) {
@@ -473,8 +507,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 更新任务状态
-     */
+   * 更新任务状态
+   */
   function updateTaskState(taskId: string, state: DownloadState): void {
     const task = tasks.get(taskId)
     if (!task) {
@@ -484,25 +518,28 @@ export const useDownloadStore = defineStore('download', () => {
     const oldState = task.state
     task.state = state
 
-    globalEventBus.emit('download:stateChanged', { taskId, oldState, newState: state })
+    globalEventBus.emit('download:stateChanged', {
+      taskId,
+      oldState,
+      newState: state,
+    })
   }
 
   /**
-     * 启动下一个等待中的任务
-     */
+   * 启动下一个等待中的任务
+   */
   function startNextPendingTask(): void {
     if (!canStartNewDownload.value) {
       return
     }
 
     // 按优先级和创建时间排序
-    const nextTask = pendingTasks.value
-      .sort((a, b) => {
-        if (a.priority !== b.priority) {
-          return b.priority - a.priority // 优先级高的优先
-        }
-        return a.createdAt.getTime() - b.createdAt.getTime() // 创建时间早的优先
-      })[0]
+    const nextTask = pendingTasks.value.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority // 优先级高的优先
+      }
+      return a.createdAt.getTime() - b.createdAt.getTime() // 创建时间早的优先
+    })[0]
 
     if (nextTask) {
       startTask(nextTask.id)
@@ -510,18 +547,25 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 添加到历史记录
-     */
-  function addToHistory(task: DownloadTask, result: 'success' | 'failed' | 'cancelled'): void {
+   * 添加到历史记录
+   */
+  function addToHistory(
+    task: DownloadTask,
+    result: 'success' | 'failed' | 'cancelled',
+  ): void {
     const historyItem: DownloadHistory = {
       id: `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       task: { ...task },
       result,
       completedAt: new Date(),
-      duration: task.startedAt ? (Date.now() - task.startedAt.getTime()) / 1000 : 0,
-      averageSpeed: task.downloadedSize > 0 && task.startedAt
-        ? task.downloadedSize / ((Date.now() - task.startedAt.getTime()) / 1000)
+      duration: task.startedAt
+        ? (Date.now() - task.startedAt.getTime()) / 1000
         : 0,
+      averageSpeed:
+        task.downloadedSize > 0 && task.startedAt
+          ? task.downloadedSize /
+            ((Date.now() - task.startedAt.getTime()) / 1000)
+          : 0,
     }
 
     if (task.error) {
@@ -543,8 +587,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 批量操作方法
-     */
+   * 批量操作方法
+   */
 
   // 进入批量模式
   function enterBatchMode(): void {
@@ -627,15 +671,15 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 历史记录管理
-     */
+   * 历史记录管理
+   */
 
   // 获取历史记录
   function getHistory(filter?: {
-        result?: 'success' | 'failed' | 'cancelled'
-        dateRange?: { start: Date; end: Date }
-        keyword?: string
-    }): DownloadHistory[] {
+    result?: 'success' | 'failed' | 'cancelled'
+    dateRange?: { start: Date; end: Date }
+    keyword?: string
+  }): DownloadHistory[] {
     let filtered = history.slice()
 
     if (filter) {
@@ -644,17 +688,19 @@ export const useDownloadStore = defineStore('download', () => {
       }
 
       if (filter.dateRange) {
-        filtered = filtered.filter(item =>
-          item.completedAt >= filter.dateRange!.start &&
-                    item.completedAt <= filter.dateRange!.end,
+        filtered = filtered.filter(
+          item =>
+            item.completedAt >= filter.dateRange!.start &&
+            item.completedAt <= filter.dateRange!.end,
         )
       }
 
       if (filter.keyword) {
         const keyword = filter.keyword.toLowerCase()
-        filtered = filtered.filter(item =>
-          item.task.fileName.toLowerCase().includes(keyword) ||
-                    item.task.url.toLowerCase().includes(keyword),
+        filtered = filtered.filter(
+          item =>
+            item.task.fileName.toLowerCase().includes(keyword) ||
+            item.task.url.toLowerCase().includes(keyword),
         )
       }
     }
@@ -689,8 +735,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 配置管理
-     */
+   * 配置管理
+   */
 
   // 更新配置
   function updateConfig(newConfig: Partial<DownloadConfig>): void {
@@ -715,8 +761,8 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   /**
-     * 持久化方法
-     */
+   * 持久化方法
+   */
 
   // 保存配置到本地存储
   function saveConfig(): void {
@@ -755,16 +801,24 @@ export const useDownloadStore = defineStore('download', () => {
       const saved = localStorage.getItem('download_history')
       if (saved) {
         const savedHistory = JSON.parse(saved)
-        history.splice(0, history.length, ...savedHistory.map((item: any) => ({
-          ...item,
-          completedAt: new Date(item.completedAt),
-          task: {
-            ...item.task,
-            createdAt: new Date(item.task.createdAt),
-            startedAt: item.task.startedAt ? new Date(item.task.startedAt) : undefined,
-            completedAt: item.task.completedAt ? new Date(item.task.completedAt) : undefined,
-          },
-        })))
+        history.splice(
+          0,
+          history.length,
+          ...savedHistory.map((item: any) => ({
+            ...item,
+            completedAt: new Date(item.completedAt),
+            task: {
+              ...item.task,
+              createdAt: new Date(item.task.createdAt),
+              startedAt: item.task.startedAt
+                ? new Date(item.task.startedAt)
+                : undefined,
+              completedAt: item.task.completedAt
+                ? new Date(item.task.completedAt)
+                : undefined,
+            },
+          })),
+        )
       }
     } catch (error) {
       console.warn('Failed to load download history:', error)
@@ -811,7 +865,9 @@ export const useDownloadStore = defineStore('download', () => {
 
     toRemove.forEach(id => removeTask(id))
 
-    globalEventBus.emit('download:completedTasksCleared', { count: toRemove.length })
+    globalEventBus.emit('download:completedTasksCleared', {
+      count: toRemove.length,
+    })
   }
 
   return {

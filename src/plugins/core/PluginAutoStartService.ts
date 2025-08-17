@@ -24,15 +24,15 @@ export class PluginAutoStartService {
   }
 
   /**
-     * 自动发现并加载所有插件
-     */
+   * 自动发现并加载所有插件
+   */
   async discoverAndLoadPlugins(): Promise<{
-        discovered: number
-        loaded: number
-        registered: number
-        activated: number
-        errors: string[]
-    }> {
+    discovered: number
+    loaded: number
+    registered: number
+    activated: number
+    errors: string[]
+  }> {
     const result = {
       discovered: 0,
       loaded: 0,
@@ -88,7 +88,9 @@ export class PluginAutoStartService {
       for (const loadResult of loadResults) {
         if (loadResult.success) {
           result.loaded++
-          console.log(`✅ 成功加载插件: ${loadResult.metadata.name} (${loadResult.metadata.id})`)
+          console.log(
+            `✅ 成功加载插件: ${loadResult.metadata.name} (${loadResult.metadata.id})`,
+          )
 
           // 3. 注册插件
           try {
@@ -104,7 +106,9 @@ export class PluginAutoStartService {
 
                 // 4. 尝试激活插件 (如果配置了自动激活)
                 try {
-                  const activated = await this.pluginStore.activatePlugin(loadResult.metadata.id)
+                  const activated = await this.pluginStore.activatePlugin(
+                    loadResult.metadata.id,
+                  )
                   if (activated) {
                     result.activated++
                     console.log(`🚀 成功激活插件: ${loadResult.metadata.id}`)
@@ -115,10 +119,14 @@ export class PluginAutoStartService {
                   console.warn(`⚠️ ${errorMsg}`)
                 }
               } else {
-                result.errors.push(`Failed to register plugin ${loadResult.metadata.id}`)
+                result.errors.push(
+                  `Failed to register plugin ${loadResult.metadata.id}`,
+                )
               }
             } else {
-              result.errors.push(`No plugin class found for ${loadResult.metadata.id}`)
+              result.errors.push(
+                `No plugin class found for ${loadResult.metadata.id}`,
+              )
             }
           } catch (registerError) {
             const errorMsg = `Failed to register plugin ${loadResult.metadata.id}: ${registerError}`
@@ -136,16 +144,19 @@ export class PluginAutoStartService {
         }
       }
 
-      console.log(`✨ 插件启动完成: 发现${result.discovered}个, 加载${result.loaded}个, 注册${result.registered}个, 激活${result.activated}个`)
+      console.log(
+        `✨ 插件启动完成: 发现${result.discovered}个, 加载${result.loaded}个, 注册${result.registered}个, 激活${result.activated}个`,
+      )
 
       if (result.errors.length > 0) {
         const errorLogEnabled = PluginSettingsService.shouldShowErrors()
-        console.warn(`⚠️ 有 ${result.errors.length} 个错误${errorLogEnabled ? ':' : '（详情已隐藏）'}`)
+        console.warn(
+          `⚠️ 有 ${result.errors.length} 个错误${errorLogEnabled ? ':' : '（详情已隐藏）'}`,
+        )
         if (errorLogEnabled) {
           result.errors.forEach(error => console.warn(`  - ${error}`))
         }
       }
-
     } catch (error) {
       const errorMsg = `Plugin auto-start failed: ${error}`
       result.errors.push(errorMsg)
@@ -156,8 +167,8 @@ export class PluginAutoStartService {
   }
 
   /**
-     * 重新扫描并加载新插件
-     */
+   * 重新扫描并加载新插件
+   */
   async rescanPlugins(): Promise<boolean> {
     try {
       console.log('🔄 重新扫描插件...')
@@ -170,9 +181,9 @@ export class PluginAutoStartService {
   }
 
   /**
-     * 重新配置并重新扫描插件
-     * 当插件设置改变时调用
-     */
+   * 重新配置并重新扫描插件
+   * 当插件设置改变时调用
+   */
   async reconfigure(): Promise<boolean> {
     try {
       console.log('⚙️ 重新配置插件系统...')
@@ -194,15 +205,15 @@ export class PluginAutoStartService {
   }
 
   /**
-     * 获取发现的插件列表
-     */
+   * 获取发现的插件列表
+   */
   getDiscoveredPlugins(): PluginDiscoveryResult[] {
     return this.discovery.getAllDiscoveredPlugins()
   }
 
   /**
-     * 根据ID获取插件
-     */
+   * 根据ID获取插件
+   */
   getPluginById(pluginId: string): PluginDiscoveryResult | undefined {
     return this.discovery.getPluginById(pluginId)
   }

@@ -60,12 +60,12 @@ export class HotReloadManager {
    */
   private initialize() {
     this.log('Initializing hot reload manager')
-    
+
     // 在开发环境下启用热重载
     if (import.meta.hot) {
       this.setupViteHMR()
     }
-    
+
     // 监听插件目录变化
     this.startWatching()
   }
@@ -82,9 +82,12 @@ export class HotReloadManager {
     })
 
     // 监听插件配置变化
-    import.meta.hot.on('plugin-config-changed', (data: { pluginId: string; config: any }) => {
-      this.handleConfigChange(data.pluginId, data.config)
-    })
+    import.meta.hot.on(
+      'plugin-config-changed',
+      (data: { pluginId: string; config: any }) => {
+        this.handleConfigChange(data.pluginId, data.config)
+      },
+    )
 
     this.log('Vite HMR integration enabled')
   }
@@ -105,15 +108,15 @@ export class HotReloadManager {
     if (!this.config.enabled) return
 
     this.log(`File ${event.type}: ${event.path}`)
-    
+
     // 添加到变化队列
     this.changeQueue.push(event)
-    
+
     // 防抖处理
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
     }
-    
+
     this.debounceTimer = window.setTimeout(() => {
       this.processChangeQueue()
       this.debounceTimer = null
@@ -125,7 +128,7 @@ export class HotReloadManager {
    */
   private handleConfigChange(pluginId: string, newConfig: any) {
     this.log(`Config changed for plugin: ${pluginId}`)
-    
+
     // 触发插件配置重载
     this.reloadPluginConfig(pluginId, newConfig)
   }
@@ -135,18 +138,18 @@ export class HotReloadManager {
    */
   private async processChangeQueue() {
     if (this.changeQueue.length === 0) return
-    
+
     this.isReloading.value = true
     this.reloadStats.totalReloads++
-    
+
     try {
       // 按插件分组处理变化
       const pluginChanges = this.groupChangesByPlugin()
-      
+
       for (const [pluginId, changes] of pluginChanges) {
         await this.reloadPlugin(pluginId, changes)
       }
-      
+
       this.reloadStats.successfulReloads++
       this.log('Hot reload completed successfully')
     } catch (error) {
@@ -164,7 +167,7 @@ export class HotReloadManager {
    */
   private groupChangesByPlugin(): Map<string, FileChangeEvent[]> {
     const pluginChanges = new Map<string, FileChangeEvent[]>()
-    
+
     for (const change of this.changeQueue) {
       const pluginId = this.extractPluginId(change.path)
       if (pluginId) {
@@ -174,7 +177,7 @@ export class HotReloadManager {
         pluginChanges.get(pluginId)!.push(change)
       }
     }
-    
+
     return pluginChanges
   }
 
@@ -192,31 +195,32 @@ export class HotReloadManager {
    */
   private async reloadPlugin(pluginId: string, changes: FileChangeEvent[]) {
     this.log(`Reloading plugin: ${pluginId}`)
-    
+
     try {
       // 保存插件状态
       if (this.config.preserveState) {
         await this.preservePluginState(pluginId)
       }
-      
+
       // 检查是否需要完全重载
-      const needsFullReload = changes.some(change => 
-        change.path.includes('metadata.json') || 
-        change.path.includes('index.ts') ||
-        change.type === 'deleted',
+      const needsFullReload = changes.some(
+        change =>
+          change.path.includes('metadata.json') ||
+          change.path.includes('index.ts') ||
+          change.type === 'deleted',
       )
-      
+
       if (needsFullReload) {
         await this.fullReloadPlugin(pluginId)
       } else {
         await this.partialReloadPlugin(pluginId, changes)
       }
-      
+
       // 恢复插件状态
       if (this.config.preserveState) {
         await this.restorePluginState(pluginId)
       }
-      
+
       this.log(`Plugin ${pluginId} reloaded successfully`)
     } catch (error) {
       console.error(`[HotReload] Failed to reload plugin ${pluginId}:`, error)
@@ -233,9 +237,9 @@ export class HotReloadManager {
     // 2. 卸载插件
     // 3. 重新加载插件
     // 4. 激活插件
-    
+
     this.log(`Performing full reload for plugin: ${pluginId}`)
-    
+
     // 发送重载事件
     this.dispatchReloadEvent(pluginId, 'full')
   }
@@ -243,9 +247,12 @@ export class HotReloadManager {
   /**
    * 部分重载插件
    */
-  private async partialReloadPlugin(pluginId: string, changes: FileChangeEvent[]) {
+  private async partialReloadPlugin(
+    pluginId: string,
+    changes: FileChangeEvent[],
+  ) {
     this.log(`Performing partial reload for plugin: ${pluginId}`)
-    
+
     // 根据变化类型进行部分更新
     for (const change of changes) {
       if (change.path.includes('.vue')) {
@@ -256,7 +263,7 @@ export class HotReloadManager {
         await this.reloadPluginScript(pluginId, change.path)
       }
     }
-    
+
     // 发送重载事件
     this.dispatchReloadEvent(pluginId, 'partial')
   }
@@ -266,7 +273,7 @@ export class HotReloadManager {
    */
   private async reloadPluginComponent(pluginId: string, filePath: string) {
     this.log(`Reloading component: ${filePath}`)
-    
+
     // 这里需要与 Vue 的 HMR 系统集成
     if (import.meta.hot) {
       // 通知 Vue HMR 更新组件
@@ -283,10 +290,12 @@ export class HotReloadManager {
    */
   private async reloadPluginStyles(pluginId: string, filePath: string) {
     this.log(`Reloading styles: ${filePath}`)
-    
+
     // 查找并更新样式标签
-    const styleElements = document.querySelectorAll(`style[data-plugin-id="${pluginId}"]`)
-    
+    const styleElements = document.querySelectorAll(
+      `style[data-plugin-id="${pluginId}"]`,
+    )
+
     for (const element of styleElements) {
       // 重新加载样式内容
       try {
@@ -304,7 +313,7 @@ export class HotReloadManager {
    */
   private async reloadPluginScript(pluginId: string, filePath: string) {
     this.log(`Reloading script: ${filePath}`)
-    
+
     // 这里需要实现模块热替换逻辑
     // 通常依赖构建工具的 HMR 功能
   }
@@ -314,7 +323,7 @@ export class HotReloadManager {
    */
   private async reloadPluginConfig(pluginId: string, newConfig: any) {
     this.log(`Reloading config for plugin: ${pluginId}`)
-    
+
     // 发送配置更新事件
     this.dispatchConfigEvent(pluginId, newConfig)
   }
@@ -325,7 +334,7 @@ export class HotReloadManager {
   private async preservePluginState(pluginId: string) {
     // 这里需要与插件实例集成，保存当前状态
     this.log(`Preserving state for plugin: ${pluginId}`)
-    
+
     // 示例：保存到内存
     // const pluginInstance = PluginManager.getInstance(pluginId)
     // if (pluginInstance && pluginInstance.getState) {
@@ -339,7 +348,7 @@ export class HotReloadManager {
   private async restorePluginState(pluginId: string) {
     // 从保存的状态恢复插件
     this.log(`Restoring state for plugin: ${pluginId}`)
-    
+
     const savedState = this.pluginStates.get(pluginId)
     if (savedState) {
       // 示例：恢复状态
@@ -347,7 +356,7 @@ export class HotReloadManager {
       // if (pluginInstance && pluginInstance.setState) {
       //   pluginInstance.setState(savedState)
       // }
-      
+
       this.pluginStates.delete(pluginId)
     }
   }
@@ -359,7 +368,7 @@ export class HotReloadManager {
     const event = new CustomEvent('plugin-hot-reload', {
       detail: { pluginId, type, timestamp: Date.now() },
     })
-    
+
     window.dispatchEvent(event)
   }
 
@@ -370,7 +379,7 @@ export class HotReloadManager {
     const event = new CustomEvent('plugin-config-reload', {
       detail: { pluginId, config, timestamp: Date.now() },
     })
-    
+
     window.dispatchEvent(event)
   }
 
@@ -398,7 +407,7 @@ export class HotReloadManager {
    */
   public async manualReload(pluginId: string) {
     this.log(`Manual reload triggered for plugin: ${pluginId}`)
-    
+
     try {
       await this.reloadPlugin(pluginId, [])
       return true
@@ -414,7 +423,7 @@ export class HotReloadManager {
   public updateConfig(newConfig: Partial<HotReloadConfig>) {
     this.config = { ...this.config, ...newConfig }
     this.log('Hot reload config updated')
-    
+
     if (!this.config.enabled) {
       this.cleanup()
     } else if (import.meta.env.DEV) {
@@ -427,16 +436,16 @@ export class HotReloadManager {
    */
   public cleanup() {
     this.log('Cleaning up hot reload manager')
-    
+
     // 清理定时器
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = null
     }
-    
+
     // 清理监听器
     this.watchers.clear()
-    
+
     // 清理状态
     this.pluginStates.clear()
     this.changeQueue = []

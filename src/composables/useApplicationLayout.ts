@@ -33,13 +33,15 @@ export function useApplicationLayout() {
 
   // 初始化时从本地存储加载设置
   const loadSettings = () => {
-    const savedLayoutMode = localStorage.getItem('mira-layout-mode') as LayoutMode
+    const savedLayoutMode = localStorage.getItem(
+      'mira-layout-mode',
+    ) as LayoutMode
     const savedIconSize = localStorage.getItem('mira-icon-size') as IconSize
-    
+
     if (savedLayoutMode && ['grid', 'list'].includes(savedLayoutMode)) {
       layoutMode.value = savedLayoutMode
     }
-    
+
     if (savedIconSize && ['small', 'medium', 'large'].includes(savedIconSize)) {
       iconSizeMode.value = savedIconSize
     }

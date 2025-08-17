@@ -3,7 +3,7 @@
     <Divider
         v-bind="{
             ...$attrs,
-            class: dividerClass
+            class: dividerClass,
         }"
     >
         <slot />
@@ -20,11 +20,11 @@ const themeStore = useThemeStore()
 // 计算分割线样式类
 const dividerClass = computed(() => {
     const classes = ['custom-divider']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

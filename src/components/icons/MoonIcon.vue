@@ -1,11 +1,11 @@
 <template>
-    <BaseIcon 
-        :icon-component="Moon" 
+    <BaseIcon
+        :icon-component="Moon"
         v-bind="{
             ...(size !== undefined && { size }),
             ...(color !== undefined && { color }),
             ...(iconClass !== undefined && { class: iconClass }),
-            ...$attrs
+            ...$attrs,
         }"
     />
 </template>
@@ -32,6 +32,8 @@ const iconClass = computed(() => {
     return [
         'text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
         props.class,
-    ].filter(Boolean).join(' ')
+    ]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>

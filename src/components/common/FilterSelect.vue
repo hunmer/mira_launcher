@@ -15,10 +15,7 @@
         @filter="$emit('filter', $event)"
         @wheel="handleWheel"
     >
-        <template
-            v-if="$slots['value']"
-            #value="slotProps"
-        >
+        <template v-if="$slots['value']" #value="slotProps">
             <slot
                 name="value"
                 :value="slotProps.value"
@@ -26,10 +23,7 @@
             />
         </template>
 
-        <template
-            v-if="$slots['option']"
-            #option="slotProps"
-        >
+        <template v-if="$slots['option']" #option="slotProps">
             <slot
                 name="option"
                 :option="slotProps.option"
@@ -37,24 +31,15 @@
             />
         </template>
 
-        <template
-            v-if="$slots['header']"
-            #header
-        >
+        <template v-if="$slots['header']" #header>
             <slot name="header" />
         </template>
 
-        <template
-            v-if="$slots['footer']"
-            #footer
-        >
+        <template v-if="$slots['footer']" #footer>
             <slot name="footer" />
         </template>
 
-        <template
-            v-if="$slots['dropdownicon']"
-            #dropdownicon
-        >
+        <template v-if="$slots['dropdownicon']" #dropdownicon>
             <slot name="dropdownicon" />
         </template>
     </Select>
@@ -100,7 +85,7 @@ const selectRef = ref()
 
 const selectedValue = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value),
+    set: value => emit('update:modelValue', value),
 })
 
 const customClass = computed(() => {
@@ -128,9 +113,15 @@ const handleWheel = (event: WheelEvent) => {
         newIndex = currentIndex > 0 ? currentIndex - 1 : props.options.length - 1
     }
 
-    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < props.options.length) {
+    if (
+        newIndex !== currentIndex &&
+        newIndex >= 0 &&
+        newIndex < props.options.length
+    ) {
         const newOption = props.options[newIndex]
-        const newValue = props.optionValue ? newOption[props.optionValue] : newOption
+        const newValue = props.optionValue
+            ? newOption[props.optionValue]
+            : newOption
         selectedValue.value = newValue
         emit('change', { value: newValue })
     }
@@ -139,60 +130,60 @@ const handleWheel = (event: WheelEvent) => {
 
 <style scoped>
 .filter-select {
-    min-width: 200px;
-    transition: all 0.2s ease;
+  min-width: 200px;
+  transition: all 0.2s ease;
 }
 
 .filter-select:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* 增加图标和文字间距 */
 :global(.filter-select .p-select-option .flex.items-center.gap-2) {
-    gap: 0.75rem !important;
+  gap: 0.75rem !important;
 }
 
 :global(.filter-select .p-select-label .flex.items-center.gap-2) {
-    gap: 0.75rem !important;
+  gap: 0.75rem !important;
 }
 
 /* 深色模式样式 */
 :global(.dark .filter-select) {
-    --p-select-background: rgb(55 65 81);
-    --p-select-border-color: rgb(75 85 99);
-    --p-select-color: rgb(243 244 246);
+  --p-select-background: rgb(55 65 81);
+  --p-select-border-color: rgb(75 85 99);
+  --p-select-color: rgb(243 244 246);
 }
 
 :global(.dark .filter-select:hover) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 :global(.dark .filter-select:hover) {
-    --p-select-border-color: rgb(99 102 241);
+  --p-select-border-color: rgb(99 102 241);
 }
 
 :global(.dark .filter-select:focus-within) {
-    --p-select-border-color: rgb(99 102 241);
-    --p-select-focus-ring-color: rgba(99, 102, 241, 0.2);
+  --p-select-border-color: rgb(99 102 241);
+  --p-select-focus-ring-color: rgba(99, 102, 241, 0.2);
 }
 
 /* 下拉面板样式 */
 :global(.dark .p-select-overlay) {
-    background-color: rgb(31 41 55) !important;
-    border-color: rgb(75 85 99) !important;
+  background-color: rgb(31 41 55) !important;
+  border-color: rgb(75 85 99) !important;
 }
 
 :global(.dark .p-select-option) {
-    color: rgb(243 244 246) !important;
+  color: rgb(243 244 246) !important;
 }
 
 :global(.dark .p-select-option:hover) {
-    background-color: rgb(55 65 81) !important;
+  background-color: rgb(55 65 81) !important;
 }
 
 :global(.dark .p-select-option.p-select-option-selected) {
-    background-color: rgb(99 102 241) !important;
-    color: white !important;
+  background-color: rgb(99 102 241) !important;
+  color: white !important;
 }
 </style>

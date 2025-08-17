@@ -1,5 +1,7 @@
 <template>
-    <div class="app-layout h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col">
+    <div
+        class="app-layout h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col"
+    >
         <!-- 標題欄 - 固定在顶部，包含菜单栏 -->
         <TitleBar
             class="flex-shrink-0"
@@ -10,7 +12,13 @@
 
         <!-- 主要內容區域 - 占据剩余空间 -->
         <div class="flex-1 min-h-0">
-            <MainContent v-bind="{ ...(contentTransition !== undefined && { transition: contentTransition }) }" />
+            <MainContent
+                v-bind="{
+                    ...(contentTransition !== undefined && {
+                        transition: contentTransition,
+                    }),
+                }"
+            />
         </div>
 
         <!-- 全局加載指示器 -->
@@ -20,10 +28,14 @@
                     v-if="isLoading"
                     class="loading-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
                 >
-                    <div class="loading-content bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
+                    <div
+                        class="loading-content bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl"
+                    >
                         <div class="flex items-center space-x-3">
                             <LoadingSpinner class="text-primary-600" />
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <span
+                                class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
                                 載入中...
                             </span>
                         </div>
@@ -81,7 +93,17 @@ const handleWindowClose = () => {
 
 <style scoped>
 .app-layout {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif;
 }
 
 .loading-overlay {

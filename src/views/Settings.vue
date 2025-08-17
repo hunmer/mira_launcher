@@ -9,14 +9,8 @@
                         :value="tab.value"
                         class="tab-item"
                     >
-                        <div
-                            v-ripple
-                            class="flex items-center gap-3 text-inherit"
-                        >
-                            <i
-                                :class="tab.icon"
-                                style="padding-right: 10px;"
-                            />
+                        <div v-ripple class="flex items-center gap-3 text-inherit">
+                            <i :class="tab.icon" style="padding-right: 10px" />
                             <span>{{ tab.label }}</span>
                         </div>
                     </Tab>
@@ -66,7 +60,13 @@
 <script setup lang="ts">
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@/components/common'
 import Container from '@/components/layout/Container.vue'
-import { AdvancedSettings, GeneralSettings, PluginSettings, ShortcutSettings, StartupSettings } from '@/components/settings'
+import {
+    AdvancedSettings,
+    GeneralSettings,
+    PluginSettings,
+    ShortcutSettings,
+    StartupSettings,
+} from '@/components/settings'
 import { onMounted, ref } from 'vue'
 
 // Tab 状态
@@ -145,13 +145,13 @@ onMounted(() => {
   background-color: #1f2937;
 }
 
-.tab-item[data-state="active"] {
+.tab-item[data-state='active'] {
   color: #3b82f6;
   border-bottom-color: #3b82f6;
   background-color: transparent;
 }
 
-.dark .tab-item[data-state="active"] {
+.dark .tab-item[data-state='active'] {
   color: #60a5fa;
   border-bottom-color: #60a5fa;
 }

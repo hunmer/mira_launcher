@@ -3,20 +3,20 @@ import { ref, reactive, computed } from 'vue'
 /**
  * 沙箱權限類型
  */
-export type SandboxPermission = 
-  | 'menu:read'           // 讀取菜單
-  | 'menu:write'          // 修改菜單
-  | 'shortcut:read'       // 讀取快捷鍵
-  | 'shortcut:write'      // 註冊快捷鍵
-  | 'storage:read'        // 讀取存儲
-  | 'storage:write'       // 寫入存儲
-  | 'notification:show'   // 顯示通知
-  | 'ui:component'        // 註冊UI組件
-  | 'ui:route'           // 註冊路由
-  | 'system:info'        // 獲取系統信息
-  | 'network:fetch'      // 網絡請求
-  | 'file:read'          // 讀取文件
-  | 'file:write'         // 寫入文件
+export type SandboxPermission =
+  | 'menu:read' // 讀取菜單
+  | 'menu:write' // 修改菜單
+  | 'shortcut:read' // 讀取快捷鍵
+  | 'shortcut:write' // 註冊快捷鍵
+  | 'storage:read' // 讀取存儲
+  | 'storage:write' // 寫入存儲
+  | 'notification:show' // 顯示通知
+  | 'ui:component' // 註冊UI組件
+  | 'ui:route' // 註冊路由
+  | 'system:info' // 獲取系統信息
+  | 'network:fetch' // 網絡請求
+  | 'file:read' // 讀取文件
+  | 'file:write' // 寫入文件
 
 /**
  * 沙箱策略
@@ -118,9 +118,24 @@ export interface APICallRecord {
 export interface SandboxEvents {
   'sandbox:created': { pluginId: string; context: SandboxContext }
   'sandbox:destroyed': { pluginId: string; reason: string }
-  'sandbox:permission-denied': { pluginId: string; permission: SandboxPermission; api: string; method: string }
-  'sandbox:rate-limit-exceeded': { pluginId: string; api: string; method: string; limit: number }
-  'sandbox:resource-limit-exceeded': { pluginId: string; resource: string; usage: number; limit: number }
+  'sandbox:permission-denied': {
+    pluginId: string
+    permission: SandboxPermission
+    api: string
+    method: string
+  }
+  'sandbox:rate-limit-exceeded': {
+    pluginId: string
+    api: string
+    method: string
+    limit: number
+  }
+  'sandbox:resource-limit-exceeded': {
+    pluginId: string
+    resource: string
+    usage: number
+    limit: number
+  }
   'sandbox:api-call': { pluginId: string; record: APICallRecord }
   'sandbox:error': { pluginId: string; error: Error; context?: any }
 }
@@ -140,13 +155,16 @@ export interface SandboxStats {
   /** 資源限制觸發次數 */
   resourceLimitHits: number
   /** 按插件分組的統計 */
-  byPlugin: Record<string, {
-    apiCalls: number
-    memoryUsage: number
-    storageUsage: number
-    permissionDenials: number
-    rateLimitHits: number
-  }>
+  byPlugin: Record<
+    string,
+    {
+      apiCalls: number
+      memoryUsage: number
+      storageUsage: number
+      permissionDenials: number
+      rateLimitHits: number
+    }
+  >
 }
 
 /**
@@ -157,7 +175,10 @@ export class PluginSandbox {
   private contexts = reactive(new Map<string, SandboxContext>())
   private eventListeners = reactive(new Map<keyof SandboxEvents, Function[]>())
   private apiCallHistory: APICallRecord[] = []
-  private rateLimitTracking = new Map<string, { calls: number; resetTime: number }>()
+  private rateLimitTracking = new Map<
+    string,
+    { calls: number; resetTime: number }
+  >()
 
   constructor(policy?: Partial<SandboxPolicy>) {
     this.policy = {
@@ -235,10 +256,17 @@ export class PluginSandbox {
     }
 
     // 驗證權限
-    const validPermissions = permissions.filter(p => this.policy.permissions.includes(p))
+    const validPermissions = permissions.filter(p =>
+      this.policy.permissions.includes(p),
+    )
     if (validPermissions.length !== permissions.length) {
-      const invalidPermissions = permissions.filter(p => !this.policy.permissions.includes(p))
-      console.warn(`[Sandbox] Invalid permissions for ${pluginId}:`, invalidPermissions)
+      const invalidPermissions = permissions.filter(
+        p => !this.policy.permissions.includes(p),
+      )
+      console.warn(
+        `[Sandbox] Invalid permissions for ${pluginId}:`,
+        invalidPermissions,
+      )
     }
 
     const context: SandboxContext = {
@@ -287,14 +315,19 @@ export class PluginSandbox {
             try {
               // 檢查權限
               if (!this.checkPermission(pluginId, apiName, methodName)) {
-                const requiredPermission = this.getRequiredPermission(apiName, methodName)
+                const requiredPermission = this.getRequiredPermission(
+                  apiName,
+                  methodName,
+                )
                 this.emit('sandbox:permission-denied', {
                   pluginId,
                   permission: requiredPermission,
                   api: apiName,
                   method: methodName,
                 })
-                throw new Error(`Permission denied: ${requiredPermission} required for ${apiName}.${methodName}`)
+                throw new Error(
+                  `Permission denied: ${requiredPermission} required for ${apiName}.${methodName}`,
+                )
               }
 
               // 檢查限流
@@ -305,7 +338,9 @@ export class PluginSandbox {
                   method: methodName,
                   limit: this.policy.rateLimit.maxCalls,
                 })
-                throw new Error(`Rate limit exceeded for ${apiName}.${methodName}`)
+                throw new Error(
+                  `Rate limit exceeded for ${apiName}.${methodName}`,
+                )
               }
 
               // 更新統計
@@ -316,19 +351,36 @@ export class PluginSandbox {
 
               // 記錄 API 調用
               const duration = performance.now() - startTime
-              this.recordAPICall(pluginId, apiName, methodName, args, duration, true)
+              this.recordAPICall(
+                pluginId,
+                apiName,
+                methodName,
+                args,
+                duration,
+                true,
+              )
 
               return result
             } catch (error) {
               // 記錄錯誤的 API 調用
               const duration = performance.now() - startTime
-              const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-              this.recordAPICall(pluginId, apiName, methodName, args, duration, false, errorMessage)
+              const errorMessage =
+                error instanceof Error ? error.message : 'Unknown error'
+              this.recordAPICall(
+                pluginId,
+                apiName,
+                methodName,
+                args,
+                duration,
+                false,
+                errorMessage,
+              )
 
               // 觸發錯誤事件
               this.emit('sandbox:error', {
                 pluginId,
-                error: error instanceof Error ? error : new Error(String(error)),
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
                 context: { api: apiName, method: methodName, args },
               })
 
@@ -345,7 +397,11 @@ export class PluginSandbox {
   /**
    * 檢查權限
    */
-  private checkPermission(pluginId: string, apiName: string, methodName: string): boolean {
+  private checkPermission(
+    pluginId: string,
+    apiName: string,
+    methodName: string,
+  ): boolean {
     const context = this.contexts.get(pluginId)
     if (!context) return false
 
@@ -356,7 +412,10 @@ export class PluginSandbox {
   /**
    * 獲取所需權限
    */
-  private getRequiredPermission(apiName: string, methodName: string): SandboxPermission {
+  private getRequiredPermission(
+    apiName: string,
+    methodName: string,
+  ): SandboxPermission {
     const permissionMap: Record<string, Record<string, SandboxPermission>> = {
       menu: {
         register: 'menu:write',
@@ -393,7 +452,11 @@ export class PluginSandbox {
   /**
    * 檢查限流
    */
-  private checkRateLimit(pluginId: string, apiName: string, methodName: string): boolean {
+  private checkRateLimit(
+    pluginId: string,
+    apiName: string,
+    methodName: string,
+  ): boolean {
     const key = `${pluginId}:${apiName}:${methodName}`
     const now = Date.now()
     const tracking = this.rateLimitTracking.get(key)
@@ -519,7 +582,9 @@ export class PluginSandbox {
     // 觸發銷毀事件
     this.emit('sandbox:destroyed', { pluginId, reason })
 
-    console.log(`[Sandbox] Destroyed sandbox for plugin: ${pluginId} (reason: ${reason})`)
+    console.log(
+      `[Sandbox] Destroyed sandbox for plugin: ${pluginId} (reason: ${reason})`,
+    )
   }
 
   /**
@@ -552,7 +617,9 @@ export class PluginSandbox {
       throw new Error(`Sandbox not found for plugin: ${pluginId}`)
     }
 
-    const validPermissions = permissions.filter(p => this.policy.permissions.includes(p))
+    const validPermissions = permissions.filter(p =>
+      this.policy.permissions.includes(p),
+    )
     context.permissions = new Set(validPermissions)
 
     console.log(`[Sandbox] Updated permissions for plugin: ${pluginId}`)
@@ -655,7 +722,9 @@ export class PluginSandbox {
    */
   private resetRateLimits(): void {
     const now = Date.now()
-    for (const [key, tracking] of Array.from(this.rateLimitTracking.entries())) {
+    for (const [key, tracking] of Array.from(
+      this.rateLimitTracking.entries(),
+    )) {
       if (now > tracking.resetTime) {
         this.rateLimitTracking.delete(key)
       }
@@ -665,7 +734,10 @@ export class PluginSandbox {
   /**
    * 事件監聽
    */
-  on<T extends keyof SandboxEvents>(event: T, listener: (data: SandboxEvents[T]) => void): void {
+  on<T extends keyof SandboxEvents>(
+    event: T,
+    listener: (data: SandboxEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -674,7 +746,10 @@ export class PluginSandbox {
   /**
    * 移除事件監聽
    */
-  off<T extends keyof SandboxEvents>(event: T, listener: (data: SandboxEvents[T]) => void): void {
+  off<T extends keyof SandboxEvents>(
+    event: T,
+    listener: (data: SandboxEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -685,7 +760,10 @@ export class PluginSandbox {
   /**
    * 觸發事件
    */
-  private emit<T extends keyof SandboxEvents>(event: T, data: SandboxEvents[T]): void {
+  private emit<T extends keyof SandboxEvents>(
+    event: T,
+    data: SandboxEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
@@ -743,14 +821,19 @@ export const sandboxUtils = {
    */
   isValidPermission(permission: string): permission is SandboxPermission {
     const validPermissions: SandboxPermission[] = [
-      'menu:read', 'menu:write',
-      'shortcut:read', 'shortcut:write',
-      'storage:read', 'storage:write',
+      'menu:read',
+      'menu:write',
+      'shortcut:read',
+      'shortcut:write',
+      'storage:read',
+      'storage:write',
       'notification:show',
-      'ui:component', 'ui:route',
+      'ui:component',
+      'ui:route',
       'system:info',
       'network:fetch',
-      'file:read', 'file:write',
+      'file:read',
+      'file:write',
     ]
     return validPermissions.includes(permission as SandboxPermission)
   },

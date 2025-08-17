@@ -79,7 +79,10 @@ export const usePluginStore = defineStore('plugin', () => {
       // 从 localStorage 恢复插件配置
       await restorePluginConfigurations()
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to initialize plugin system'
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Failed to initialize plugin system'
       console.error('[PluginStore] Failed to initialize plugin system:', err)
     } finally {
       isLoading.value = false
@@ -131,7 +134,7 @@ export const usePluginStore = defineStore('plugin', () => {
       error.value = null
 
       const success = await pluginManager.value.register(pluginClass, metadata)
-      
+
       if (success) {
         // 保存插件配置到 localStorage
         await savePluginConfiguration(metadata.id, {})
@@ -139,7 +142,8 @@ export const usePluginStore = defineStore('plugin', () => {
 
       return success
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to register plugin'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to register plugin'
       console.error('[PluginStore] Failed to register plugin:', err)
       return false
     } finally {
@@ -178,7 +182,7 @@ export const usePluginStore = defineStore('plugin', () => {
       error.value = null
 
       const success = await pluginManager.value.activate(pluginId)
-      
+
       if (success) {
         // 更新激活状态到 localStorage
         await savePluginActivationState(pluginId, true)
@@ -186,7 +190,8 @@ export const usePluginStore = defineStore('plugin', () => {
 
       return success
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to activate plugin'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to activate plugin'
       console.error('[PluginStore] Failed to activate plugin:', err)
       return false
     } finally {
@@ -205,7 +210,7 @@ export const usePluginStore = defineStore('plugin', () => {
       error.value = null
 
       const success = await pluginManager.value.deactivate(pluginId)
-      
+
       if (success) {
         // 更新激活状态到 localStorage
         await savePluginActivationState(pluginId, false)
@@ -213,7 +218,8 @@ export const usePluginStore = defineStore('plugin', () => {
 
       return success
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to deactivate plugin'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to deactivate plugin'
       console.error('[PluginStore] Failed to deactivate plugin:', err)
       return false
     } finally {
@@ -232,7 +238,7 @@ export const usePluginStore = defineStore('plugin', () => {
       error.value = null
 
       const success = await pluginManager.value.unload(pluginId)
-      
+
       if (success) {
         // 清理 localStorage 中的插件数据
         await removePluginConfiguration(pluginId)
@@ -240,7 +246,8 @@ export const usePluginStore = defineStore('plugin', () => {
 
       return success
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to unload plugin'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to unload plugin'
       console.error('[PluginStore] Failed to unload plugin:', err)
       return false
     } finally {
@@ -258,8 +265,11 @@ export const usePluginStore = defineStore('plugin', () => {
     }
 
     try {
-      const success = pluginManager.value.configurePlugin(pluginId, configuration)
-      
+      const success = pluginManager.value.configurePlugin(
+        pluginId,
+        configuration,
+      )
+
       if (success) {
         // 保存配置到 localStorage
         await savePluginConfiguration(pluginId, configuration)
@@ -267,7 +277,8 @@ export const usePluginStore = defineStore('plugin', () => {
 
       return success
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to configure plugin'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to configure plugin'
       console.error('[PluginStore] Failed to configure plugin:', err)
       return false
     }
@@ -280,7 +291,9 @@ export const usePluginStore = defineStore('plugin', () => {
   }
 
   // 获取插件配置
-  const getPluginConfiguration = (pluginId: string): PluginConfiguration | undefined => {
+  const getPluginConfiguration = (
+    pluginId: string,
+  ): PluginConfiguration | undefined => {
     if (!pluginManager.value) return undefined
     return pluginManager.value.getPluginConfiguration(pluginId)
   }
@@ -324,9 +337,15 @@ export const usePluginStore = defineStore('plugin', () => {
     try {
       const activations = getStoredActivations()
       activations[pluginId] = isActive
-      localStorage.setItem(STORAGE_KEYS.PLUGIN_ACTIVATIONS, JSON.stringify(activations))
+      localStorage.setItem(
+        STORAGE_KEYS.PLUGIN_ACTIVATIONS,
+        JSON.stringify(activations),
+      )
     } catch (error) {
-      console.error('[PluginStore] Failed to save plugin activation state:', error)
+      console.error(
+        '[PluginStore] Failed to save plugin activation state:',
+        error,
+      )
     }
   }
 
@@ -339,9 +358,15 @@ export const usePluginStore = defineStore('plugin', () => {
 
       const activations = getStoredActivations()
       delete activations[pluginId]
-      localStorage.setItem(STORAGE_KEYS.PLUGIN_ACTIVATIONS, JSON.stringify(activations))
+      localStorage.setItem(
+        STORAGE_KEYS.PLUGIN_ACTIVATIONS,
+        JSON.stringify(activations),
+      )
     } catch (error) {
-      console.error('[PluginStore] Failed to remove plugin configuration:', error)
+      console.error(
+        '[PluginStore] Failed to remove plugin configuration:',
+        error,
+      )
     }
   }
 
@@ -377,7 +402,10 @@ export const usePluginStore = defineStore('plugin', () => {
       console.log('[PluginStore] Plugin configurations restored:', configs)
       console.log('[PluginStore] Plugin activations restored:', activations)
     } catch (error) {
-      console.error('[PluginStore] Failed to restore plugin configurations:', error)
+      console.error(
+        '[PluginStore] Failed to restore plugin configurations:',
+        error,
+      )
     }
   }
 
@@ -387,7 +415,7 @@ export const usePluginStore = defineStore('plugin', () => {
       if (pluginManager.value) {
         await pluginManager.value.destroy()
       }
-      
+
       pluginManager.value = undefined
       eventBus.value = undefined
       isInitialized.value = false
@@ -410,7 +438,7 @@ export const usePluginStore = defineStore('plugin', () => {
     isInitialized,
     isLoading,
     error,
-    
+
     // 计算属性
     plugins,
     activePlugins,
@@ -419,7 +447,7 @@ export const usePluginStore = defineStore('plugin', () => {
     pluginStats,
     pluginCount,
     activePluginCount,
-    
+
     // 核心方法
     initialize,
     registerPlugin,
@@ -428,17 +456,17 @@ export const usePluginStore = defineStore('plugin', () => {
     deactivatePlugin,
     unloadPlugin,
     configurePlugin,
-    
+
     // 查询方法
     getPlugin,
     getPluginConfiguration,
     isPluginActive,
-    
+
     // 工具方法
     clearError,
     reset,
     destroy,
-    
+
     // 内部访问（用于调试）
     pluginManager,
     eventBus,

@@ -6,7 +6,7 @@
                 type="button"
                 label="应用"
                 icon="pi pi-th-large"
-                :class="{ 'active': route.path === '/applications' }"
+                :class="{ active: route.path === '/applications' }"
                 @click="navigateToRoute('/applications')"
             />
 
@@ -57,7 +57,7 @@
                 type="button"
                 label="设置"
                 icon="pi pi-cog"
-                :class="{ 'active': route.path === '/settings' }"
+                :class="{ active: route.path === '/settings' }"
                 @click="navigateToRoute('/settings')"
             />
         </div>
@@ -131,14 +131,15 @@ const openDevConsole = async () => {
         const isDebug = await invoke('is_debug_mode')
 
         if (!isDebug) {
-            alert('开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I')
+            alert(
+                '开发者工具功能仅在调试模式下可用\n\n在生产环境中，请按以下方式打开:\n• macOS: Cmd+Option+I 或右键菜单"检查元素"\n• Windows/Linux: F12 或 Ctrl+Shift+I',
+            )
             return
         }
 
         // 在调试模式下，调用 Rust 命令打开开发者工具
         await invoke('open_devtools')
         console.log('开发者工具已打开')
-
     } catch (error) {
         console.error('Failed to open dev tools:', error)
 
@@ -147,9 +148,11 @@ const openDevConsole = async () => {
         let fallbackMessage = '无法通过程序打开开发者工具\n\n'
 
         if (navigator.platform.toLowerCase().includes('mac')) {
-            fallbackMessage += '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
+            fallbackMessage +=
+                '请尝试以下方式:\n• 按 Cmd+Option+I\n• 右键点击页面并选择"检查元素"\n• 在菜单栏选择"开发者" > "开发者工具"'
         } else {
-            fallbackMessage += '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
+            fallbackMessage +=
+                '请尝试以下方式:\n• 按 F12\n• 按 Ctrl+Shift+I\n• 右键点击页面并选择"检查元素"'
         }
 
         fallbackMessage += `\n\n错误信息: ${errorMessage}`
@@ -239,7 +242,9 @@ const openDevConsole = async () => {
   border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   backdrop-filter: blur(12px) !important;
-  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow:
+    0 10px 25px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   z-index: 99999 !important;
   position: fixed !important;
   min-width: 200px !important;

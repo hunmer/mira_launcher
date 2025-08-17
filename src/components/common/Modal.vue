@@ -12,19 +12,13 @@
         @show="handleAfterEnter"
         @hide="handleAfterLeave"
     >
-        <template
-            v-if="$slots['header']"
-            #header
-        >
+        <template v-if="$slots['header']" #header>
             <slot name="header" />
         </template>
-    
+
         <slot />
-    
-        <template
-            v-if="$slots['footer']"
-            #footer
-        >
+
+        <template v-if="$slots['footer']" #footer>
             <div class="flex justify-end space-x-2">
                 <slot name="footer" />
             </div>
@@ -66,12 +60,15 @@ interface Emits {
 const modalVisible = ref(props.show)
 
 // 监听外部显示状态变化
-watch(() => props.show, (newValue) => {
-    modalVisible.value = newValue
-})
+watch(
+    () => props.show,
+    newValue => {
+        modalVisible.value = newValue
+    },
+)
 
 // 监听内部显示状态变化
-watch(modalVisible, (newValue) => {
+watch(modalVisible, newValue => {
     emit('update:show', newValue)
     if (!newValue) {
         emit('close')
@@ -85,10 +82,7 @@ const dialogWidth = computed(() => {
 
 // 模态框样式类
 const modalClass = computed(() => {
-    return [
-        'mira-dialog',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['mira-dialog', props.class].filter(Boolean).join(' ')
 })
 
 // 事件处理

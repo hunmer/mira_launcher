@@ -1,15 +1,12 @@
 <!-- SettingCard 组件 - 包装 PrimeVue AccordionPanel 以支持设置页面的统一样式 -->
 <template>
-    <AccordionPanel
-        v-bind="$attrs"
-        :value="value"
-    >
+    <AccordionPanel v-bind="$attrs" :value="value">
         <AccordionHeader>
             <div class="flex items-center py-2">
                 <i
                     v-if="icon"
                     :class="[icon, iconColor]"
-                    style="margin-right: 8px;"
+                    style="margin-right: 8px"
                 />
                 <span class="font-medium">{{ title }}</span>
             </div>

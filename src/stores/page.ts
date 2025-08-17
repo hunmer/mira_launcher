@@ -1,4 +1,10 @@
-import type { Page, PageConfig, PageHistory, PageNavigation, PageState } from '@/types/components'
+import type {
+  Page,
+  PageConfig,
+  PageHistory,
+  PageNavigation,
+  PageState,
+} from '@/types/components'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useGridStore } from './grid'
@@ -61,16 +67,21 @@ export const usePageStore = defineStore('page', () => {
   })
 
   // 插件页面组件注册表
-  const pluginPageComponents = ref<Map<string, {
-    component: any
-    metadata: Record<string, any>
-    lifecycle: {
-      onMount?: () => void
-      onUnmount?: () => void
-      onActivate?: () => void
-      onDeactivate?: () => void
-        }
-        }>>(new Map())
+  const pluginPageComponents = ref<
+    Map<
+      string,
+      {
+        component: any
+        metadata: Record<string, any>
+        lifecycle: {
+          onMount?: () => void
+          onUnmount?: () => void
+          onActivate?: () => void
+          onDeactivate?: () => void
+            }
+            }
+            >
+            >(new Map())
 
   // 计算属性
   const currentPage = computed(() => {
@@ -105,7 +116,11 @@ export const usePageStore = defineStore('page', () => {
   }
 
   // 添加到历史记录
-  const addToHistory = (action: PageHistory['action'], pageId: string, data?: any) => {
+  const addToHistory = (
+    action: PageHistory['action'],
+    pageId: string,
+    data?: any,
+  ) => {
     const historyEntry: PageHistory = {
       id: generateId(),
       pageId,
@@ -145,7 +160,9 @@ export const usePageStore = defineStore('page', () => {
   // 页面管理方法
   const addPage = (pageData?: Partial<Page>) => {
     if (pages.value.length >= config.value.maxPages!) {
-      throw new Error(`无法添加更多页面，已达到最大限制 ${config.value.maxPages}`)
+      throw new Error(
+        `无法添加更多页面，已达到最大限制 ${config.value.maxPages}`,
+      )
     }
 
     const newPage: Page = {
@@ -313,8 +330,13 @@ export const usePageStore = defineStore('page', () => {
   }
 
   const movePage = (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 ||
-            fromIndex >= pages.value.length || toIndex >= pages.value.length) {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= pages.value.length ||
+      toIndex >= pages.value.length
+    ) {
       return false
     }
 
@@ -327,9 +349,15 @@ export const usePageStore = defineStore('page', () => {
     // 调整当前页面索引
     if (currentPageIndex.value === fromIndex) {
       currentPageIndex.value = toIndex
-    } else if (fromIndex < currentPageIndex.value && toIndex >= currentPageIndex.value) {
+    } else if (
+      fromIndex < currentPageIndex.value &&
+      toIndex >= currentPageIndex.value
+    ) {
       currentPageIndex.value--
-    } else if (fromIndex > currentPageIndex.value && toIndex <= currentPageIndex.value) {
+    } else if (
+      fromIndex > currentPageIndex.value &&
+      toIndex <= currentPageIndex.value
+    ) {
       currentPageIndex.value++
     }
 
@@ -433,7 +461,10 @@ export const usePageStore = defineStore('page', () => {
         }
 
         if (typeof data.currentPageIndex === 'number') {
-          currentPageIndex.value = Math.max(0, Math.min(data.currentPageIndex, pages.value.length - 1))
+          currentPageIndex.value = Math.max(
+            0,
+            Math.min(data.currentPageIndex, pages.value.length - 1),
+          )
         }
 
         if (data.config) {
@@ -441,7 +472,10 @@ export const usePageStore = defineStore('page', () => {
         }
 
         if (data.pluginPageConfig) {
-          pluginPageConfig.value = { ...pluginPageConfig.value, ...data.pluginPageConfig }
+          pluginPageConfig.value = {
+            ...pluginPageConfig.value,
+            ...data.pluginPageConfig,
+          }
         }
 
         if (data.history && Array.isArray(data.history)) {
@@ -472,10 +506,11 @@ export const usePageStore = defineStore('page', () => {
     if (!query.trim()) return pages.value
 
     const lowercaseQuery = query.toLowerCase()
-    return pages.value.filter(page =>
-      page.name.toLowerCase().includes(lowercaseQuery) ||
-            page.description?.toLowerCase().includes(lowercaseQuery) ||
-            page.route.toLowerCase().includes(lowercaseQuery),
+    return pages.value.filter(
+      page =>
+        page.name.toLowerCase().includes(lowercaseQuery) ||
+        page.description?.toLowerCase().includes(lowercaseQuery) ||
+        page.route.toLowerCase().includes(lowercaseQuery),
     )
   }
 
@@ -517,7 +552,9 @@ export const usePageStore = defineStore('page', () => {
 
     const pluginPages = pages.value.filter((page: any) => page.pluginId)
     if (pluginPages.length >= pluginPageConfig.value.maxPluginPages) {
-      throw new Error(`Plugin pages limit reached: ${pluginPageConfig.value.maxPluginPages}`)
+      throw new Error(
+        `Plugin pages limit reached: ${pluginPageConfig.value.maxPluginPages}`,
+      )
     }
 
     const componentKey = `${pluginId}.${pageId}`
@@ -527,7 +564,7 @@ export const usePageStore = defineStore('page', () => {
       lifecycle,
     })
 
-    const route = pluginPageConfig.value.isolatePluginRoutes 
+    const route = pluginPageConfig.value.isolatePluginRoutes
       ? `${pluginPageConfig.value.pluginPagePrefix}${pluginId}/${pageId}`
       : `/${pageId}`
 
@@ -549,7 +586,7 @@ export const usePageStore = defineStore('page', () => {
     if (pageId) {
       const componentKey = `${pluginId}.${pageId}`
       const entry = pluginPageComponents.value.get(componentKey)
-      
+
       if (entry && entry.lifecycle.onUnmount) {
         try {
           entry.lifecycle.onUnmount()
@@ -559,24 +596,26 @@ export const usePageStore = defineStore('page', () => {
       }
 
       pluginPageComponents.value.delete(componentKey)
-      
+
       // 移除页面
-      const pageIndex = pages.value.findIndex((page: any) => 
-        page.pluginId === pluginId && page.route.includes(pageId),
+      const pageIndex = pages.value.findIndex(
+        (page: any) => page.pluginId === pluginId && page.route.includes(pageId),
       )
       if (pageIndex !== -1) {
         removePage(pages.value[pageIndex]!.id)
       }
-      
+
       console.log(`[Page] Unregistered plugin page: ${componentKey}`)
     } else {
       // 移除该插件的所有页面
-      const pluginPages = pages.value.filter((page: any) => page.pluginId === pluginId)
-      
+      const pluginPages = pages.value.filter(
+        (page: any) => page.pluginId === pluginId,
+      )
+
       for (const page of pluginPages) {
         removePage(page.id)
       }
-      
+
       // 清理组件注册
       for (const [key] of pluginPageComponents.value) {
         if (key.startsWith(`${pluginId}.`)) {
@@ -585,13 +624,16 @@ export const usePageStore = defineStore('page', () => {
             try {
               entry.lifecycle.onUnmount()
             } catch (error) {
-              console.error('[Page] Error in plugin page unmount lifecycle:', error)
+              console.error(
+                '[Page] Error in plugin page unmount lifecycle:',
+                error,
+              )
             }
           }
           pluginPageComponents.value.delete(key)
         }
       }
-      
+
       console.log(`[Page] Unregistered all pages for plugin: ${pluginId}`)
     }
   }
@@ -604,7 +646,7 @@ export const usePageStore = defineStore('page', () => {
   const activatePluginPage = (pluginId: string, pageId: string) => {
     const componentKey = `${pluginId}.${pageId}`
     const entry = pluginPageComponents.value.get(componentKey)
-    
+
     if (entry && entry.lifecycle.onActivate) {
       try {
         entry.lifecycle.onActivate()
@@ -618,13 +660,16 @@ export const usePageStore = defineStore('page', () => {
   const deactivatePluginPage = (pluginId: string, pageId: string) => {
     const componentKey = `${pluginId}.${pageId}`
     const entry = pluginPageComponents.value.get(componentKey)
-    
+
     if (entry && entry.lifecycle.onDeactivate) {
       try {
         entry.lifecycle.onDeactivate()
         console.log(`[Page] Deactivated plugin page: ${componentKey}`)
       } catch (error) {
-        console.error('[Page] Error in plugin page deactivate lifecycle:', error)
+        console.error(
+          '[Page] Error in plugin page deactivate lifecycle:',
+          error,
+        )
       }
     }
   }
@@ -637,28 +682,35 @@ export const usePageStore = defineStore('page', () => {
 
   const getPluginPages = (pluginId?: string) => {
     const pluginPages = pages.value.filter((page: any) => page.pluginId)
-    
+
     if (pluginId) {
       return pluginPages.filter((page: any) => page.pluginId === pluginId)
     }
-    
+
     return pluginPages
   }
 
   // 监听配置变化
-  watch(() => config.value.autoSave, (newValue) => {
-    if (newValue) {
-      startAutoSave()
-    } else {
-      stopAutoSave()
-    }
-  }, { immediate: true })
+  watch(
+    () => config.value.autoSave,
+    newValue => {
+      if (newValue) {
+        startAutoSave()
+      } else {
+        stopAutoSave()
+      }
+    },
+    { immediate: true },
+  )
 
-  watch(() => config.value.saveInterval, () => {
-    if (config.value.autoSave) {
-      startAutoSave()
-    }
-  })
+  watch(
+    () => config.value.saveInterval,
+    () => {
+      if (config.value.autoSave) {
+        startAutoSave()
+      }
+    },
+  )
 
   // 初始化
   loadFromStorage()

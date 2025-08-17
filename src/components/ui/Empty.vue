@@ -1,25 +1,19 @@
 <template>
-    <div
-        :class="emptyClass"
-        v-bind="$attrs"
-    >
+    <div :class="emptyClass" v-bind="$attrs">
         <div :class="iconContainerClass">
             <slot name="icon">
                 <i class="pi pi-inbox text-gray-400" />
             </slot>
         </div>
-    
+
         <div :class="descriptionClass">
             {{ description }}
         </div>
-    
-        <div
-            v-if="$slots['extra']"
-            class="mt-4"
-        >
+
+        <div v-if="$slots['extra']" class="mt-4">
             <slot name="extra" />
         </div>
-    
+
         <slot />
     </div>
 </template>
@@ -64,25 +58,18 @@ const sizeClasses = computed(() => {
 
 // 图标容器样式类
 const iconContainerClass = computed(() => {
-    return [
-        'flex items-center justify-center',
-        sizeClasses.value.icon,
-    ].join(' ')
+    return ['flex items-center justify-center', sizeClasses.value.icon].join(' ')
 })
 
 // 描述文字样式类
 const descriptionClass = computed(() => {
-    return [
-        'text-gray-500 text-center',
-        sizeClasses.value.description,
-    ].join(' ')
+    return ['text-gray-500 text-center', sizeClasses.value.description].join(' ')
 })
 
 // 样式类
 const emptyClass = computed(() => {
-    return [
-        'flex flex-col items-center justify-center py-8',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['flex flex-col items-center justify-center py-8', props.class]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>

@@ -7,7 +7,10 @@
 import type { DownloadTask } from '@/stores/download'
 import { useDownloadStore } from '@/stores/download'
 import { reactive, ref } from 'vue'
-import { BrowserDownloadHelper, globalDownloadProgressManager } from './DownloadProgress'
+import {
+  BrowserDownloadHelper,
+  globalDownloadProgressManager,
+} from './DownloadProgress'
 import { globalEventBus } from './EventBus'
 import { RetryHandler } from './RetryHandler'
 import { TaskScheduler } from './TaskScheduler'
@@ -16,90 +19,90 @@ import { TaskScheduler } from './TaskScheduler'
  * 下载选项配置
  */
 export interface DownloadOptions {
-    /** 保存路径 */
-    savePath: string
-    /** 文件名（可选，不提供则从URL推断） */
-    fileName?: string
-    /** 优先级（数值越大优先级越高） */
-    priority?: number
-    /** 最大重试次数 */
-    maxRetries?: number
-    /** 请求头 */
-    headers?: Record<string, string>
-    /** 超时时间（毫秒） */
-    timeout?: number
-    /** 是否覆盖现有文件 */
-    override?: boolean
-    /** 是否恢复下载 */
-    resumeIfFileExists?: boolean
-    /** 代理设置 */
-    proxy?: string
-    /** 任务元数据 */
-    metadata?: Record<string, unknown>
+  /** 保存路径 */
+  savePath: string
+  /** 文件名（可选，不提供则从URL推断） */
+  fileName?: string
+  /** 优先级（数值越大优先级越高） */
+  priority?: number
+  /** 最大重试次数 */
+  maxRetries?: number
+  /** 请求头 */
+  headers?: Record<string, string>
+  /** 超时时间（毫秒） */
+  timeout?: number
+  /** 是否覆盖现有文件 */
+  override?: boolean
+  /** 是否恢复下载 */
+  resumeIfFileExists?: boolean
+  /** 代理设置 */
+  proxy?: string
+  /** 任务元数据 */
+  metadata?: Record<string, unknown>
 }
 
 /**
  * 下载统计信息
  */
 export interface DownloadManagerStats {
-    /** 总下载任务数 */
-    totalTasks: number
-    /** 活跃下载数 */
-    activeTasks: number
-    /** 已完成下载数 */
-    completedTasks: number
-    /** 失败下载数 */
-    failedTasks: number
-    /** 总下载字节数 */
-    totalBytes: number
-    /** 已下载字节数 */
-    downloadedBytes: number
-    /** 总体进度百分比 */
-    overallProgress: number
-    /** 平均下载速度（字节/秒） */
-    averageSpeed: number
-    /** 成功率 */
-    successRate: number
+  /** 总下载任务数 */
+  totalTasks: number
+  /** 活跃下载数 */
+  activeTasks: number
+  /** 已完成下载数 */
+  completedTasks: number
+  /** 失败下载数 */
+  failedTasks: number
+  /** 总下载字节数 */
+  totalBytes: number
+  /** 已下载字节数 */
+  downloadedBytes: number
+  /** 总体进度百分比 */
+  overallProgress: number
+  /** 平均下载速度（字节/秒） */
+  averageSpeed: number
+  /** 成功率 */
+  successRate: number
 }
 
 /**
  * 下载实例信息
  */
 interface DownloadInstance {
-    /** 任务ID */
-    taskId: string
-    /** 下载器实例 */
-    downloader: BrowserDownloadHelper
-    /** 开始时间 */
-    startTime: number
-    /** 上次进度更新时间 */
-    lastProgressTime: number
-    /** 上次下载字节数 */
-    lastDownloadedBytes: number
-    /** 平均速度计算窗口 */
-    speedWindow: Array<{ time: number; bytes: number }>
+  /** 任务ID */
+  taskId: string
+  /** 下载器实例 */
+  downloader: BrowserDownloadHelper
+  /** 开始时间 */
+  startTime: number
+  /** 上次进度更新时间 */
+  lastProgressTime: number
+  /** 上次下载字节数 */
+  lastDownloadedBytes: number
+  /** 平均速度计算窗口 */
+  speedWindow: Array<{ time: number; bytes: number }>
 }
 
 /**
  * 下载管理器配置
  */
 export interface DownloadManagerConfig {
-    /** 最大并发下载数 */
-    maxConcurrentDownloads: number
-    /** 默认保存路径 */
-    defaultSavePath: string
-    /** 默认最大重试次数 */
-    defaultMaxRetries: number
-    /** 默认超时时间（毫秒） */
-    defaultTimeout: number
-    /** 速度计算窗口大小 */
-    speedWindowSize: number
-    /** 进度更新间隔（毫秒） */
-    progressUpdateInterval: number
-    /** 是否启用断点续传 */
-    enableResume: boolean
-    /** 是否启用重试机制 */
-    enableRetry: boolean
+  /** 最大并发下载数 */
+  maxConcurrentDownloads: number
+  /** 默认保存路径 */
+  defaultSavePath: string
+  /** 默认最大重试次数 */
+  defaultMaxRetries: number
+  /** 默认超时时间（毫秒） */
+  defaultTimeout: number
+  /** 速度计算窗口大小 */
+  speedWindowSize: number
+  /** 进度更新间隔（毫秒） */
+  progressUpdateInterval: number
+  /** 是否启用断点续传 */
+  enableResume: boolean
+  /** 是否启用重试机制 */
+  enableRetry: boolean
 }
 
 /**
@@ -148,8 +151,8 @@ export class DownloadManager {
   }
 
   /**
-     * 初始化下载管理器
-     */
+   * 初始化下载管理器
+   */
   private initialize(): void {
     this.setupEventListeners()
     this.downloadStore.initialize()
@@ -167,41 +170,41 @@ export class DownloadManager {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     // 监听下载store事件
-    globalEventBus.on('download:taskStarted', (event) => {
+    globalEventBus.on('download:taskStarted', event => {
       const data = event.data as any
       if (data.task && !this.activeDownloads.has(data.taskId)) {
         this.startDownload(data.taskId, data.task)
       }
     })
 
-    globalEventBus.on('download:taskPaused', (event) => {
+    globalEventBus.on('download:taskPaused', event => {
       const data = event.data as any
       this.pauseDownload(data.taskId)
     })
 
-    globalEventBus.on('download:taskResumed', (event) => {
+    globalEventBus.on('download:taskResumed', event => {
       const data = event.data as any
       this.resumeDownload(data.taskId)
     })
 
-    globalEventBus.on('download:taskCancelled', (event) => {
+    globalEventBus.on('download:taskCancelled', event => {
       const data = event.data as any
       this.cancelDownload(data.taskId)
     })
 
-    globalEventBus.on('download:taskRetrying', (event) => {
+    globalEventBus.on('download:taskRetrying', event => {
       const data = event.data as any
       this.retryDownload(data.taskId, data.task)
     })
   }
 
   /**
-     * 创建下载任务
-     */
+   * 创建下载任务
+   */
   async createDownload(url: string, options: DownloadOptions): Promise<string> {
     // 验证URL
     if (!this.isValidUrl(url)) {
@@ -244,9 +247,12 @@ export class DownloadManager {
   }
 
   /**
-     * 开始下载
-     */
-  private async startDownload(taskId: string, task: DownloadTask): Promise<void> {
+   * 开始下载
+   */
+  private async startDownload(
+    taskId: string,
+    task: DownloadTask,
+  ): Promise<void> {
     if (this.activeDownloads.has(taskId)) {
       return // 已经在下载中
     }
@@ -260,9 +266,11 @@ export class DownloadManager {
         {
           fileName: task.fileName,
           headers: metadata['headers'] as Record<string, string>,
-          timeout: metadata['timeout'] as number || this.config.defaultTimeout,
-          override: metadata['override'] as boolean || false,
-          resumeIfFileExists: metadata['resumeIfFileExists'] as boolean !== false,
+          timeout:
+            (metadata['timeout'] as number) || this.config.defaultTimeout,
+          override: (metadata['override'] as boolean) || false,
+          resumeIfFileExists:
+            (metadata['resumeIfFileExists'] as boolean) !== false,
           proxy: metadata['proxy'] as string,
         },
       )
@@ -281,15 +289,14 @@ export class DownloadManager {
 
       // 开始下载
       await downloader.start()
-
     } catch (error) {
       this.handleDownloadError(taskId, error as Error)
     }
   }
 
   /**
-     * 设置下载事件监听
-     */
+   * 设置下载事件监听
+   */
   private setupDownloadEvents(instance: DownloadInstance): void {
     const { taskId, downloader } = instance
 
@@ -336,8 +343,8 @@ export class DownloadManager {
   }
 
   /**
-     * 更新下载进度
-     */
+   * 更新下载进度
+   */
   private updateProgress(instance: DownloadInstance, stats: any): void {
     const { taskId, speedWindow } = instance
     const now = Date.now()
@@ -383,8 +390,8 @@ export class DownloadManager {
   }
 
   /**
-     * 处理下载完成
-     */
+   * 处理下载完成
+   */
   private handleDownloadComplete(taskId: string, downloadInfo: any): void {
     this.activeDownloads.delete(taskId)
     this.downloadStore.completeTask(taskId)
@@ -397,8 +404,8 @@ export class DownloadManager {
   }
 
   /**
-     * 处理下载错误
-     */
+   * 处理下载错误
+   */
   private handleDownloadError(taskId: string, error: Error): void {
     this.activeDownloads.delete(taskId)
 
@@ -426,8 +433,8 @@ export class DownloadManager {
   }
 
   /**
-     * 暂停下载
-     */
+   * 暂停下载
+   */
   private pauseDownload(taskId: string): void {
     const instance = this.activeDownloads.get(taskId)
     if (instance) {
@@ -436,8 +443,8 @@ export class DownloadManager {
   }
 
   /**
-     * 恢复下载
-     */
+   * 恢复下载
+   */
   private resumeDownload(taskId: string): void {
     const instance = this.activeDownloads.get(taskId)
     if (instance) {
@@ -452,8 +459,8 @@ export class DownloadManager {
   }
 
   /**
-     * 取消下载
-     */
+   * 取消下载
+   */
   private cancelDownload(taskId: string): void {
     const instance = this.activeDownloads.get(taskId)
     if (instance) {
@@ -463,9 +470,12 @@ export class DownloadManager {
   }
 
   /**
-     * 重试下载
-     */
-  private async retryDownload(taskId: string, task: DownloadTask): Promise<void> {
+   * 重试下载
+   */
+  private async retryDownload(
+    taskId: string,
+    task: DownloadTask,
+  ): Promise<void> {
     // 等待一段时间后重新开始下载
     setTimeout(() => {
       this.startDownload(taskId, task)
@@ -473,12 +483,14 @@ export class DownloadManager {
   }
 
   /**
-     * 批量创建下载任务
-     */
-  async createBatchDownloads(downloads: Array<{
-        url: string
-        options: DownloadOptions
-    }>): Promise<string[]> {
+   * 批量创建下载任务
+   */
+  async createBatchDownloads(
+    downloads: Array<{
+      url: string
+      options: DownloadOptions
+    }>,
+  ): Promise<string[]> {
     const taskIds: string[] = []
 
     for (const { url, options } of downloads) {
@@ -500,8 +512,8 @@ export class DownloadManager {
   }
 
   /**
-     * 获取下载统计信息
-     */
+   * 获取下载统计信息
+   */
   getStats(): DownloadManagerStats {
     const storeStats = this.downloadStore.stats
 
@@ -519,34 +531,36 @@ export class DownloadManager {
   }
 
   /**
-     * 获取活跃下载信息
-     */
+   * 获取活跃下载信息
+   */
   getActiveDownloads(): Array<{
-        taskId: string
-        url: string
-        fileName: string
-        progress: number
-        speed: number
-        remainingTime: number
-    }> {
-    return Array.from(this.activeDownloads.entries()).map(([taskId, instance]) => {
-      const task = this.downloadStore.getTask(taskId)
-      return {
-        taskId,
-        url: task?.url || '',
-        fileName: task?.fileName || '',
-        progress: task?.progress || 0,
-        speed: task?.speed || 0,
-        remainingTime: task?.remainingTime || 0,
-      }
-    })
+    taskId: string
+    url: string
+    fileName: string
+    progress: number
+    speed: number
+    remainingTime: number
+  }> {
+    return Array.from(this.activeDownloads.entries()).map(
+      ([taskId, instance]) => {
+        const task = this.downloadStore.getTask(taskId)
+        return {
+          taskId,
+          url: task?.url || '',
+          fileName: task?.fileName || '',
+          progress: task?.progress || 0,
+          speed: task?.speed || 0,
+          remainingTime: task?.remainingTime || 0,
+        }
+      },
+    )
   }
 
   /**
-     * 暂停所有下载
-     */
+   * 暂停所有下载
+   */
   pauseAll(): void {
-    this.activeDownloads.forEach((instance) => {
+    this.activeDownloads.forEach(instance => {
       instance.downloader.pause()
     })
 
@@ -557,10 +571,10 @@ export class DownloadManager {
   }
 
   /**
-     * 恢复所有下载
-     */
+   * 恢复所有下载
+   */
   resumeAll(): void {
-    this.activeDownloads.forEach((instance) => {
+    this.activeDownloads.forEach(instance => {
       instance.downloader.resume()
     })
 
@@ -571,10 +585,10 @@ export class DownloadManager {
   }
 
   /**
-     * 取消所有下载
-     */
+   * 取消所有下载
+   */
   cancelAll(): void {
-    this.activeDownloads.forEach((instance) => {
+    this.activeDownloads.forEach(instance => {
       instance.downloader.stop()
     })
     this.activeDownloads.clear()
@@ -585,15 +599,15 @@ export class DownloadManager {
   }
 
   /**
-     * 清理已完成的下载任务
-     */
+   * 清理已完成的下载任务
+   */
   clearCompleted(): void {
     this.downloadStore.clearCompletedTasks()
   }
 
   /**
-     * 更新配置
-     */
+   * 更新配置
+   */
   updateConfig(config: Partial<DownloadManagerConfig>): void {
     Object.assign(this.config, config)
 
@@ -626,19 +640,19 @@ export class DownloadManager {
   }
 
   /**
-     * 获取配置
-     */
+   * 获取配置
+   */
   getConfig(): DownloadManagerConfig {
     return { ...this.config }
   }
 
   /**
-     * 工具方法
-     */
+   * 工具方法
+   */
 
   /**
-     * 验证URL是否有效
-     */
+   * 验证URL是否有效
+   */
   private isValidUrl(url: string): boolean {
     try {
       new URL(url)
@@ -649,8 +663,8 @@ export class DownloadManager {
   }
 
   /**
-     * 从URL提取文件名
-     */
+   * 从URL提取文件名
+   */
   private extractFileNameFromUrl(url: string): string {
     try {
       const urlObj = new URL(url)
@@ -671,8 +685,8 @@ export class DownloadManager {
   }
 
   /**
-     * 格式化字节大小
-     */
+   * 格式化字节大小
+   */
   static formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes'
 
@@ -684,15 +698,15 @@ export class DownloadManager {
   }
 
   /**
-     * 格式化速度
-     */
+   * 格式化速度
+   */
   static formatSpeed(bytesPerSecond: number): string {
     return `${DownloadManager.formatBytes(bytesPerSecond)}/s`
   }
 
   /**
-     * 格式化剩余时间
-     */
+   * 格式化剩余时间
+   */
   static formatRemainingTime(seconds: number): string {
     if (!isFinite(seconds) || seconds < 0) {
       return '未知'
@@ -712,8 +726,8 @@ export class DownloadManager {
   }
 
   /**
-     * 销毁下载管理器
-     */
+   * 销毁下载管理器
+   */
   destroy(): void {
     if (this.isDestroyed.value) {
       return

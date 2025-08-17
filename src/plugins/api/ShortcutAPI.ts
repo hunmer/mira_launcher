@@ -84,7 +84,11 @@ export interface ShortcutEvents {
   'shortcut:registered': { shortcut: PluginShortcut; pluginId: string }
   'shortcut:unregistered': { shortcutId: string; pluginId: string }
   'shortcut:triggered': { shortcut: PluginShortcut; event: KeyboardEvent }
-  'shortcut:conflict': { shortcut: string; existing: PluginShortcut; new: PluginShortcut }
+  'shortcut:conflict': {
+    shortcut: string
+    existing: PluginShortcut
+    new: PluginShortcut
+  }
 }
 
 /**
@@ -191,7 +195,10 @@ export class PluginShortcutAPI implements ShortcutAPI {
 
         if (result instanceof Promise) {
           result.catch(error => {
-            console.error(`[ShortcutAPI] Async shortcut handler error for ${shortcut.id}:`, error)
+            console.error(
+              `[ShortcutAPI] Async shortcut handler error for ${shortcut.id}:`,
+              error,
+            )
           })
         }
 
@@ -199,13 +206,18 @@ export class PluginShortcutAPI implements ShortcutAPI {
         this.emit('shortcut:triggered', { shortcut, event })
 
         if (this.config.enableLogging) {
-          console.log(`[ShortcutAPI] Triggered shortcut: ${shortcut.id} (${keyString})`)
+          console.log(
+            `[ShortcutAPI] Triggered shortcut: ${shortcut.id} (${keyString})`,
+          )
         }
 
         // 一般情況下，第一個匹配的快捷鍵處理後就停止
         break
       } catch (error) {
-        console.error(`[ShortcutAPI] Shortcut handler error for ${shortcut.id}:`, error)
+        console.error(
+          `[ShortcutAPI] Shortcut handler error for ${shortcut.id}:`,
+          error,
+        )
       }
     }
   }
@@ -232,7 +244,10 @@ export class PluginShortcutAPI implements ShortcutAPI {
    * 解析快捷鍵字符串
    */
   private parseShortcutString(shortcutString: string): ParsedShortcut {
-    const parts = shortcutString.toLowerCase().split('+').map(p => p.trim())
+    const parts = shortcutString
+      .toLowerCase()
+      .split('+')
+      .map(p => p.trim())
     const key = parts[parts.length - 1] || ''
 
     return {
@@ -308,7 +323,9 @@ export class PluginShortcutAPI implements ShortcutAPI {
 
         switch (this.config.conflictResolution) {
         case 'error':
-          throw new Error(`Shortcut '${normalizedKey}' conflicts with existing shortcut '${existingShortcut.id}'`)
+          throw new Error(
+            `Shortcut '${normalizedKey}' conflicts with existing shortcut '${existingShortcut.id}'`,
+          )
         case 'override':
           // 移除現有快捷鍵
           this.unregister(firstExistingId)
@@ -341,7 +358,8 @@ export class PluginShortcutAPI implements ShortcutAPI {
 
     // 記錄插件的快捷鍵
     if (shortcut.pluginId) {
-      const pluginShortcuts = this.shortcutsByPlugin.get(shortcut.pluginId) || []
+      const pluginShortcuts =
+        this.shortcutsByPlugin.get(shortcut.pluginId) || []
       pluginShortcuts.push(shortcut.id)
       this.shortcutsByPlugin.set(shortcut.pluginId, pluginShortcuts)
     }
@@ -352,7 +370,9 @@ export class PluginShortcutAPI implements ShortcutAPI {
       pluginId: shortcut.pluginId || 'unknown',
     })
 
-    console.log(`[ShortcutAPI] Registered shortcut: ${shortcut.id} (${normalizedKey})`)
+    console.log(
+      `[ShortcutAPI] Registered shortcut: ${shortcut.id} (${normalizedKey})`,
+    )
   }
 
   /**
@@ -399,7 +419,8 @@ export class PluginShortcutAPI implements ShortcutAPI {
 
     // 從插件記錄中移除
     if (shortcutObj.pluginId) {
-      const pluginShortcuts = this.shortcutsByPlugin.get(shortcutObj.pluginId) || []
+      const pluginShortcuts =
+        this.shortcutsByPlugin.get(shortcutObj.pluginId) || []
       const pluginIndex = pluginShortcuts.indexOf(shortcutId)
       if (pluginIndex > -1) {
         pluginShortcuts.splice(pluginIndex, 1)
@@ -418,7 +439,9 @@ export class PluginShortcutAPI implements ShortcutAPI {
       pluginId: shortcutObj.pluginId || 'unknown',
     })
 
-    console.log(`[ShortcutAPI] Unregistered shortcut: ${shortcutId} (${shortcutObj.key})`)
+    console.log(
+      `[ShortcutAPI] Unregistered shortcut: ${shortcutId} (${shortcutObj.key})`,
+    )
   }
 
   /**
@@ -458,7 +481,9 @@ export class PluginShortcutAPI implements ShortcutAPI {
     for (const shortcutId of shortcutIds) {
       this.unregister(shortcutId)
     }
-    console.log(`[ShortcutAPI] Unregistered all shortcuts for plugin: ${pluginId}`)
+    console.log(
+      `[ShortcutAPI] Unregistered all shortcuts for plugin: ${pluginId}`,
+    )
   }
 
   /**
@@ -566,7 +591,10 @@ export class PluginShortcutAPI implements ShortcutAPI {
   /**
    * 事件監聽
    */
-  on<T extends keyof ShortcutEvents>(event: T, listener: (data: ShortcutEvents[T]) => void): void {
+  on<T extends keyof ShortcutEvents>(
+    event: T,
+    listener: (data: ShortcutEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -575,7 +603,10 @@ export class PluginShortcutAPI implements ShortcutAPI {
   /**
    * 移除事件監聽
    */
-  off<T extends keyof ShortcutEvents>(event: T, listener: (data: ShortcutEvents[T]) => void): void {
+  off<T extends keyof ShortcutEvents>(
+    event: T,
+    listener: (data: ShortcutEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -586,7 +617,10 @@ export class PluginShortcutAPI implements ShortcutAPI {
   /**
    * 觸發事件
    */
-  private emit<T extends keyof ShortcutEvents>(event: T, data: ShortcutEvents[T]): void {
+  private emit<T extends keyof ShortcutEvents>(
+    event: T,
+    data: ShortcutEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
@@ -633,7 +667,10 @@ export class TauriShortcutIntegration {
   /**
    * 註冊全局快捷鍵
    */
-  async registerGlobalShortcut(key: string, handler: () => void): Promise<boolean> {
+  async registerGlobalShortcut(
+    key: string,
+    handler: () => void,
+  ): Promise<boolean> {
     try {
       // 檢查是否在Tauri環境中
       if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
@@ -643,14 +680,21 @@ export class TauriShortcutIntegration {
         await register(key, () => handler())
         this.registeredGlobalShortcuts.add(key)
 
-        console.log(`[TauriShortcutIntegration] Registered global shortcut: ${key}`)
+        console.log(
+          `[TauriShortcutIntegration] Registered global shortcut: ${key}`,
+        )
         return true
       } else {
-        console.warn(`[TauriShortcutIntegration] Not in Tauri environment, cannot register global shortcut: ${key}`)
+        console.warn(
+          `[TauriShortcutIntegration] Not in Tauri environment, cannot register global shortcut: ${key}`,
+        )
         return false
       }
     } catch (error) {
-      console.error(`[TauriShortcutIntegration] Failed to register global shortcut ${key}:`, error)
+      console.error(
+        `[TauriShortcutIntegration] Failed to register global shortcut ${key}:`,
+        error,
+      )
       return false
     }
   }
@@ -660,18 +704,29 @@ export class TauriShortcutIntegration {
    */
   async unregisterGlobalShortcut(key: string): Promise<boolean> {
     try {
-      if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window && this.registeredGlobalShortcuts.has(key)) {
-        const { unregister } = await import('@tauri-apps/plugin-global-shortcut')
+      if (
+        typeof window !== 'undefined' &&
+        '__TAURI_INTERNALS__' in window &&
+        this.registeredGlobalShortcuts.has(key)
+      ) {
+        const { unregister } = await import(
+          '@tauri-apps/plugin-global-shortcut'
+        )
 
         await unregister(key)
         this.registeredGlobalShortcuts.delete(key)
 
-        console.log(`[TauriShortcutIntegration] Unregistered global shortcut: ${key}`)
+        console.log(
+          `[TauriShortcutIntegration] Unregistered global shortcut: ${key}`,
+        )
         return true
       }
       return false
     } catch (error) {
-      console.error(`[TauriShortcutIntegration] Failed to unregister global shortcut ${key}:`, error)
+      console.error(
+        `[TauriShortcutIntegration] Failed to unregister global shortcut ${key}:`,
+        error,
+      )
       return false
     }
   }
@@ -834,7 +889,9 @@ export class ShortcutManager extends PluginShortcutAPI {
    */
   registerAction(action: ShortcutAction): void {
     if (this.actions.has(action.id)) {
-      console.warn(`[ShortcutManager] Action with ID '${action.id}' already exists`)
+      console.warn(
+        `[ShortcutManager] Action with ID '${action.id}' already exists`,
+      )
       return
     }
 
@@ -862,7 +919,9 @@ export class ShortcutManager extends PluginShortcutAPI {
    * 根據分類獲取動作
    */
   getActionsByCategory(category: string): ShortcutAction[] {
-    return Array.from(this.actions.values()).filter(action => action.category === category)
+    return Array.from(this.actions.values()).filter(
+      action => action.category === category,
+    )
   }
 
   /**
@@ -882,7 +941,7 @@ export class ShortcutManager extends PluginShortcutAPI {
     const shortcut: PluginShortcut = {
       id: shortcutId,
       key,
-      handler: (event) => action.handler(event),
+      handler: event => action.handler(event),
       description: action.description || '',
       shortcutType: options.shortcutType || 'application',
       ...options,
@@ -925,7 +984,10 @@ export class ShortcutManager extends PluginShortcutAPI {
           priority: 0, // 默認快捷鍵優先級最高
         })
       } catch (error) {
-        console.error(`[ShortcutManager] Failed to register default shortcut ${config.key}:`, error)
+        console.error(
+          `[ShortcutManager] Failed to register default shortcut ${config.key}:`,
+          error,
+        )
       }
     }
   }
@@ -1005,7 +1067,9 @@ export class ShortcutManager extends PluginShortcutAPI {
 /**
  * 創建快捷鍵管理器實例
  */
-export function createShortcutManager(config?: Partial<ShortcutConfig>): ShortcutManager {
+export function createShortcutManager(
+  config?: Partial<ShortcutConfig>,
+): ShortcutManager {
   return new ShortcutManager(config)
 }
 
@@ -1026,11 +1090,16 @@ export const shortcutUtils = {
       .split('+')
       .map(part => {
         switch (part.toLowerCase()) {
-        case 'ctrl': return 'Ctrl'
-        case 'meta': return navigator.platform.includes('Mac') ? '⌘' : 'Win'
-        case 'alt': return navigator.platform.includes('Mac') ? '⌥' : 'Alt'
-        case 'shift': return '⇧'
-        default: return part.charAt(0).toUpperCase() + part.slice(1)
+        case 'ctrl':
+          return 'Ctrl'
+        case 'meta':
+          return navigator.platform.includes('Mac') ? '⌘' : 'Win'
+        case 'alt':
+          return navigator.platform.includes('Mac') ? '⌥' : 'Alt'
+        case 'shift':
+          return '⇧'
+        default:
+          return part.charAt(0).toUpperCase() + part.slice(1)
         }
       })
       .join(navigator.platform.includes('Mac') ? '' : '+')

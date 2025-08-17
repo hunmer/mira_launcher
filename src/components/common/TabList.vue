@@ -1,8 +1,6 @@
 <!-- TabList 组件 - 包装 PrimeVue TabList -->
 <template>
-    <TabList
-        v-bind="$attrs"
-    >
+    <TabList v-bind="$attrs">
         <slot />
     </TabList>
 </template>

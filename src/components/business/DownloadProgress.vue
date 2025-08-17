@@ -7,10 +7,7 @@
 <template>
     <div class="download-progress">
         <!-- 下载任务列表 -->
-        <div
-            v-if="downloadTasks.length > 0"
-            class="download-tasks"
-        >
+        <div v-if="downloadTasks.length > 0" class="download-tasks">
             <div class="tasks-header">
                 <h3 class="header-title">
                     <i class="pi pi-download" />
@@ -96,10 +93,7 @@
             </div>
 
             <!-- 批量模式全选 -->
-            <div
-                v-if="isBatchMode"
-                class="batch-controls"
-            >
+            <div v-if="isBatchMode" class="batch-controls">
                 <Checkbox
                     v-model="isAllSelected"
                     binary
@@ -120,7 +114,7 @@
                         'task-active': isActiveTask(task),
                         'task-completed': task.state === 'completed',
                         'task-failed': task.state === 'failed',
-                        'task-selected': isBatchMode && selectedTaskIds.has(task.id)
+                        'task-selected': isBatchMode && selectedTaskIds.has(task.id),
                     }"
                 >
                     <!-- 批量模式选择框 -->
@@ -135,16 +129,15 @@
                     <!-- 任务信息 -->
                     <div class="task-info">
                         <div class="task-header">
-                            <span
-                                class="task-name"
-                                :title="task.fileName"
-                            >
+                            <span class="task-name" :title="task.fileName">
                                 {{ task.fileName }}
                             </span>
                             <div class="task-actions">
                                 <!-- 任务控制按钮 -->
                                 <Button
-                                    v-if="task.state === 'downloading' || task.state === 'starting'"
+                                    v-if="
+                                        task.state === 'downloading' || task.state === 'starting'
+                                    "
                                     icon="pi pi-pause"
                                     text
                                     size="small"
@@ -197,7 +190,7 @@
                                 :class="{
                                     'progress-success': task.state === 'completed',
                                     'progress-error': task.state === 'failed',
-                                    'progress-warning': task.state === 'paused'
+                                    'progress-warning': task.state === 'paused',
                                 }"
                             />
                             <span class="progress-text">
@@ -219,14 +212,12 @@
                             <div class="detail-row">
                                 <span class="detail-label">大小:</span>
                                 <span class="detail-value">
-                                    {{ formatBytes(task.downloadedSize) }} / {{ formatBytes(task.fileSize) }}
+                                    {{ formatBytes(task.downloadedSize) }} /
+                                    {{ formatBytes(task.fileSize) }}
                                 </span>
                             </div>
 
-                            <div
-                                v-if="isActiveTask(task)"
-                                class="detail-row"
-                            >
+                            <div v-if="isActiveTask(task)" class="detail-row">
                                 <span class="detail-label">速度:</span>
                                 <span class="detail-value">{{ formatSpeed(task.speed) }}</span>
                             </div>
@@ -236,18 +227,14 @@
                                 class="detail-row"
                             >
                                 <span class="detail-label">剩余:</span>
-                                <span class="detail-value">{{ formatTime(task.remainingTime) }}</span>
+                                <span class="detail-value">
+                                    {{ formatTime(task.remainingTime) }}
+                                </span>
                             </div>
 
-                            <div
-                                v-if="task.error"
-                                class="detail-row"
-                            >
+                            <div v-if="task.error" class="detail-row">
                                 <span class="detail-label">错误:</span>
-                                <span
-                                    class="detail-value error-text"
-                                    :title="task.error"
-                                >
+                                <span class="detail-value error-text" :title="task.error">
                                     {{ task.error }}
                                 </span>
                             </div>
@@ -268,10 +255,7 @@
         </div>
 
         <!-- 空状态 -->
-        <div
-            v-else
-            class="empty-state"
-        >
+        <div v-else class="empty-state">
             <i class="pi pi-download empty-icon" />
             <h3>暂无下载任务</h3>
             <p>点击"添加下载"开始下载文件</p>
@@ -283,10 +267,7 @@
         </div>
 
         <!-- 全局统计信息 -->
-        <div
-            v-if="downloadTasks.length > 0"
-            class="global-stats"
-        >
+        <div v-if="downloadTasks.length > 0" class="global-stats">
             <div class="stats-item">
                 <span class="stats-label">总进度:</span>
                 <ProgressBar
@@ -294,7 +275,9 @@
                     :show-value="false"
                     class="global-progress"
                 />
-                <span class="stats-value">{{ Math.round(stats.overallProgress) }}%</span>
+                <span class="stats-value">
+                    {{ Math.round(stats.overallProgress) }}%
+                </span>
             </div>
 
             <div class="stats-item">
@@ -390,12 +373,16 @@ const selectedTaskIds = computed(() => downloadStore.selectedTaskIds)
 const selectedTasks = computed(() => downloadStore.selectedTasks)
 
 const isAllSelected = computed({
-    get: () => selectedTaskIds.value.size === downloadTasks.value.length && downloadTasks.value.length > 0,
+    get: () =>
+        selectedTaskIds.value.size === downloadTasks.value.length &&
+        downloadTasks.value.length > 0,
     set: () => toggleSelectAll(),
 })
 
 const canBatchPause = computed(() =>
-    selectedTasks.value.some(task => ['downloading', 'starting', 'retrying'].includes(task.state)),
+    selectedTasks.value.some(task =>
+        ['downloading', 'starting', 'retrying'].includes(task.state),
+    ),
 )
 
 const canBatchResume = computed(() =>
@@ -535,355 +522,362 @@ const clearCompleted = () => {
 }
 
 // 监听器
-watch(() => downloadTasks.value.length, (newLength, oldLength) => {
-    // 如果任务数量减少且当前页没有数据，跳转到上一页
-    if (newLength < oldLength && first.value >= newLength && first.value > 0) {
-        first.value = Math.max(0, Math.floor((newLength - 1) / (props.pageSize || 20)) * (props.pageSize || 20))
-    }
-})
+watch(
+    () => downloadTasks.value.length,
+    (newLength, oldLength) => {
+        // 如果任务数量减少且当前页没有数据，跳转到上一页
+        if (newLength < oldLength && first.value >= newLength && first.value > 0) {
+            first.value = Math.max(
+                0,
+                Math.floor((newLength - 1) / (props.pageSize || 20)) *
+                    (props.pageSize || 20),
+            )
+        }
+    },
+)
 </script>
 
 <style scoped>
 .download-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .download-tasks {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    border: 1px solid rgb(229, 231, 235);
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgb(229, 231, 235);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dark .download-tasks {
-    background-color: rgba(31, 41, 55, 0.9);
-    border-color: rgb(55, 65, 81);
+  background-color: rgba(31, 41, 55, 0.9);
+  border-color: rgb(55, 65, 81);
 }
 
 .tasks-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid rgb(229, 231, 235);
-    background-color: rgba(249, 250, 251, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
+  background-color: rgba(249, 250, 251, 0.8);
 }
 
 .dark .tasks-header {
-    border-bottom-color: rgb(55, 65, 81);
-    background-color: rgba(17, 24, 39, 0.8);
+  border-bottom-color: rgb(55, 65, 81);
+  background-color: rgba(17, 24, 39, 0.8);
 }
 
 .header-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: rgb(17, 24, 39);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17, 24, 39);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .dark .header-title {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .batch-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background-color: rgba(239, 246, 255, 0.8);
-    border-bottom: 1px solid rgb(229, 231, 235);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(239, 246, 255, 0.8);
+  border-bottom: 1px solid rgb(229, 231, 235);
 }
 
 .dark .batch-controls {
-    background-color: rgba(30, 64, 175, 0.2);
-    border-bottom-color: rgb(55, 65, 81);
+  background-color: rgba(30, 64, 175, 0.2);
+  border-bottom-color: rgb(55, 65, 81);
 }
 
 .batch-info {
-    font-size: 0.875rem;
-    color: rgb(29, 78, 216);
+  font-size: 0.875rem;
+  color: rgb(29, 78, 216);
 }
 
 .dark .batch-info {
-    color: rgb(147, 197, 253);
+  color: rgb(147, 197, 253);
 }
 
 .task-list {
-    border-top: none;
+  border-top: none;
 }
 
 .task-item {
-    padding: 1rem;
-    border-bottom: 1px solid rgb(229, 231, 235);
-    transition: background-color 0.2s ease-in-out;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
+  transition: background-color 0.2s ease-in-out;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
 .dark .task-item {
-    border-bottom-color: rgb(55, 65, 81);
+  border-bottom-color: rgb(55, 65, 81);
 }
 
 .task-item:hover {
-    background-color: rgba(249, 250, 251, 0.8);
+  background-color: rgba(249, 250, 251, 0.8);
 }
 
 .dark .task-item:hover {
-    background-color: rgba(55, 65, 81, 0.5);
+  background-color: rgba(55, 65, 81, 0.5);
 }
 
 .task-item.task-active {
-    background-color: rgba(239, 246, 255, 0.6);
+  background-color: rgba(239, 246, 255, 0.6);
 }
 
 .dark .task-item.task-active {
-    background-color: rgba(30, 64, 175, 0.2);
+  background-color: rgba(30, 64, 175, 0.2);
 }
 
 .task-item.task-completed {
-    background-color: rgba(240, 253, 244, 0.6);
+  background-color: rgba(240, 253, 244, 0.6);
 }
 
 .dark .task-item.task-completed {
-    background-color: rgba(6, 78, 59, 0.2);
+  background-color: rgba(6, 78, 59, 0.2);
 }
 
 .task-item.task-failed {
-    background-color: rgba(254, 242, 242, 0.6);
+  background-color: rgba(254, 242, 242, 0.6);
 }
 
 .dark .task-item.task-failed {
-    background-color: rgba(127, 29, 29, 0.2);
+  background-color: rgba(127, 29, 29, 0.2);
 }
 
 .task-item.task-selected {
-    background-color: rgba(219, 234, 254, 0.8);
+  background-color: rgba(219, 234, 254, 0.8);
 }
 
 .dark .task-item.task-selected {
-    background-color: rgba(30, 64, 175, 0.3);
+  background-color: rgba(30, 64, 175, 0.3);
 }
 
 .task-checkbox {
-    margin-right: 0.75rem;
-    flex-shrink: 0;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
 .task-info {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .task-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
 
 .task-name {
-    font-weight: 500;
-    color: rgb(17, 24, 39);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-    margin-right: 1rem;
+  font-weight: 500;
+  color: rgb(17, 24, 39);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 1rem;
 }
 
 .dark .task-name {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 
 .task-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
 }
 
 .task-progress {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .progress-bar {
-    flex: 1;
+  flex: 1;
 }
 
 .progress-bar.progress-success :deep(.p-progressbar-value) {
-    background-color: rgb(34, 197, 94);
+  background-color: rgb(34, 197, 94);
 }
 
 .progress-bar.progress-error :deep(.p-progressbar-value) {
-    background-color: rgb(239, 68, 68);
+  background-color: rgb(239, 68, 68);
 }
 
 .progress-bar.progress-warning :deep(.p-progressbar-value) {
-    background-color: rgb(245, 158, 11);
+  background-color: rgb(245, 158, 11);
 }
 
 .progress-text {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(107, 114, 128);
-    min-width: 3rem;
-    text-align: right;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(107, 114, 128);
+  min-width: 3rem;
+  text-align: right;
 }
 
 .dark .progress-text {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .task-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.25rem 1rem;
-    font-size: 0.875rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
 }
 
 .detail-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .detail-label {
-    color: rgb(107, 114, 128);
-    min-width: 3rem;
-    flex-shrink: 0;
+  color: rgb(107, 114, 128);
+  min-width: 3rem;
+  flex-shrink: 0;
 }
 
 .dark .detail-label {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .detail-value {
-    color: rgb(17, 24, 39);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  color: rgb(17, 24, 39);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dark .detail-value {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 
 .error-text {
-    color: rgb(220, 38, 38);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  color: rgb(220, 38, 38);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dark .error-text {
-    color: rgb(248, 113, 113);
+  color: rgb(248, 113, 113);
 }
 
 .task-paginator {
-    border-top: 1px solid rgb(229, 231, 235);
+  border-top: 1px solid rgb(229, 231, 235);
 }
 
 .dark .task-paginator {
-    border-top-color: rgb(55, 65, 81);
+  border-top-color: rgb(55, 65, 81);
 }
 
 .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
+  text-align: center;
+  padding: 3rem 1rem;
 }
 
 .empty-icon {
-    font-size: 4rem;
-    color: rgb(156, 163, 175);
-    margin-bottom: 1rem;
+  font-size: 4rem;
+  color: rgb(156, 163, 175);
+  margin-bottom: 1rem;
 }
 
 .dark .empty-icon {
-    color: rgb(75, 85, 99);
+  color: rgb(75, 85, 99);
 }
 
 .empty-state h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: rgb(55, 65, 81);
-    margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(55, 65, 81);
+  margin-bottom: 0.5rem;
 }
 
 .dark .empty-state h3 {
-    color: rgb(209, 213, 219);
+  color: rgb(209, 213, 219);
 }
 
 .empty-state p {
-    color: rgb(107, 114, 128);
-    margin-bottom: 1.5rem;
+  color: rgb(107, 114, 128);
+  margin-bottom: 1.5rem;
 }
 
 .dark .empty-state p {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .global-stats {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    border: 1px solid rgb(229, 231, 235);
-    padding: 1rem;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgb(229, 231, 235);
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dark .global-stats {
-    background-color: rgba(31, 41, 55, 0.9);
-    border-color: rgb(55, 65, 81);
+  background-color: rgba(31, 41, 55, 0.9);
+  border-color: rgb(55, 65, 81);
 }
 
 .stats-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
 }
 
 .stats-label {
-    font-size: 0.875rem;
-    color: rgb(107, 114, 128);
-    min-width: 4rem;
-    flex-shrink: 0;
+  font-size: 0.875rem;
+  color: rgb(107, 114, 128);
+  min-width: 4rem;
+  flex-shrink: 0;
 }
 
 .dark .stats-label {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .global-progress {
-    flex: 1;
+  flex: 1;
 }
 
 .stats-value {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(17, 24, 39);
-    min-width: 4rem;
-    text-align: right;
-    flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(17, 24, 39);
+  min-width: 4rem;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .dark .stats-value {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 </style>

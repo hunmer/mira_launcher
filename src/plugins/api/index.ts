@@ -5,41 +5,48 @@
 export {
   createMenuAPI,
   globalMenuAPI,
-  menuUtils, PluginMenuAPI, type MenuEvents, type MenuRegistrationConfig, type PluginMenuItem,
+  menuUtils,
+  PluginMenuAPI,
+  type MenuEvents,
+  type MenuRegistrationConfig,
+  type PluginMenuItem,
 } from './MenuAPI'
 
 // 快捷鍵 API
 export {
   createShortcutManager,
-  globalShortcutAPI, PluginShortcutAPI, shortcutUtils,
+  globalShortcutAPI,
+  PluginShortcutAPI,
+  shortcutUtils,
 } from './ShortcutAPI'
 
 // 存儲 API
 export {
   createStorageAPI,
-  globalStorageAPI, PluginStorageAPI,
-  PluginStorageAPIImpl, storageUtils,
+  globalStorageAPI,
+  PluginStorageAPI,
+  PluginStorageAPIImpl,
+  storageUtils,
 } from './StorageAPI'
 
 // 通知 API
 export {
   createNotificationAPI,
   globalNotificationAPI,
-  notificationUtils, PluginNotificationAPI,
+  notificationUtils,
+  PluginNotificationAPI,
 } from './NotificationAPI'
 
 // 沙箱環境
 export {
   createSandbox,
-  globalSandbox, PluginSandbox, sandboxUtils,
+  globalSandbox,
+  PluginSandbox,
+  sandboxUtils,
 } from './Sandbox'
 
 // 進一步導入以供內部使用
-import {
-  createMenuAPI,
-  globalMenuAPI,
-  menuUtils,
-} from './MenuAPI'
+import { createMenuAPI, globalMenuAPI, menuUtils } from './MenuAPI'
 
 import {
   createShortcutManager,
@@ -47,11 +54,7 @@ import {
   shortcutUtils,
 } from './ShortcutAPI'
 
-import {
-  createStorageAPI,
-  globalStorageAPI,
-  storageUtils,
-} from './StorageAPI'
+import { createStorageAPI, globalStorageAPI, storageUtils } from './StorageAPI'
 
 import {
   createNotificationAPI,
@@ -59,11 +62,7 @@ import {
   notificationUtils,
 } from './NotificationAPI'
 
-import {
-  createSandbox,
-  globalSandbox,
-  sandboxUtils,
-} from './Sandbox'
+import { createSandbox, globalSandbox, sandboxUtils } from './Sandbox'
 
 /**
  * 創建完整的插件 API 套件
@@ -80,23 +79,27 @@ export function createPluginAPIs(pluginId: string) {
   storageAPI.setCurrentPlugin(pluginId)
 
   // 創建沙箱環境
-  const context = sandbox.createSandbox(pluginId, [
-    'storage:read',
-    'storage:write',
-    'menu:read',
-    'menu:write',
-    'shortcut:read',
-    'shortcut:write',
-    'notification:show',
-    'ui:component',
-    'ui:route',
-    'system:info',
-  ], {
-    menu: menuAPI,
-    shortcut: shortcutAPI,
-    storage: storageAPI,
-    notification: notificationAPI,
-  })
+  const context = sandbox.createSandbox(
+    pluginId,
+    [
+      'storage:read',
+      'storage:write',
+      'menu:read',
+      'menu:write',
+      'shortcut:read',
+      'shortcut:write',
+      'notification:show',
+      'ui:component',
+      'ui:route',
+      'system:info',
+    ],
+    {
+      menu: menuAPI,
+      shortcut: shortcutAPI,
+      storage: storageAPI,
+      notification: notificationAPI,
+    },
+  )
 
   return {
     menu: menuAPI,
@@ -143,26 +146,31 @@ export const SUPPORTED_APIS = [
   'sandbox',
 ] as const
 
-export type SupportedAPI = typeof SUPPORTED_APIS[number]
+export type SupportedAPI = (typeof SUPPORTED_APIS)[number]
 
 // 類型重新導出
-export type {
-  ShortcutConfig,
-  ShortcutEvents,
-} from './ShortcutAPI'
+export type { ShortcutConfig, ShortcutEvents } from './ShortcutAPI'
 
 export type {
   StorageConfig,
-  StorageEvents, StorageItem, StorageStats,
+  StorageEvents,
+  StorageItem,
+  StorageStats,
 } from './StorageAPI'
 
 export type {
   NotificationConfig,
-  NotificationEvents, NotificationItem, NotificationStats, NotificationType,
+  NotificationEvents,
+  NotificationItem,
+  NotificationStats,
+  NotificationType,
 } from './NotificationAPI'
 
 export type {
-  APICallRecord, SandboxContext,
-  SandboxEvents, SandboxPermission, SandboxPolicy, SandboxStats,
+  APICallRecord,
+  SandboxContext,
+  SandboxEvents,
+  SandboxPermission,
+  SandboxPolicy,
+  SandboxStats,
 } from './Sandbox'
-

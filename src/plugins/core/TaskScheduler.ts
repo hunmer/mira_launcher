@@ -4,11 +4,7 @@
  * 支持串行/并行执行模式切换、并发限流控制和任务取消功能
  */
 
-import type {
-  QueueConfig,
-  Task,
-  TaskExecutorOptions,
-} from '@/types/plugin'
+import type { QueueConfig, Task, TaskExecutorOptions } from '@/types/plugin'
 import { reactive, ref } from 'vue'
 import { BaseQueue } from './BaseQueue'
 import { globalEventBus } from './EventBus'
@@ -24,53 +20,53 @@ export type ExecutionMode = 'serial' | 'parallel' | 'mixed'
  * 调度器配置接口
  */
 export interface SchedulerConfig {
-    /** 执行模式 */
-    mode: ExecutionMode
-    /** 最大并发数（parallel 和 mixed 模式下有效） */
-    maxConcurrency: number
-    /** 限流配置 */
-    rateLimit: {
-        /** 时间窗口（毫秒） */
-        windowMs: number
-        /** 最大任务数 */
-        maxTasks: number
-    }
-    /** 是否启用任务取消 */
-    enableCancellation: boolean
-    /** 队列配置 */
-    queueConfig: QueueConfig
+  /** 执行模式 */
+  mode: ExecutionMode
+  /** 最大并发数（parallel 和 mixed 模式下有效） */
+  maxConcurrency: number
+  /** 限流配置 */
+  rateLimit: {
+    /** 时间窗口（毫秒） */
+    windowMs: number
+    /** 最大任务数 */
+    maxTasks: number
+  }
+  /** 是否启用任务取消 */
+  enableCancellation: boolean
+  /** 队列配置 */
+  queueConfig: QueueConfig
 }
 
 /**
  * 调度器统计信息
  */
 export interface SchedulerStats {
-    /** 总调度任务数 */
-    totalScheduled: number
-    /** 当前运行任务数 */
-    currentRunning: number
-    /** 已完成任务数 */
-    completed: number
-    /** 已取消任务数 */
-    cancelled: number
-    /** 失败任务数 */
-    failed: number
-    /** 平均响应时间 */
-    averageResponseTime: number
-    /** 吞吐量（任务/秒） */
-    throughput: number
-    /** 队列利用率 */
-    queueUtilization: number
+  /** 总调度任务数 */
+  totalScheduled: number
+  /** 当前运行任务数 */
+  currentRunning: number
+  /** 已完成任务数 */
+  completed: number
+  /** 已取消任务数 */
+  cancelled: number
+  /** 失败任务数 */
+  failed: number
+  /** 平均响应时间 */
+  averageResponseTime: number
+  /** 吞吐量（任务/秒） */
+  throughput: number
+  /** 队列利用率 */
+  queueUtilization: number
 }
 
 /**
  * 限流跟踪数据
  */
 interface RateLimitTracker {
-    /** 调用次数 */
-    calls: number
-    /** 重置时间 */
-    resetTime: number
+  /** 调用次数 */
+  calls: number
+  /** 重置时间 */
+  resetTime: number
 }
 
 /**
@@ -123,19 +119,24 @@ export class TaskScheduler {
   }
 
   /**
-     * 初始化调度器
-     */
+   * 初始化调度器
+   */
   private initializeScheduler(): void {
     // 根据执行模式创建主队列
-    const queueType = this.config.mode === 'serial' ? 'fifo' :
-      this.config.mode === 'parallel' ? 'priority' : 'priority'
+    const queueType =
+      this.config.mode === 'serial'
+        ? 'fifo'
+        : this.config.mode === 'parallel'
+          ? 'priority'
+          : 'priority'
 
     this.primaryQueue = QueueFactory.createQueue(
       `${this.id}-primary`,
       queueType,
       {
         ...this.config.queueConfig,
-        concurrency: this.config.mode === 'serial' ? 1 : this.config.maxConcurrency,
+        concurrency:
+          this.config.mode === 'serial' ? 1 : this.config.maxConcurrency,
       },
     )
 
@@ -160,18 +161,18 @@ export class TaskScheduler {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     // 监听队列事件
-    globalEventBus.on('queue:taskCompleted', (event) => {
+    globalEventBus.on('queue:taskCompleted', event => {
       const data = event.data as any
       if (data.queueId === `${this.id}-primary`) {
         this.handleTaskCompleted(data.taskId, data.result)
       }
     })
 
-    globalEventBus.on('queue:taskFailed', (event) => {
+    globalEventBus.on('queue:taskFailed', event => {
       const data = event.data as any
       if (data.queueId === `${this.id}-primary`) {
         this.handleTaskFailed(data.taskId, data.error)
@@ -185,8 +186,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 调度任务
-     */
+   * 调度任务
+   */
   async scheduleTask(task: Task): Promise<string> {
     // 检查限流
     if (!this.checkRateLimit()) {
@@ -234,16 +235,16 @@ export class TaskScheduler {
   }
 
   /**
-     * 串行模式调度任务
-     */
+   * 串行模式调度任务
+   */
   private async scheduleSerialTask(task: Task): Promise<string> {
     // 直接添加到主队列，由于并发数为1，任务将按顺序执行
     return await this.primaryQueue.push(task)
   }
 
   /**
-     * 并行模式调度任务
-     */
+   * 并行模式调度任务
+   */
   private async scheduleParallelTask(task: Task): Promise<string> {
     // 选择负载最轻的执行器
     const availableExecutor = this.selectBestExecutor()
@@ -274,11 +275,12 @@ export class TaskScheduler {
     this.stats.currentRunning++
 
     // 异步执行任务
-    availableExecutor.executeTask(cancelableTask)
-      .then((result) => {
+    availableExecutor
+      .executeTask(cancelableTask)
+      .then(result => {
         this.handleTaskCompleted(taskId, result)
       })
-      .catch((error) => {
+      .catch(error => {
         this.handleTaskFailed(taskId, error)
       })
       .finally(() => {
@@ -290,8 +292,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 混合模式调度任务
-     */
+   * 混合模式调度任务
+   */
   private async scheduleMixedTask(task: Task): Promise<string> {
     // 根据任务优先级决定执行策略
     const priority = task.priority || 0
@@ -314,8 +316,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 选择最佳执行器
-     */
+   * 选择最佳执行器
+   */
   private selectBestExecutor(): TaskExecutor | null {
     let bestExecutor: TaskExecutor | null = null
     let minRunningTasks = Infinity
@@ -337,8 +339,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 检查限流（重用 Sandbox 的 checkRateLimit 逻辑）
-     */
+   * 检查限流（重用 Sandbox 的 checkRateLimit 逻辑）
+   */
   private checkRateLimit(): boolean {
     const key = `scheduler-${this.id}`
     const now = Date.now()
@@ -367,8 +369,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 取消任务
-     */
+   * 取消任务
+   */
   async cancelTask(taskId: string): Promise<boolean> {
     if (!this.config.enableCancellation) {
       return false
@@ -393,8 +395,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 批量取消任务
-     */
+   * 批量取消任务
+   */
   async cancelAllTasks(): Promise<number> {
     if (!this.config.enableCancellation) {
       return 0
@@ -423,11 +425,13 @@ export class TaskScheduler {
   }
 
   /**
-     * 处理任务完成
-     */
+   * 处理任务完成
+   */
   private handleTaskCompleted(taskId: string, result: any): void {
     this.stats.completed++
-    const responseTime = Date.now() - (this.runningTasks.get(taskId)?.signal.aborted ? 0 : Date.now())
+    const responseTime =
+      Date.now() -
+      (this.runningTasks.get(taskId)?.signal.aborted ? 0 : Date.now())
     this.responseTimes.push(responseTime)
 
     // 保持响应时间数组大小在合理范围内
@@ -444,8 +448,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 处理任务失败
-     */
+   * 处理任务失败
+   */
   private handleTaskFailed(taskId: string, error: Error): void {
     this.stats.failed++
 
@@ -457,12 +461,14 @@ export class TaskScheduler {
   }
 
   /**
-     * 更新统计信息
-     */
+   * 更新统计信息
+   */
   private updateStats(): void {
     // 计算平均响应时间
     if (this.responseTimes.length > 0) {
-      this.stats.averageResponseTime = this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+      this.stats.averageResponseTime =
+        this.responseTimes.reduce((a, b) => a + b, 0) /
+        this.responseTimes.length
     }
 
     // 计算吞吐量
@@ -474,16 +480,17 @@ export class TaskScheduler {
   }
 
   /**
-     * 更新队列利用率
-     */
+   * 更新队列利用率
+   */
   private updateQueueUtilization(): void {
-    const maxCapacity = this.config.mode === 'serial' ? 1 : this.config.maxConcurrency
+    const maxCapacity =
+      this.config.mode === 'serial' ? 1 : this.config.maxConcurrency
     this.stats.queueUtilization = this.stats.currentRunning / maxCapacity
   }
 
   /**
-     * 启动调度器
-     */
+   * 启动调度器
+   */
   async start(): Promise<void> {
     if (this.isRunning.value) {
       return
@@ -498,8 +505,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 停止调度器
-     */
+   * 停止调度器
+   */
   async stop(): Promise<void> {
     if (!this.isRunning.value) {
       return
@@ -527,8 +534,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 切换执行模式
-     */
+   * 切换执行模式
+   */
   async switchMode(mode: ExecutionMode): Promise<void> {
     if (this.config.mode === mode) {
       return
@@ -559,22 +566,22 @@ export class TaskScheduler {
   }
 
   /**
-     * 获取统计信息
-     */
+   * 获取统计信息
+   */
   getStats(): SchedulerStats {
     return { ...this.stats }
   }
 
   /**
-     * 获取配置信息
-     */
+   * 获取配置信息
+   */
   getConfig(): SchedulerConfig {
     return { ...this.config }
   }
 
   /**
-     * 更新配置
-     */
+   * 更新配置
+   */
   updateConfig(config: Partial<SchedulerConfig>): void {
     this.config = { ...this.config, ...config }
 
@@ -585,8 +592,8 @@ export class TaskScheduler {
   }
 
   /**
-     * 销毁调度器
-     */
+   * 销毁调度器
+   */
   async destroy(): Promise<void> {
     await this.stop()
 

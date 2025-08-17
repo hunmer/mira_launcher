@@ -1,11 +1,11 @@
 <template>
-    <BaseIcon 
-        :icon-component="Settings2" 
+    <BaseIcon
+        :icon-component="Settings2"
         v-bind="{
             ...(size !== undefined && { size }),
             ...(color !== undefined && { color }),
             ...(iconClass !== undefined && { class: iconClass }),
-            ...$attrs
+            ...$attrs,
         }"
     />
 </template>

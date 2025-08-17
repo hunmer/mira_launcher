@@ -4,7 +4,7 @@
         v-model:visible="dialogVisible"
         v-bind="{
             ...$attrs,
-            class: dialogClass
+            class: dialogClass,
         }"
         @hide="handleHide"
     >
@@ -43,12 +43,15 @@ const themeStore = useThemeStore()
 const dialogVisible = ref(props.visible)
 
 // 监听外部值变化
-watch(() => props.visible, (newValue) => {
-    dialogVisible.value = newValue
-})
+watch(
+    () => props.visible,
+    newValue => {
+        dialogVisible.value = newValue
+    },
+)
 
 // 监听内部值变化
-watch(dialogVisible, (newValue) => {
+watch(dialogVisible, newValue => {
     emit('update:visible', newValue)
 })
 
@@ -59,11 +62,11 @@ const handleHide = () => {
 // 计算对话框样式类
 const dialogClass = computed(() => {
     const classes = ['custom-dialog']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

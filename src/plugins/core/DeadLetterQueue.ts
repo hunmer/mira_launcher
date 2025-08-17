@@ -12,87 +12,87 @@ import { globalEventBus } from './EventBus'
  * 死信任务信息
  */
 export interface DeadLetterTask {
-    /** 原始任务 */
-    task: Task
-    /** 失败原因 */
-    reason: DeadLetterReason
-    /** 错误历史 */
-    errorHistory: Array<{
-        attempt: number
-        error: Error
-        timestamp: Date
-    }>
-    /** 最终错误 */
-    finalError: Error
-    /** 添加到死信队列的时间 */
-    addedAt: Date
-    /** 失败分类 */
-    category: ErrorCategory
-    /** 是否可重处理 */
-    canReprocess: boolean
-    /** 重处理次数 */
-    reprocessCount: number
-    /** 最后重处理时间 */
-    lastReprocessAt?: Date
+  /** 原始任务 */
+  task: Task
+  /** 失败原因 */
+  reason: DeadLetterReason
+  /** 错误历史 */
+  errorHistory: Array<{
+    attempt: number
+    error: Error
+    timestamp: Date
+  }>
+  /** 最终错误 */
+  finalError: Error
+  /** 添加到死信队列的时间 */
+  addedAt: Date
+  /** 失败分类 */
+  category: ErrorCategory
+  /** 是否可重处理 */
+  canReprocess: boolean
+  /** 重处理次数 */
+  reprocessCount: number
+  /** 最后重处理时间 */
+  lastReprocessAt?: Date
 }
 
 /**
  * 死信原因
  */
 export type DeadLetterReason =
-    | 'max_retries_exceeded'    // 超过最大重试次数
-    | 'timeout'                 // 超时
-    | 'system_error'           // 系统错误
-    | 'user_error'             // 用户错误
-    | 'resource_exhausted'     // 资源耗尽
-    | 'validation_failed'      // 验证失败
-    | 'dependency_failed'      // 依赖失败
-    | 'manual_termination'     // 手动终止
+  | 'max_retries_exceeded' // 超过最大重试次数
+  | 'timeout' // 超时
+  | 'system_error' // 系统错误
+  | 'user_error' // 用户错误
+  | 'resource_exhausted' // 资源耗尽
+  | 'validation_failed' // 验证失败
+  | 'dependency_failed' // 依赖失败
+  | 'manual_termination' // 手动终止
 
 /**
  * 错误分类
  */
 export type ErrorCategory =
-    | 'temporary'    // 临时性错误，可能重试成功
-    | 'permanent'    // 永久性错误，重试无意义
-    | 'unknown'      // 未知错误类型
+  | 'temporary' // 临时性错误，可能重试成功
+  | 'permanent' // 永久性错误，重试无意义
+  | 'unknown' // 未知错误类型
 
 /**
  * 死信队列统计信息
  */
 export interface DeadLetterStats {
-    /** 总任务数 */
-    totalTasks: number
-    /** 按原因分组的统计 */
-    reasonStats: Map<DeadLetterReason, number>
-    /** 按分类分组的统计 */
-    categoryStats: Map<ErrorCategory, number>
-    /** 可重处理的任务数 */
-    reprocessableTasks: number
-    /** 重处理成功率 */
-    reprocessSuccessRate: number
-    /** 平均在队列中的时间 */
-    averageQueueTime: number
-    /** 最后更新时间 */
-    lastUpdated: Date
+  /** 总任务数 */
+  totalTasks: number
+  /** 按原因分组的统计 */
+  reasonStats: Map<DeadLetterReason, number>
+  /** 按分类分组的统计 */
+  categoryStats: Map<ErrorCategory, number>
+  /** 可重处理的任务数 */
+  reprocessableTasks: number
+  /** 重处理成功率 */
+  reprocessSuccessRate: number
+  /** 平均在队列中的时间 */
+  averageQueueTime: number
+  /** 最后更新时间 */
+  lastUpdated: Date
 }
 
 /**
  * 死信队列配置
  */
 export interface DeadLetterConfig {
-    /** 最大队列大小 */
-    maxQueueSize: number
-    /** 自动清理时间（毫秒） */
-    autoCleanupAge: number
-    /** 是否启用持久化 */
-    enablePersistence: boolean
-    /** 持久化键名 */
-    persistenceKey: string
-    /** 是否启用自动分析 */
-    enableAutoAnalysis: boolean
-    /** 分析间隔（毫秒） */
-    analysisInterval: number
+  /** 最大队列大小 */
+  maxQueueSize: number
+  /** 自动清理时间（毫秒） */
+  autoCleanupAge: number
+  /** 是否启用持久化 */
+  enablePersistence: boolean
+  /** 持久化键名 */
+  persistenceKey: string
+  /** 是否启用自动分析 */
+  enableAutoAnalysis: boolean
+  /** 分析间隔（毫秒） */
+  analysisInterval: number
 }
 
 /**
@@ -133,8 +133,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 初始化死信队列
-     */
+   * 初始化死信队列
+   */
   private initialize(): void {
     this.setupEventListeners()
     this.loadPersistedTasks()
@@ -151,25 +151,25 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     // 监听死信任务添加事件
-    globalEventBus.on('deadLetter:taskAdded', (event) => {
+    globalEventBus.on('deadLetter:taskAdded', event => {
       const data = event.data as any
       this.addTask(data.task, data.reason, data.errorHistory, data.finalError)
     })
 
     // 监听重试成功事件
-    globalEventBus.on('retry:taskSucceededAfterRetry', (event) => {
+    globalEventBus.on('retry:taskSucceededAfterRetry', event => {
       const data = event.data as any
       this.handleReprocessSuccess(data.taskId)
     })
   }
 
   /**
-     * 添加任务到死信队列
-     */
+   * 添加任务到死信队列
+   */
   addTask(
     task: Task,
     reason: DeadLetterReason,
@@ -209,9 +209,12 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 错误分类
-     */
-  private categorizeError(error: Error, reason: DeadLetterReason): ErrorCategory {
+   * 错误分类
+   */
+  private categorizeError(
+    error: Error,
+    reason: DeadLetterReason,
+  ): ErrorCategory {
     // 基于错误信息和原因判断错误类型
     const temporaryPatterns = [
       /timeout/i,
@@ -254,9 +257,12 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 判断任务是否可重处理
-     */
-  private determineReprocessability(reason: DeadLetterReason, category: ErrorCategory): boolean {
+   * 判断任务是否可重处理
+   */
+  private determineReprocessability(
+    reason: DeadLetterReason,
+    category: ErrorCategory,
+  ): boolean {
     // 永久性错误通常不可重处理
     if (category === 'permanent') {
       return false
@@ -273,8 +279,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 移除最旧的任务
-     */
+   * 移除最旧的任务
+   */
   private removeOldestTask(): void {
     let oldestTaskId: string | null = null
     let oldestTime = Date.now()
@@ -292,8 +298,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 重处理任务
-     */
+   * 重处理任务
+   */
   async reprocessTask(taskId: string): Promise<boolean> {
     const deadLetterTask = this.tasks.get(taskId)
     if (!deadLetterTask || !deadLetterTask.canReprocess) {
@@ -336,8 +342,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 批量重处理任务
-     */
+   * 批量重处理任务
+   */
   async reprocessByCategory(category: ErrorCategory): Promise<number> {
     let reprocessedCount = 0
 
@@ -360,8 +366,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 处理重处理成功
-     */
+   * 处理重处理成功
+   */
   private handleReprocessSuccess(taskId: string): void {
     const deadLetterTask = this.tasks.get(taskId)
     if (deadLetterTask) {
@@ -379,8 +385,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 清理过期任务
-     */
+   * 清理过期任务
+   */
   private cleanupExpiredTasks(): void {
     const now = Date.now()
     const expiredTasks: string[] = []
@@ -407,17 +413,20 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 启动清理定时器
-     */
+   * 启动清理定时器
+   */
   private startCleanupTimer(): void {
-    this.cleanupInterval = window.setInterval(() => {
-      this.cleanupExpiredTasks()
-    }, 60 * 60 * 1000) // 每小时检查一次
+    this.cleanupInterval = window.setInterval(
+      () => {
+        this.cleanupExpiredTasks()
+      },
+      60 * 60 * 1000,
+    ) // 每小时检查一次
   }
 
   /**
-     * 启动分析定时器
-     */
+   * 启动分析定时器
+   */
   private startAnalysisTimer(): void {
     this.analysisInterval = window.setInterval(() => {
       this.performAnalysis()
@@ -425,8 +434,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 执行错误分析
-     */
+   * 执行错误分析
+   */
   private performAnalysis(): void {
     const analysis = this.analyzeErrorPatterns()
 
@@ -438,13 +447,16 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 分析错误模式
-     */
+   * 分析错误模式
+   */
   private analyzeErrorPatterns(): {
-        commonErrors: Array<{ error: string; count: number }>
-        errorTrends: Array<{ category: ErrorCategory; trend: 'increasing' | 'decreasing' | 'stable' }>
-        recommendations: string[]
-        } {
+    commonErrors: Array<{ error: string; count: number }>
+    errorTrends: Array<{
+      category: ErrorCategory
+      trend: 'increasing' | 'decreasing' | 'stable'
+    }>
+    recommendations: string[]
+    } {
     const errorCounts = new Map<string, number>()
     const categoryTrends = new Map<ErrorCategory, number[]>()
 
@@ -461,16 +473,22 @@ export class DeadLetterQueue {
       .map(([error, count]) => ({ error, count }))
 
     // 简化的趋势分析（实际应用中需要历史数据）
-    const errorTrends: Array<{ category: ErrorCategory; trend: 'increasing' | 'decreasing' | 'stable' }> =
-            Array.from(this.stats.categoryStats.entries())
-              .map(([category, count]) => {
-                const trend: 'increasing' | 'decreasing' | 'stable' =
-                        count > 10 ? 'increasing' : count < 5 ? 'decreasing' : 'stable'
-                return { category, trend }
-              })
+    const errorTrends: Array<{
+      category: ErrorCategory
+      trend: 'increasing' | 'decreasing' | 'stable'
+    }> = Array.from(this.stats.categoryStats.entries()).map(
+      ([category, count]) => {
+        const trend: 'increasing' | 'decreasing' | 'stable' =
+          count > 10 ? 'increasing' : count < 5 ? 'decreasing' : 'stable'
+        return { category, trend }
+      },
+    )
 
     // 生成建议
-    const recommendations = this.generateRecommendations(commonErrors, errorTrends)
+    const recommendations = this.generateRecommendations(
+      commonErrors,
+      errorTrends,
+    )
 
     return {
       commonErrors,
@@ -480,11 +498,14 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 生成建议
-     */
+   * 生成建议
+   */
   private generateRecommendations(
     commonErrors: Array<{ error: string; count: number }>,
-    errorTrends: Array<{ category: ErrorCategory; trend: 'increasing' | 'decreasing' | 'stable' }>,
+    errorTrends: Array<{
+      category: ErrorCategory
+      trend: 'increasing' | 'decreasing' | 'stable'
+    }>,
   ): string[] {
     const recommendations: string[] = []
 
@@ -502,7 +523,9 @@ export class DeadLetterQueue {
     }
 
     // 基于趋势生成建议
-    const increasingCategories = errorTrends.filter(t => t.trend === 'increasing')
+    const increasingCategories = errorTrends.filter(
+      t => t.trend === 'increasing',
+    )
     if (increasingCategories.length > 0) {
       recommendations.push('检测到错误率上升趋势，建议进行系统健康检查')
     }
@@ -515,8 +538,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 更新统计信息
-     */
+   * 更新统计信息
+   */
   private updateStats(): void {
     this.stats.totalTasks = this.tasks.size
 
@@ -546,13 +569,14 @@ export class DeadLetterQueue {
     }
 
     this.stats.reprocessableTasks = reprocessableCount
-    this.stats.averageQueueTime = this.tasks.size > 0 ? totalQueueTime / this.tasks.size : 0
+    this.stats.averageQueueTime =
+      this.tasks.size > 0 ? totalQueueTime / this.tasks.size : 0
     this.stats.lastUpdated = new Date()
   }
 
   /**
-     * 持久化任务
-     */
+   * 持久化任务
+   */
   private persistTasks(): void {
     if (!this.config.enablePersistence) {
       return
@@ -589,8 +613,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 加载持久化的任务
-     */
+   * 加载持久化的任务
+   */
   private loadPersistedTasks(): void {
     if (!this.config.enablePersistence) {
       return
@@ -608,7 +632,9 @@ export class DeadLetterQueue {
         const reconstitutedTask: DeadLetterTask = {
           ...task,
           addedAt: new Date(task.addedAt),
-          lastReprocessAt: task.lastReprocessAt ? new Date(task.lastReprocessAt) : undefined,
+          lastReprocessAt: task.lastReprocessAt
+            ? new Date(task.lastReprocessAt)
+            : undefined,
           errorHistory: task.errorHistory.map((e: any) => ({
             ...e,
             timestamp: new Date(e.timestamp),
@@ -627,35 +653,39 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 获取任务
-     */
+   * 获取任务
+   */
   getTask(taskId: string): DeadLetterTask | null {
     return this.tasks.get(taskId) || null
   }
 
   /**
-     * 获取所有任务
-     */
+   * 获取所有任务
+   */
   getAllTasks(): Map<string, DeadLetterTask> {
     return new Map(this.tasks)
   }
 
   /**
-     * 按条件筛选任务
-     */
+   * 按条件筛选任务
+   */
   filterTasks(filter: {
-        reason?: DeadLetterReason
-        category?: ErrorCategory
-        canReprocess?: boolean
-        addedAfter?: Date
-        addedBefore?: Date
-    }): DeadLetterTask[] {
+    reason?: DeadLetterReason
+    category?: ErrorCategory
+    canReprocess?: boolean
+    addedAfter?: Date
+    addedBefore?: Date
+  }): DeadLetterTask[] {
     const results: DeadLetterTask[] = []
 
     for (const task of this.tasks.values()) {
       if (filter.reason && task.reason !== filter.reason) continue
       if (filter.category && task.category !== filter.category) continue
-      if (filter.canReprocess !== undefined && task.canReprocess !== filter.canReprocess) continue
+      if (
+        filter.canReprocess !== undefined &&
+        task.canReprocess !== filter.canReprocess
+      )
+        continue
       if (filter.addedAfter && task.addedAt < filter.addedAfter) continue
       if (filter.addedBefore && task.addedAt > filter.addedBefore) continue
 
@@ -666,8 +696,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 清空队列
-     */
+   * 清空队列
+   */
   clear(): void {
     const taskCount = this.tasks.size
     this.tasks.clear()
@@ -681,8 +711,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 获取统计信息
-     */
+   * 获取统计信息
+   */
   getStats(): DeadLetterStats {
     return {
       ...this.stats,
@@ -692,15 +722,15 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 获取配置
-     */
+   * 获取配置
+   */
   getConfig(): DeadLetterConfig {
     return { ...this.config }
   }
 
   /**
-     * 更新配置
-     */
+   * 更新配置
+   */
   updateConfig(config: Partial<DeadLetterConfig>): void {
     this.config = { ...this.config, ...config }
 
@@ -711,8 +741,8 @@ export class DeadLetterQueue {
   }
 
   /**
-     * 销毁死信队列
-     */
+   * 销毁死信队列
+   */
   destroy(): void {
     if (this.isDestroyed.value) {
       return

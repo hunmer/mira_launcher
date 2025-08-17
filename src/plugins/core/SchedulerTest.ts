@@ -3,19 +3,17 @@
  * 用于验证 TaskScheduler 和 ConcurrencyController 的实现
  */
 
-import {
-  ConcurrencyController,
-  TaskScheduler,
-  type Task,
-} from '@/plugins/core'
-import type {
-  SchedulerConfig,
-} from './TaskScheduler'
+import { ConcurrencyController, TaskScheduler, type Task } from '@/plugins/core'
+import type { SchedulerConfig } from './TaskScheduler'
 
 /**
  * 创建测试任务
  */
-function createTestTask(id: string, priority: number = 5, duration: number = 1000): Task {
+function createTestTask(
+  id: string,
+  priority: number = 5,
+  duration: number = 1000,
+): Task {
   return {
     id,
     priority,
@@ -24,10 +22,10 @@ function createTestTask(id: string, priority: number = 5, duration: number = 100
       await new Promise(resolve => setTimeout(resolve, duration))
       return `任务 ${id} 执行完成`
     },
-    onSuccess: (result) => {
+    onSuccess: result => {
       console.log(`✅ 任务 ${id} 成功:`, result)
     },
-    onError: (error) => {
+    onError: error => {
       console.error(`❌ 任务 ${id} 失败:`, error)
     },
     metadata: {
@@ -40,7 +38,10 @@ function createTestTask(id: string, priority: number = 5, duration: number = 100
 /**
  * 创建会失败的测试任务
  */
-function createFailingTask(id: string, errorMessage: string = '模拟错误'): Task {
+function createFailingTask(
+  id: string,
+  errorMessage: string = '模拟错误',
+): Task {
   return {
     id,
     priority: 3,
@@ -49,7 +50,7 @@ function createFailingTask(id: string, errorMessage: string = '模拟错误'): T
       await new Promise(resolve => setTimeout(resolve, 500))
       throw new Error(errorMessage)
     },
-    onError: (error) => {
+    onError: error => {
       console.error(`❌ 任务 ${id} 预期失败:`, error.message)
     },
   }
@@ -166,11 +167,11 @@ export async function testMixedMode() {
 
   // 添加不同优先级的任务
   const tasks = [
-    createTestTask('mixed-low-1', 1, 800),     // 低优先级，串行
-    createTestTask('mixed-high-1', 9, 600),    // 高优先级，并行
-    createTestTask('mixed-medium-1', 5, 400),  // 中等优先级，根据负载决定
-    createTestTask('mixed-low-2', 2, 500),     // 低优先级，串行
-    createTestTask('mixed-high-2', 8, 700),     // 高优先级，并行
+    createTestTask('mixed-low-1', 1, 800), // 低优先级，串行
+    createTestTask('mixed-high-1', 9, 600), // 高优先级，并行
+    createTestTask('mixed-medium-1', 5, 400), // 中等优先级，根据负载决定
+    createTestTask('mixed-low-2', 2, 500), // 低优先级，串行
+    createTestTask('mixed-high-2', 8, 700), // 高优先级，并行
   ]
 
   const startTime = Date.now()
@@ -241,7 +242,7 @@ export async function testRateLimit() {
     maxConcurrency: 5,
     rateLimit: {
       windowMs: 5000, // 5秒窗口
-      maxTasks: 3,     // 最多3个任务
+      maxTasks: 3, // 最多3个任务
     },
   })
 
@@ -385,8 +386,8 @@ export async function testModeSwitch() {
   await scheduler.switchMode('mixed')
 
   // 混合模式下添加不同优先级的任务
-  await scheduler.scheduleTask(createTestTask('switch-6', 2, 500))  // 低优先级
-  await scheduler.scheduleTask(createTestTask('switch-7', 9, 500))  // 高优先级
+  await scheduler.scheduleTask(createTestTask('switch-6', 2, 500)) // 低优先级
+  await scheduler.scheduleTask(createTestTask('switch-7', 9, 500)) // 高优先级
 
   await new Promise(resolve => setTimeout(resolve, 2000))
 

@@ -4,7 +4,7 @@
         v-model="ratingValue"
         v-bind="{
             ...$attrs,
-            class: ratingClass
+            class: ratingClass,
         }"
         @change="handleChange"
     />
@@ -43,12 +43,15 @@ const themeStore = useThemeStore()
 const ratingValue = ref(props.modelValue)
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    ratingValue.value = newValue
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        ratingValue.value = newValue
+    },
+)
 
 // 监听内部值变化
-watch(ratingValue, (newValue) => {
+watch(ratingValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -59,11 +62,11 @@ const handleChange = (event: { originalEvent: Event; value: number }) => {
 // 计算评分样式类
 const ratingClass = computed(() => {
     const classes = ['custom-rating']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

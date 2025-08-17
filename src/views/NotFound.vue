@@ -10,7 +10,9 @@
                 <h1 class="text-6xl font-bold text-gray-900 dark:text-white mb-4">
                     404
                 </h1>
-                <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                <h2
+                    class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4"
+                >
                     页面未找到
                 </h2>
                 <p class="text-gray-500 dark:text-gray-400 mb-8">
@@ -20,16 +22,10 @@
 
             <div class="space-y-4 mb-8">
                 <div class="flex justify-center space-x-4">
-                    <Button
-                        severity="primary"
-                        @click="$router.push('/')"
-                    >
+                    <Button severity="primary" @click="$router.push('/')">
                         返回首页
                     </Button>
-                    <Button
-                        variant="outline"
-                        @click="$router.back()"
-                    >
+                    <Button variant="outline" @click="$router.back()">
                         返回上页
                     </Button>
                 </div>

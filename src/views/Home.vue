@@ -9,10 +9,7 @@
                     @click="$router.push('/applications')"
                 >
                     <template #icon>
-                        <AppIcon
-                            name="grid-3x3"
-                            class="text-blue-500"
-                        />
+                        <AppIcon name="grid-3x3" class="text-blue-500" />
                     </template>
                 </Card>
 
@@ -23,10 +20,7 @@
                     @click="$router.push('/plugins')"
                 >
                     <template #icon>
-                        <AppIcon
-                            name="puzzle"
-                            class="text-green-500"
-                        />
+                        <AppIcon name="puzzle" class="text-green-500" />
                     </template>
                 </Card>
 
@@ -37,10 +31,7 @@
                     @click="$router.push('/settings')"
                 >
                     <template #icon>
-                        <AppIcon
-                            name="settings"
-                            class="text-orange-500"
-                        />
+                        <AppIcon name="settings" class="text-orange-500" />
                     </template>
                 </Card>
             </div>

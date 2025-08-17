@@ -4,7 +4,7 @@
         v-model="dropdownValue"
         v-bind="{
             ...$attrs,
-            class: dropdownClass
+            class: dropdownClass,
         }"
         @change="handleChange"
     />
@@ -39,12 +39,15 @@ const themeStore = useThemeStore()
 const dropdownValue = ref(props.modelValue)
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    dropdownValue.value = newValue
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        dropdownValue.value = newValue
+    },
+)
 
 // 监听内部值变化
-watch(dropdownValue, (newValue) => {
+watch(dropdownValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -55,11 +58,11 @@ const handleChange = (event: { originalEvent: Event; value: unknown }) => {
 // 计算下拉菜单样式类
 const dropdownClass = computed(() => {
     const classes = ['custom-dropdown']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

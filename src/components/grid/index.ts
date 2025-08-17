@@ -11,5 +11,7 @@ export type { GridItemProps } from './GridItem.vue'
 
 // 拖拽功能组合函数
 export { useDraggable } from '@/composables/useDraggable'
-export type { DraggableState, UseDraggableOptions } from '@/composables/useDraggable'
-
+export type {
+  DraggableState,
+  UseDraggableOptions,
+} from '@/composables/useDraggable'

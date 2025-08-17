@@ -2,10 +2,7 @@
     <div class="setting-item">
         <InputGroup class="w-full no-border">
             <!-- 快捷键类型标记（放在最前面） -->
-            <InputGroupAddon
-                v-if="shortcutType"
-                class="border-0"
-            >
+            <InputGroupAddon v-if="shortcutType" class="border-0">
                 <div class="px-3 py-2">
                     <Badge
                         :value="shortcutType === 'global' ? '全局' : '应用内'"
@@ -24,14 +21,16 @@
                         class="flex-shrink-0"
                     />
                     <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <span class="font-medium text-gray-900 dark:text-white text-sm truncate">
+                        <span
+                            class="font-medium text-gray-900 dark:text-white text-sm truncate"
+                        >
                             {{ title }}
                         </span>
                         <i
                             v-if="tooltip"
                             v-tooltip.top="tooltip"
                             class="pi pi-info-circle text-gray-400 hover:text-blue-500 cursor-help transition-colors text-sm flex-shrink-0"
-                            style="margin-left: 8px;"
+                            style="margin-left: 8px"
                         />
                     </div>
                 </div>
@@ -64,10 +63,7 @@
             </InputGroupAddon>
 
             <!-- 操作按钮（根据isBuiltIn属性控制显示） -->
-            <InputGroupAddon
-                v-if="showDeleteButton && !isBuiltIn"
-                class="border-0"
-            >
+            <InputGroupAddon v-if="showDeleteButton && !isBuiltIn" class="border-0">
                 <Button
                     v-tooltip.top="'清除快捷键'"
                     icon="pi pi-trash"
@@ -134,14 +130,22 @@ const conflictMessage = ref<string | null>(null)
 const isFocused = ref(false)
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    inputValue.value = newValue
-}, { immediate: true })
+watch(
+    () => props.modelValue,
+    newValue => {
+        inputValue.value = newValue
+    },
+    { immediate: true },
+)
 
 // 监听内部值变化
-watch(inputValue, (newValue) => {
-    emit('update:modelValue', newValue)
-}, { flush: 'sync' })
+watch(
+    inputValue,
+    newValue => {
+        emit('update:modelValue', newValue)
+    },
+    { flush: 'sync' },
+)
 
 /**
  * 处理值变化
@@ -186,70 +190,70 @@ const handleBlur = () => {
 
 <style scoped>
 .setting-item {
-    margin-bottom: 4px;
-    width: 100%;
+  margin-bottom: 4px;
+  width: 100%;
 }
 
 /* 取消 InputGroup 边框 */
 .setting-item :deep(.p-inputgroup) {
-    width: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    background: transparent !important;
+  width: 100% !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
 }
 
 .setting-item :deep(.p-inputgroup.no-border) {
-    border: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
-    background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
 }
 
 .setting-item :deep(.p-inputgroup .p-inputgroup-addon) {
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* 移除所有可能的边框样式 */
 .setting-item :deep(.p-inputgroup),
 .setting-item :deep(.p-inputgroup *) {
-    border: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /* 填满宽度的样式 */
 .setting-item :deep(.fill-width) {
-    flex: 1 1 0% !important;
-    width: 1% !important;
+  flex: 1 1 0% !important;
+  width: 1% !important;
 }
 
 .setting-item :deep(.key-capture-input) {
-    width: 100% !important;
-    flex: 1 !important;
+  width: 100% !important;
+  flex: 1 !important;
 }
 
 .setting-item :deep(.key-capture-input .p-inputtext) {
-    border-radius: 0 !important;
-    border: 0 !important;
-    width: 100% !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  width: 100% !important;
 }
 
 /* IftaLabel 样式 */
 .setting-item :deep(.p-iftalabel) {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 .setting-item :deep(.p-iftalabel label) {
-    font-size: 0.75rem !important;
-    color: #6b7280 !important;
+  font-size: 0.75rem !important;
+  color: #6b7280 !important;
 }
 
 /* 快捷键输入框特殊样式 */
 .setting-item :deep(.shortcut-input .p-inputtext) {
-    padding-top: 1.25rem !important;
-    padding-bottom: 0.5rem !important;
+  padding-top: 1.25rem !important;
+  padding-bottom: 0.5rem !important;
 }
 </style>

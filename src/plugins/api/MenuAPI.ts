@@ -114,7 +114,7 @@ export class PluginMenuAPI implements MenuAPI {
     // 設置默認值
     const menuItem: PluginMenuItem = {
       ...item,
-      position: position as any || this.config.defaultPosition,
+      position: (position as any) || this.config.defaultPosition,
       priority: item.priority ?? this.config.defaultPriority,
       visible: item.visible || (() => true),
       permissions: item.permissions || [],
@@ -123,7 +123,9 @@ export class PluginMenuAPI implements MenuAPI {
     // 權限檢查
     if (menuItem.permissions && menuItem.permissions.length > 0) {
       if (!this.config.permissionChecker!(menuItem.permissions)) {
-        console.warn(`[MenuAPI] Menu item '${menuItem.id}' skipped due to insufficient permissions`)
+        console.warn(
+          `[MenuAPI] Menu item '${menuItem.id}' skipped due to insufficient permissions`,
+        )
         return
       }
     }
@@ -131,7 +133,7 @@ export class PluginMenuAPI implements MenuAPI {
     // 包裝命令處理
     if (menuItem.command) {
       const originalCommand = menuItem.command
-      menuItem.command = (event) => {
+      menuItem.command = event => {
         this.emit('menu:clicked', { item: menuItem, event })
         originalCommand(event)
       }
@@ -148,9 +150,9 @@ export class PluginMenuAPI implements MenuAPI {
     }
 
     // 觸發事件
-    this.emit('menu:registered', { 
-      item: menuItem, 
-      pluginId: menuItem.pluginId || 'unknown', 
+    this.emit('menu:registered', {
+      item: menuItem,
+      pluginId: menuItem.pluginId || 'unknown',
     })
 
     console.log(`[MenuAPI] Registered menu item: ${item.id}`)
@@ -182,9 +184,9 @@ export class PluginMenuAPI implements MenuAPI {
     this.menuItems.delete(itemId)
 
     // 觸發事件
-    this.emit('menu:unregistered', { 
-      itemId, 
-      pluginId: menuItem.pluginId || 'unknown', 
+    this.emit('menu:unregistered', {
+      itemId,
+      pluginId: menuItem.pluginId || 'unknown',
     })
 
     console.log(`[MenuAPI] Unregistered menu item: ${itemId}`)
@@ -205,7 +207,9 @@ export class PluginMenuAPI implements MenuAPI {
     // 權限檢查
     if (updatedItem.permissions && updatedItem.permissions.length > 0) {
       if (!this.config.permissionChecker!(updatedItem.permissions)) {
-        console.warn(`[MenuAPI] Menu item update '${itemId}' rejected due to insufficient permissions`)
+        console.warn(
+          `[MenuAPI] Menu item update '${itemId}' rejected due to insufficient permissions`,
+        )
         return
       }
     }
@@ -213,7 +217,7 @@ export class PluginMenuAPI implements MenuAPI {
     // 包裝命令處理
     if (updates.command && updates.command !== existingItem.command) {
       const originalCommand = updates.command
-      updatedItem.command = (event) => {
+      updatedItem.command = event => {
         this.emit('menu:clicked', { item: updatedItem, event })
         originalCommand(event)
       }
@@ -287,36 +291,50 @@ export class PluginMenuAPI implements MenuAPI {
   /**
    * 創建菜單組
    */
-  createGroup(groupName: string, items: PluginMenuItem[], options?: {
-    position?: string
-    priority?: number
-    separator?: boolean
-  }): string {
+  createGroup(
+    groupName: string,
+    items: PluginMenuItem[],
+    options?: {
+      position?: string
+      priority?: number
+      separator?: boolean
+    },
+  ): string {
     const groupId = `group-${groupName}-${Date.now()}`
-    
+
     // 添加分隔符（如果需要）
     if (options?.separator) {
-      this.registerSingleItem({
-        id: `${groupId}-separator-before`,
-        separator: true,
-        priority: (options.priority || 0) - 1,
-        position: options.position || this.config.defaultPosition,
-      } as PluginMenuItem, options.position || this.config.defaultPosition)
+      this.registerSingleItem(
+        {
+          id: `${groupId}-separator-before`,
+          separator: true,
+          priority: (options.priority || 0) - 1,
+          position: options.position || this.config.defaultPosition,
+        } as PluginMenuItem,
+        options.position || this.config.defaultPosition,
+      )
     }
 
     // 註册組內項目
     for (let i = 0; i < items.length; i++) {
       const sourceItem = items[i]
       if (!sourceItem) continue
-      
+
       const item: PluginMenuItem = {
         ...sourceItem,
         id: sourceItem.id || `${groupId}-item-${i}`,
         group: groupName,
         priority: (options?.priority || 0) + i,
-        position: (options?.position || this.config.defaultPosition) as 'main' | 'tools' | 'help' | 'custom',
+        position: (options?.position || this.config.defaultPosition) as
+          | 'main'
+          | 'tools'
+          | 'help'
+          | 'custom',
       }
-      this.registerSingleItem(item, options?.position || this.config.defaultPosition)
+      this.registerSingleItem(
+        item,
+        options?.position || this.config.defaultPosition,
+      )
     }
 
     return groupId
@@ -326,14 +344,26 @@ export class PluginMenuAPI implements MenuAPI {
    * 轉換為 PrimeVue MenuItem
    */
   private convertToMenuItem(item: PluginMenuItem): MenuItem {
-    const { pluginId, id, priority, visible, position, permissions, group, ...menuItem } = item
+    const {
+      pluginId,
+      id,
+      priority,
+      visible,
+      position,
+      permissions,
+      group,
+      ...menuItem
+    } = item
     return menuItem
   }
 
   /**
    * 觸發事件
    */
-  private emit<T extends keyof MenuEvents>(event: T, data: MenuEvents[T]): void {
+  private emit<T extends keyof MenuEvents>(
+    event: T,
+    data: MenuEvents[T],
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     for (const listener of listeners) {
       try {
@@ -347,7 +377,10 @@ export class PluginMenuAPI implements MenuAPI {
   /**
    * 添加事件監聽
    */
-  on<T extends keyof MenuEvents>(event: T, listener: (data: MenuEvents[T]) => void): void {
+  on<T extends keyof MenuEvents>(
+    event: T,
+    listener: (data: MenuEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     listeners.push(listener)
     this.eventListeners.set(event, listeners)
@@ -356,7 +389,10 @@ export class PluginMenuAPI implements MenuAPI {
   /**
    * 移除事件監聽
    */
-  off<T extends keyof MenuEvents>(event: T, listener: (data: MenuEvents[T]) => void): void {
+  off<T extends keyof MenuEvents>(
+    event: T,
+    listener: (data: MenuEvents[T]) => void,
+  ): void {
     const listeners = this.eventListeners.get(event) || []
     const index = listeners.indexOf(listener)
     if (index > -1) {
@@ -387,7 +423,9 @@ export class PluginMenuAPI implements MenuAPI {
       itemsByPlugin[pluginId] = (itemsByPlugin[pluginId] || 0) + 1
     }
 
-    const visibleItems = items.filter(item => !item.visible || item.visible()).length
+    const visibleItems = items.filter(
+      item => !item.visible || item.visible(),
+    ).length
 
     return {
       totalItems: items.length,
@@ -425,7 +463,9 @@ export class PluginMenuAPI implements MenuAPI {
 /**
  * 創建菜單 API 實例
  */
-export function createMenuAPI(config?: Partial<MenuRegistrationConfig>): PluginMenuAPI {
+export function createMenuAPI(
+  config?: Partial<MenuRegistrationConfig>,
+): PluginMenuAPI {
   return new PluginMenuAPI(config)
 }
 
@@ -457,7 +497,9 @@ export const menuUtils = {
       ...(options.command && { command: options.command }),
       ...(options.route && { route: options.route }),
       ...(options.priority !== undefined && { priority: options.priority }),
-      ...(options.position && { position: options.position as 'main' | 'tools' | 'help' | 'custom' }),
+      ...(options.position && {
+        position: options.position as 'main' | 'tools' | 'help' | 'custom',
+      }),
     }
     return item
   },

@@ -19,10 +19,10 @@ import { globalEventBus } from './EventBus'
  * 队列事件数据接口
  */
 export interface QueueEventData {
-    queueId: string
-    task?: Task
-    stats?: QueueStats
-    error?: Error
+  queueId: string
+  task?: Task
+  stats?: QueueStats
+  error?: Error
 }
 
 /**
@@ -47,11 +47,7 @@ export abstract class BaseQueue implements ITaskQueue {
   public readonly id: string
   public readonly type: QueueType
 
-  constructor(
-    id: string,
-    type: QueueType,
-    config: QueueConfig = {},
-  ) {
+  constructor(id: string, type: QueueType, config: QueueConfig = {}) {
     this.id = id
     this.type = type
 
@@ -74,8 +70,8 @@ export abstract class BaseQueue implements ITaskQueue {
   }
 
   /**
-     * 设置事件监听器
-     */
+   * 设置事件监听器
+   */
   private setupEventListeners(): void {
     this.queue.addEventListener('start', (e: any) => {
       const task = this.findTaskByJob(e.detail.job)
@@ -100,7 +96,8 @@ export abstract class BaseQueue implements ITaskQueue {
 
         // 记录执行时间
         if (task.startedAt) {
-          const executionTime = task.completedAt.getTime() - task.startedAt.getTime()
+          const executionTime =
+            task.completedAt.getTime() - task.startedAt.getTime()
           this.executionTimes.push(executionTime)
 
           // 保持最近100次执行时间用于平均值计算
@@ -171,8 +168,8 @@ export abstract class BaseQueue implements ITaskQueue {
   }
 
   /**
-     * 根据 job 查找对应的任务
-     */
+   * 根据 job 查找对应的任务
+   */
   private findTaskByJob(job: Function): Task | undefined {
     for (const task of this.tasks.values()) {
       if ((task as any).__job === job) {
@@ -183,8 +180,8 @@ export abstract class BaseQueue implements ITaskQueue {
   }
 
   /**
-     * 更新统计信息
-     */
+   * 更新统计信息
+   */
   private updateStats(): void {
     let pending = 0
     let running = 0
@@ -216,7 +213,8 @@ export abstract class BaseQueue implements ITaskQueue {
     // 计算平均执行时间
     if (this.executionTimes.length > 0) {
       this.stats.averageExecutionTime =
-                this.executionTimes.reduce((sum, time) => sum + time, 0) / this.executionTimes.length
+        this.executionTimes.reduce((sum, time) => sum + time, 0) /
+        this.executionTimes.length
     }
 
     // 计算吞吐量
@@ -227,8 +225,8 @@ export abstract class BaseQueue implements ITaskQueue {
   }
 
   /**
-     * 添加任务到队列
-     */
+   * 添加任务到队列
+   */
   async push(task: Task): Promise<string> {
     // 设置默认值
     task.state = 'pending'
@@ -261,115 +259,115 @@ export abstract class BaseQueue implements ITaskQueue {
     return task.id
   }
 
-    /**
-     * 抽象方法：根据队列类型添加任务
-     */
-    protected abstract addTaskToQueue(job: Function, task: Task): void
+  /**
+   * 抽象方法：根据队列类型添加任务
+   */
+  protected abstract addTaskToQueue(job: Function, task: Task): void
 
-    /**
-     * 启动队列处理
-     */
-    async start(): Promise<void> {
-      return new Promise((resolve, reject) => {
-        this.queue.start((err: any) => {
-          if (err) {
-            globalEventBus.emit('queue:error', {
-              queueId: this.id,
-              error: err,
-            })
-            reject(err)
-          } else {
-            resolve()
-          }
-        })
-      })
-    }
-
-    /**
-     * 停止队列处理
-     */
-    async stop(): Promise<void> {
-      this.queue.stop()
-
-      // 将所有等待中的任务标记为取消
-      for (const task of this.tasks.values()) {
-        if (task.state === 'pending') {
-          task.state = 'cancelled'
+  /**
+   * 启动队列处理
+   */
+  async start(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.queue.start((err: any) => {
+        if (err) {
+          globalEventBus.emit('queue:error', {
+            queueId: this.id,
+            error: err,
+          })
+          reject(err)
+        } else {
+          resolve()
         }
-      }
+      })
+    })
+  }
 
-      this.updateStats()
-    }
+  /**
+   * 停止队列处理
+   */
+  async stop(): Promise<void> {
+    this.queue.stop()
 
-    /**
-     * 获取队列统计信息
-     */
-    getStats(): QueueStats {
-      return { ...this.stats }
-    }
-
-    /**
-     * 获取队列长度
-     */
-    get length(): number {
-      return this.queue.length
-    }
-
-    /**
-     * 队列是否正在运行
-     */
-    get isRunning(): boolean {
-      return this.queue.length > 0
-    }
-
-    /**
-     * 获取任务详情
-     */
-    getTask(taskId: string): Task | undefined {
-      return this.tasks.get(taskId)
-    }
-
-    /**
-     * 获取所有任务
-     */
-    getAllTasks(): Task[] {
-      return Array.from(this.tasks.values())
-    }
-
-    /**
-     * 取消特定任务
-     */
-    cancelTask(taskId: string): boolean {
-      const task = this.tasks.get(taskId)
-      if (task && task.state === 'pending') {
+    // 将所有等待中的任务标记为取消
+    for (const task of this.tasks.values()) {
+      if (task.state === 'pending') {
         task.state = 'cancelled'
-        this.updateStats()
-
-        globalEventBus.emit('queue:taskCancelled', {
-          queueId: this.id,
-          task,
-        })
-
-        return true
       }
-      return false
     }
 
-    /**
-     * 清空队列
-     */
-    clear(): void {
-      this.queue.end()
-      this.tasks.clear()
-      this.stats.totalTasks = 0
+    this.updateStats()
+  }
+
+  /**
+   * 获取队列统计信息
+   */
+  getStats(): QueueStats {
+    return { ...this.stats }
+  }
+
+  /**
+   * 获取队列长度
+   */
+  get length(): number {
+    return this.queue.length
+  }
+
+  /**
+   * 队列是否正在运行
+   */
+  get isRunning(): boolean {
+    return this.queue.length > 0
+  }
+
+  /**
+   * 获取任务详情
+   */
+  getTask(taskId: string): Task | undefined {
+    return this.tasks.get(taskId)
+  }
+
+  /**
+   * 获取所有任务
+   */
+  getAllTasks(): Task[] {
+    return Array.from(this.tasks.values())
+  }
+
+  /**
+   * 取消特定任务
+   */
+  cancelTask(taskId: string): boolean {
+    const task = this.tasks.get(taskId)
+    if (task && task.state === 'pending') {
+      task.state = 'cancelled'
       this.updateStats()
-    }
 
-    /**
-     * 销毁队列
-     */
-    destroy(): void {
-      this.stop()
-      this.clear()
+      globalEventBus.emit('queue:taskCancelled', {
+        queueId: this.id,
+        task,
+      })
+
+      return true
     }
+    return false
+  }
+
+  /**
+   * 清空队列
+   */
+  clear(): void {
+    this.queue.end()
+    this.tasks.clear()
+    this.stats.totalTasks = 0
+    this.updateStats()
+  }
+
+  /**
+   * 销毁队列
+   */
+  destroy(): void {
+    this.stop()
+    this.clear()
+  }
 }

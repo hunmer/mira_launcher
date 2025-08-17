@@ -77,14 +77,16 @@ const tagClass = computed(() => {
         medium: 'text-sm px-3 py-1',
         large: 'text-base px-4 py-2',
     }
-  
+
     return [
         'inline-flex items-center',
         sizeClasses[props.size],
         props.checkable && props.checked && 'ring-2 ring-blue-500',
         props.checkable && 'cursor-pointer',
         props.class,
-    ].filter(Boolean).join(' ')
+    ]
+        .filter(Boolean)
+        .join(' ')
 })
 
 // 事件处理

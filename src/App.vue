@@ -109,7 +109,6 @@ onMounted(async () => {
         if (result.errors.length > 0) {
             console.warn('⚠️ 插件启动过程中的错误:', result.errors)
         }
-
     } catch (error) {
         console.error('❌ 插件系统初始化失败:', error)
     }

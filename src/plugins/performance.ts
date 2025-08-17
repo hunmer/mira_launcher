@@ -65,7 +65,9 @@ class PerformanceMonitor {
 
     if (import.meta.env.DEV) {
       this.startMonitoring()
-      console.log('[Performance Monitor] Initialized for development environment')
+      console.log(
+        '[Performance Monitor] Initialized for development environment',
+      )
     }
   }
 
@@ -97,7 +99,9 @@ class PerformanceMonitor {
         }
 
         if (usedMB > this.config.memoryThreshold && this.config.enableAlerts) {
-          console.warn(`[Performance] High memory usage detected: ${usedMB.toFixed(2)}MB`)
+          console.warn(
+            `[Performance] High memory usage detected: ${usedMB.toFixed(2)}MB`,
+          )
           this.dispatchPerformanceEvent('memory-warning', { usage: usedMB })
         }
       }
@@ -214,8 +218,8 @@ class PerformanceMonitor {
       lastUpdate: new Date(),
     }
 
-      // 存储加载开始时间
-      ; (metric as any).loadStartTime = startTime
+    // 存储加载开始时间
+    ;(metric as any).loadStartTime = startTime
     this.pluginMetrics.set(pluginId, metric)
 
     console.log(`[Performance] Plugin load started: ${pluginId}`)
@@ -239,7 +243,9 @@ class PerformanceMonitor {
       delete (metric as any).loadStartTime
       this.pluginMetrics.set(pluginId, metric)
 
-      console.log(`[Performance] Plugin load ${success ? 'completed' : 'failed'}: ${pluginId} (${metric.loadTime.toFixed(2)}ms)`)
+      console.log(
+        `[Performance] Plugin load ${success ? 'completed' : 'failed'}: ${pluginId} (${metric.loadTime.toFixed(2)}ms)`,
+      )
     }
   }
 
@@ -272,7 +278,9 @@ class PerformanceMonitor {
       delete (metric as any).activationStartTime
       this.pluginMetrics.set(pluginId, metric)
 
-      console.log(`[Performance] Plugin activation completed: ${pluginId} (${metric.activationTime.toFixed(2)}ms)`)
+      console.log(
+        `[Performance] Plugin activation completed: ${pluginId} (${metric.activationTime.toFixed(2)}ms)`,
+      )
     }
   }
 
@@ -313,7 +321,10 @@ class PerformanceMonitor {
    */
   removePluginMetrics(pluginId: string) {
     this.pluginMetrics.delete(pluginId)
-    this.generalMetrics.totalPlugins = Math.max(0, this.generalMetrics.totalPlugins - 1)
+    this.generalMetrics.totalPlugins = Math.max(
+      0,
+      this.generalMetrics.totalPlugins - 1,
+    )
     console.log(`[Performance] Removed metrics for plugin: ${pluginId}`)
   }
 
@@ -398,7 +409,9 @@ export function setupPerformanceMonitor(app: App) {
         }
 
         // 检查是否是插件组件
-        const pluginId = (this.$el as HTMLElement)?.getAttribute?.('data-plugin-id')
+        const pluginId = (this.$el as HTMLElement)?.getAttribute?.(
+          'data-plugin-id',
+        )
         if (pluginId) {
           performanceMonitor.recordPluginRender(pluginId)
         }
@@ -407,11 +420,14 @@ export function setupPerformanceMonitor(app: App) {
 
     // 监听路由变化
     window.addEventListener('beforeunload', () => {
-      console.log('[Performance] Final stats:', performanceMonitor.getPerformanceReport())
+      console.log(
+        '[Performance] Final stats:',
+        performanceMonitor.getPerformanceReport(),
+      )
     })
 
     // 暴露到全局以便调试
-    ; (window as any).__performanceMonitor = performanceMonitor
+    ;(window as any).__performanceMonitor = performanceMonitor
 
     console.log('[Performance Monitor] Initialized for development environment')
   }
@@ -450,4 +466,3 @@ export function analyzeBundleSize() {
 
 // 导出性能监控实例
 export { performanceMonitor }
-

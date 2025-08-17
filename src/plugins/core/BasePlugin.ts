@@ -253,7 +253,10 @@ export abstract class BasePlugin {
    * 插件配置更新处理方法
    * 在插件配置发生变化时调用
    */
-  onConfigChange?(newConfig: PluginConfig, oldConfig: PluginConfig): Promise<void>
+  onConfigChange?(
+    newConfig: PluginConfig,
+    oldConfig: PluginConfig
+  ): Promise<void>
 
   /**
    * 插件错误处理方法
@@ -328,7 +331,10 @@ export abstract class BasePlugin {
     if (this.hotkeys && this._api) {
       this.hotkeys.forEach(hotkey => {
         // 通过API注册快捷键
-        console.log(`[Plugin:${this.name}] Registering hotkey:`, hotkey.combination)
+        console.log(
+          `[Plugin:${this.name}] Registering hotkey:`,
+          hotkey.combination,
+        )
       })
     }
   }
@@ -340,7 +346,10 @@ export abstract class BasePlugin {
     if (this.subscriptions && this._api) {
       this.subscriptions.forEach(subscription => {
         // 通过API订阅事件
-        console.log(`[Plugin:${this.name}] Subscribing to event:`, subscription.event)
+        console.log(
+          `[Plugin:${this.name}] Subscribing to event:`,
+          subscription.event,
+        )
       })
     }
   }
@@ -348,7 +357,10 @@ export abstract class BasePlugin {
   /**
    * 发送通知
    */
-  protected sendNotification(type: string, options?: Record<string, unknown>): void {
+  protected sendNotification(
+    type: string,
+    options?: Record<string, unknown>,
+  ): void {
     if (this._api) {
       console.log(`[Plugin:${this.name}] Sending notification:`, type, options)
       // 通过API发送通知
@@ -393,7 +405,11 @@ export abstract class BasePlugin {
   /**
    * 日志记录辅助方法
    */
-  protected log(level: 'info' | 'warn' | 'error', message: string, ...args: unknown[]): void {
+  protected log(
+    level: 'info' | 'warn' | 'error',
+    message: string,
+    ...args: unknown[]
+  ): void {
     const prefix = `[Plugin:${this.name}]`
     switch (level) {
     case 'info':

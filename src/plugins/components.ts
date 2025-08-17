@@ -61,7 +61,9 @@ class ComponentRegistry {
         // 检查组件名称冲突
         if (this.dynamicComponents.has(name)) {
           const existing = this.dynamicComponents.get(name)!
-          console.warn(`[ComponentRegistry] Component name conflict: ${name} (existing: ${existing.pluginId}, new: ${pluginId})`)
+          console.warn(
+            `[ComponentRegistry] Component name conflict: ${name} (existing: ${existing.pluginId}, new: ${pluginId})`,
+          )
           continue
         }
 
@@ -81,9 +83,14 @@ class ComponentRegistry {
         this.dynamicComponents.set(name, dynamicComponent)
         registeredNames.push(name)
 
-        console.log(`[ComponentRegistry] Registered component: ${name} from plugin ${pluginId}`)
+        console.log(
+          `[ComponentRegistry] Registered component: ${name} from plugin ${pluginId}`,
+        )
       } catch (error) {
-        console.error(`[ComponentRegistry] Failed to register component ${name} from plugin ${pluginId}:`, error)
+        console.error(
+          `[ComponentRegistry] Failed to register component ${name} from plugin ${pluginId}:`,
+          error,
+        )
       }
     }
 
@@ -91,7 +98,10 @@ class ComponentRegistry {
     this.componentsByPlugin.set(pluginId, registeredNames)
 
     if (registeredNames.length > 0) {
-      console.log(`[ComponentRegistry] Plugin ${pluginId} registered ${registeredNames.length} components:`, registeredNames)
+      console.log(
+        `[ComponentRegistry] Plugin ${pluginId} registered ${registeredNames.length} components:`,
+        registeredNames,
+      )
     }
   }
 
@@ -100,7 +110,7 @@ class ComponentRegistry {
    */
   unregisterPluginComponents(pluginId: string): void {
     const componentNames = this.componentsByPlugin.get(pluginId) || []
-    
+
     for (const name of componentNames) {
       const dynamicComponent = this.dynamicComponents.get(name)
       if (dynamicComponent && dynamicComponent.pluginId === pluginId) {
@@ -111,14 +121,18 @@ class ComponentRegistry {
 
         // 从注册表移除
         this.dynamicComponents.delete(name)
-        console.log(`[ComponentRegistry] Unregistered component: ${name} from plugin ${pluginId}`)
+        console.log(
+          `[ComponentRegistry] Unregistered component: ${name} from plugin ${pluginId}`,
+        )
       }
     }
 
     this.componentsByPlugin.delete(pluginId)
-    
+
     if (componentNames.length > 0) {
-      console.log(`[ComponentRegistry] Plugin ${pluginId} unregistered ${componentNames.length} components`)
+      console.log(
+        `[ComponentRegistry] Plugin ${pluginId} unregistered ${componentNames.length} components`,
+      )
     }
   }
 
@@ -150,8 +164,10 @@ class ComponentRegistry {
    * 检查组件是否已注册
    */
   hasComponent(name: string): boolean {
-    return this.dynamicComponents.has(name) || 
-           (this.app?._context.components?.[name] !== undefined)
+    return (
+      this.dynamicComponents.has(name) ||
+      this.app?._context.components?.[name] !== undefined
+    )
   }
 
   /**
@@ -163,7 +179,7 @@ class ComponentRegistry {
     recentlyRegistered: DynamicComponent[]
     } {
     const componentsByPlugin: Record<string, number> = {}
-    
+
     for (const [pluginId, components] of this.componentsByPlugin) {
       componentsByPlugin[pluginId] = components.length
     }
@@ -222,26 +238,35 @@ export function registerGlobalComponents(app: App) {
   // 注册所有组件为全局组件，过滤掉非组件的导出
   Object.entries(allComponents).forEach(([name, component]) => {
     // 检查是否是 Vue 组件（排除函数等其他导出）
-    if (component &&
+    if (
+      component &&
       typeof component === 'object' &&
       !name.startsWith('use') && // 排除 composables
       !name.endsWith('Props') && // 排除类型定义
-      !name.endsWith('Options')) { // 排除选项类型
+      !name.endsWith('Options')
+    ) {
+      // 排除选项类型
       try {
         app.component(name, component as Component)
       } catch (error) {
-        console.warn(`[Components Plugin] Failed to register component ${name}:`, error)
+        console.warn(
+          `[Components Plugin] Failed to register component ${name}:`,
+          error,
+        )
       }
     }
   })
 
-  const registeredComponents = Object.keys(allComponents).filter(name =>
-    !name.startsWith('use') &&
-    !name.endsWith('Props') &&
-    !name.endsWith('Options'),
+  const registeredComponents = Object.keys(allComponents).filter(
+    name =>
+      !name.startsWith('use') &&
+      !name.endsWith('Props') &&
+      !name.endsWith('Options'),
   )
 
-  console.log(`[Components Plugin] Registered ${registeredComponents.length} global components`)
+  console.log(
+    `[Components Plugin] Registered ${registeredComponents.length} global components`,
+  )
   console.log('[Components Plugin] Components:', registeredComponents)
 }
 
@@ -259,11 +284,12 @@ export function setupComponentDevtools(app: App) {
       ...IconComponents,
       ...GridComponents,
     })
-    
+
     // 添加动态组件信息
     app.config.globalProperties['$componentRegistry'] = {
       static: staticComponents,
-      dynamic: () => componentRegistry.getAllDynamicComponents().map(c => c.name),
+      dynamic: () =>
+        componentRegistry.getAllDynamicComponents().map(c => c.name),
       stats: () => componentRegistry.getStats(),
     }
   }

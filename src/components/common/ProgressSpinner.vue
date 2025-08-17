@@ -3,7 +3,7 @@
     <ProgressSpinner
         v-bind="{
             ...$attrs,
-            class: spinnerClass
+            class: spinnerClass,
         }"
     />
 </template>
@@ -18,11 +18,11 @@ const themeStore = useThemeStore()
 // 计算加载器样式类
 const spinnerClass = computed(() => {
     const classes = ['custom-progress-spinner']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>

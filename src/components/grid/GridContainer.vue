@@ -1,14 +1,14 @@
 <template>
-    <div
-        ref="containerRef"
-        :class="gridContainerClass"
-    >
+    <div ref="containerRef" :class="gridContainerClass">
         <slot />
     </div>
 </template>
 
 <script setup lang="ts">
-import { useDraggable, type UseDraggableOptions } from '@/composables/useDraggable'
+import {
+    useDraggable,
+    type UseDraggableOptions,
+} from '@/composables/useDraggable'
 import type { GridItem } from '@/types/components'
 import { computed, ref, toRef } from 'vue'
 
@@ -56,19 +56,19 @@ const containerRef = ref<HTMLElement>()
 const itemsRef = toRef(props, 'items')
 const draggableOptions: UseDraggableOptions = {
     ...props.dragOptions,
-    onStart: (event) => {
+    onStart: event => {
         emit('dragStart', event)
         props.dragOptions?.onStart?.(event)
     },
-    onMove: (event) => {
+    onMove: event => {
         emit('dragMove', event)
         props.dragOptions?.onMove?.(event)
     },
-    onEnd: (event) => {
+    onEnd: event => {
         emit('dragEnd', event)
         props.dragOptions?.onEnd?.(event)
     },
-    onUpdate: (event) => {
+    onUpdate: event => {
         emit('dragUpdate', event)
         props.dragOptions?.onUpdate?.(event)
     },
@@ -155,7 +155,7 @@ const gridContainerClass = computed(() => {
 }
 
 /* 确保网格项目正确对齐 */
-.grid-container-base>* {
+.grid-container-base > * {
   display: flex;
   flex-direction: column;
   align-items: center;

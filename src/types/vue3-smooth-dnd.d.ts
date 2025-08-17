@@ -21,14 +21,22 @@ declare module 'vue3-smooth-dnd' {
     dragBeginDelay?: number
     behaviour?: string
     getChildPayload?: (index: number) => unknown
-    shouldAnimateDrop?: (sourceContainerOptions: unknown, payload: unknown) => boolean
-    shouldAcceptDrop?: (sourceContainerOptions: unknown, payload: unknown) => boolean
+    shouldAnimateDrop?: (
+      sourceContainerOptions: unknown,
+      payload: unknown
+    ) => boolean
+    shouldAcceptDrop?: (
+      sourceContainerOptions: unknown,
+      payload: unknown
+    ) => boolean
     getGhostParent?: () => HTMLElement
-    dropPlaceholder?: {
-      className: string
-      animationDuration: string | number
-      showOnTop: boolean
-    } | boolean
+    dropPlaceholder?:
+      | {
+          className: string
+          animationDuration: string | number
+          showOnTop: boolean
+        }
+      | boolean
   }
 
   export interface DraggableProps {
@@ -41,7 +49,7 @@ declare module 'vue3-smooth-dnd' {
     Record<string, never>,
     Record<string, never>,
     {
-      'drop': (dropResult: DropResult) => void
+      drop: (dropResult: DropResult) => void
       'drag-start': (event: unknown) => void
       'drag-end': (event: unknown) => void
       'drag-enter': (event: unknown) => void

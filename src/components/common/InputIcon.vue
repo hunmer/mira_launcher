@@ -1,8 +1,6 @@
 <!-- InputIcon 组件 - 包装 PrimeVue InputIcon -->
 <template>
-    <InputIcon
-        v-bind="$attrs"
-    >
+    <InputIcon v-bind="$attrs">
         <slot />
     </InputIcon>
 </template>

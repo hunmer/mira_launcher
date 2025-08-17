@@ -3,7 +3,7 @@
     <Accordion
         v-bind="{
             ...$attrs,
-            class: accordionClass
+            class: accordionClass,
         }"
     >
         <slot />
@@ -20,11 +20,11 @@ const themeStore = useThemeStore()
 // 计算手风琴样式类
 const accordionClass = computed(() => {
     const classes = ['custom-accordion']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>
@@ -49,7 +49,8 @@ const accordionClass = computed(() => {
   border-color: rgb(75, 85, 99);
 }
 
-.custom-accordion.dark-theme :deep(.p-accordion-header:hover .p-accordion-header-link) {
+.custom-accordion.dark-theme
+  :deep(.p-accordion-header:hover .p-accordion-header-link) {
   background-color: rgb(75, 85, 99);
   color: rgb(255, 255, 255);
 }

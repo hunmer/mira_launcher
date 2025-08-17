@@ -3,16 +3,16 @@
  * 用于验证基础队列架构和任务执行器的实现
  */
 
-import {
-  QueueFactory,
-  TaskExecutor,
-  type Task,
-} from '@/plugins/core'
+import { QueueFactory, TaskExecutor, type Task } from '@/plugins/core'
 
 /**
  * 创建测试任务
  */
-function createTestTask(id: string, priority: number = 0, delay: number = 0): Task {
+function createTestTask(
+  id: string,
+  priority: number = 0,
+  delay: number = 0,
+): Task {
   return {
     id,
     priority,
@@ -21,10 +21,10 @@ function createTestTask(id: string, priority: number = 0, delay: number = 0): Ta
       await new Promise(resolve => setTimeout(resolve, 100)) // 模拟异步操作
       return `Task ${id} completed`
     },
-    onSuccess: (result) => {
+    onSuccess: result => {
       console.log(`Task ${id} succeeded:`, result)
     },
-    onError: (error) => {
+    onError: error => {
       console.error(`Task ${id} failed:`, error)
     },
     metadata: { delay },

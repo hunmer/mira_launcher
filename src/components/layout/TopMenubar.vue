@@ -1,64 +1,49 @@
 <template>
-    <Menubar 
-        :model="currentMenuItems" 
-        class="top-menubar"
-    >
+    <Menubar :model="currentMenuItems" class="top-menubar">
         <template #item="{ item, props, hasSubmenu }">
-            <router-link 
-                v-if="item['route']" 
-                v-slot="{ href, navigate, isActive }" 
-                :to="item['route']" 
+            <router-link
+                v-if="item['route']"
+                v-slot="{ href, navigate, isActive }"
+                :to="item['route']"
                 custom
             >
-                <a 
-                    v-ripple 
-                    :href="href" 
-                    v-bind="props.action" 
+                <a
+                    v-ripple
+                    :href="href"
+                    v-bind="props.action"
                     :class="{ 'active-menu-item': isActive }"
                     @click="navigate"
                 >
-                    <span 
-                        v-if="item.icon" 
-                        :class="item.icon" 
-                    />
+                    <span v-if="item.icon" :class="item.icon" />
                     <span>{{ item.label }}</span>
-                    <i 
-                        v-if="hasSubmenu" 
-                        class="pi pi-angle-down ml-2" 
-                    />
+                    <i v-if="hasSubmenu" class="pi pi-angle-down ml-2" />
                 </a>
             </router-link>
-            <a 
-                v-else 
-                v-ripple 
+            <a
+                v-else
+                v-ripple
                 v-bind="props.action"
                 @click="handleMenuClick(item, $event)"
             >
-                <span 
-                    v-if="item.icon" 
-                    :class="item.icon" 
-                />
+                <span v-if="item.icon" :class="item.icon" />
                 <span>{{ item.label }}</span>
-                <i 
-                    v-if="hasSubmenu" 
-                    class="pi pi-angle-down ml-2" 
-                />
+                <i v-if="hasSubmenu" class="pi pi-angle-down ml-2" />
             </a>
         </template>
 
         <template #end>
             <div class="flex items-center gap-2">
-                <Button 
-                    icon="pi pi-search" 
-                    text 
-                    rounded 
+                <Button
+                    icon="pi pi-search"
+                    text
+                    rounded
                     aria-label="Search"
                     @click="toggleSearch"
                 />
-                <Button 
-                    icon="pi pi-bell" 
-                    text 
-                    rounded 
+                <Button
+                    icon="pi pi-bell"
+                    text
+                    rounded
                     aria-label="Notifications"
                     @click="showNotifications"
                 />
@@ -76,7 +61,8 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const { setLayoutMode: changeLayoutMode, setIconSize: changeIconSize } = useApplicationLayout()
+const { setLayoutMode: changeLayoutMode, setIconSize: changeIconSize } =
+    useApplicationLayout()
 
 // 全局菜单项
 const globalMenuItems: MenuItem[] = [
@@ -157,12 +143,12 @@ const layoutMenuItems: MenuItem[] = [
 // 根据当前路由计算菜单项
 const currentMenuItems = computed((): MenuItem[] => {
     const baseItems = [...globalMenuItems]
-  
+
     // 如果在 Applications 页面，添加布局菜单
     if (route.name === 'Applications') {
         baseItems.push(...layoutMenuItems)
     }
-  
+
     return baseItems
 })
 
@@ -249,7 +235,9 @@ const setIconSize = (size: string) => {
   border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   backdrop-filter: blur(12px) !important;
-  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow:
+    0 10px 25px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   padding: 0.5rem !important;
 }
 

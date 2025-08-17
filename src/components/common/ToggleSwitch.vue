@@ -4,7 +4,7 @@
         v-model="switchValue"
         v-bind="{
             ...$attrs,
-            class: switchClass
+            class: switchClass,
         }"
         @change="handleChange"
     />
@@ -37,12 +37,15 @@ const themeStore = useThemeStore()
 const switchValue = ref(props.modelValue)
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    switchValue.value = newValue
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        switchValue.value = newValue
+    },
+)
 
 // 监听内部值变化
-watch(switchValue, (newValue) => {
+watch(switchValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -53,11 +56,11 @@ const handleChange = (event: Event) => {
 // 计算开关样式类
 const switchClass = computed(() => {
     const classes = ['custom-toggle-switch']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>
@@ -77,20 +80,27 @@ const switchClass = computed(() => {
   border-color: rgb(107, 114, 128);
 }
 
-.custom-toggle-switch.dark-theme :deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider) {
+.custom-toggle-switch.dark-theme
+  :deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider) {
   background-color: rgb(59, 130, 246);
   border-color: rgb(59, 130, 246);
 }
 
-.custom-toggle-switch.dark-theme :deep(.p-toggleswitch .p-toggleswitch-slider:before) {
+.custom-toggle-switch.dark-theme
+  :deep(.p-toggleswitch .p-toggleswitch-slider:before) {
   background-color: rgb(255, 255, 255);
 }
 
-.custom-toggle-switch.dark-theme :deep(.p-toggleswitch:not(.p-disabled):hover .p-toggleswitch-slider) {
+.custom-toggle-switch.dark-theme
+  :deep(.p-toggleswitch:not(.p-disabled):hover .p-toggleswitch-slider) {
   background-color: rgb(107, 114, 128);
 }
 
-.custom-toggle-switch.dark-theme :deep(.p-toggleswitch.p-toggleswitch-checked:not(.p-disabled):hover .p-toggleswitch-slider) {
+.custom-toggle-switch.dark-theme
+  :deep(
+    .p-toggleswitch.p-toggleswitch-checked:not(.p-disabled):hover
+      .p-toggleswitch-slider
+  ) {
   background-color: rgb(37, 99, 235);
 }
 </style>

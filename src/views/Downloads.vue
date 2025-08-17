@@ -50,7 +50,9 @@
                     <i class="pi pi-check-circle" />
                 </div>
                 <div class="stat-info">
-                    <span class="stat-value">{{ downloadStore.completedTasks.length }}</span>
+                    <span class="stat-value">
+                        {{ downloadStore.completedTasks.length }}
+                    </span>
                     <span class="stat-label">已完成</span>
                 </div>
             </div>
@@ -95,10 +97,7 @@
         >
             <div class="dialog-content">
                 <div class="form-field">
-                    <label
-                        for="download-url"
-                        class="field-label"
-                    >下载链接</label>
+                    <label for="download-url" class="field-label">下载链接</label>
                     <InputText
                         id="download-url"
                         v-model="newDownload.url"
@@ -106,17 +105,13 @@
                         class="w-full"
                         :invalid="urlError !== ''"
                     />
-                    <small
-                        v-if="urlError"
-                        class="error-message"
-                    >{{ urlError }}</small>
+                    <small v-if="urlError" class="error-message">{{ urlError }}</small>
                 </div>
 
                 <div class="form-field">
-                    <label
-                        for="download-filename"
-                        class="field-label"
-                    >文件名（可选）</label>
+                    <label for="download-filename" class="field-label">
+                        文件名（可选）
+                    </label>
                     <InputText
                         id="download-filename"
                         v-model="newDownload.fileName"
@@ -126,10 +121,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label
-                        for="download-path"
-                        class="field-label"
-                    >保存路径</label>
+                    <label for="download-path" class="field-label">保存路径</label>
                     <div class="path-input">
                         <InputText
                             id="download-path"
@@ -154,10 +146,7 @@
                             v-model="newDownload.startImmediately"
                             binary
                         />
-                        <label
-                            for="start-immediately"
-                            class="checkbox-label"
-                        >
+                        <label for="start-immediately" class="checkbox-label">
                             立即开始下载
                         </label>
                     </div>
@@ -264,10 +253,7 @@
                     text
                     @click="showSettingsDialog = false"
                 />
-                <Button
-                    label="保存"
-                    @click="saveSettings"
-                />
+                <Button label="保存" @click="saveSettings" />
             </template>
         </Dialog>
     </div>
@@ -311,9 +297,11 @@ const urlError = ref('')
 
 // 计算属性
 const isValidDownload = computed(() => {
-    return newDownload.url.trim() !== '' &&
+    return (
+        newDownload.url.trim() !== '' &&
         newDownload.savePath.trim() !== '' &&
         urlError.value === ''
+    )
 })
 
 const pageSizeOptions = [
@@ -416,13 +404,16 @@ const browseDefaultPath = async () => {
 
 const saveSettings = () => {
     // 保存设置到本地存储或配置文件
-    localStorage.setItem('download-settings', JSON.stringify({
-        showCompleted: showCompleted.value,
-        showFailed: showFailed.value,
-        pageSize: pageSize.value,
-        maxConcurrentDownloads: maxConcurrentDownloads.value,
-        defaultSavePath: defaultSavePath.value,
-    }))
+    localStorage.setItem(
+        'download-settings',
+        JSON.stringify({
+            showCompleted: showCompleted.value,
+            showFailed: showFailed.value,
+            pageSize: pageSize.value,
+            maxConcurrentDownloads: maxConcurrentDownloads.value,
+            defaultSavePath: defaultSavePath.value,
+        }),
+    )
 
     toast.add({
         severity: 'success',
@@ -465,230 +456,234 @@ initializeSettings()
 
 <style scoped>
 .download-page {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    min-height: 100vh;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(168, 85, 247, 0.1) 100%
+  );
 }
 
 .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
 .header-content h1.page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: rgb(17, 24, 39);
-    margin: 0 0 0.5rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(17, 24, 39);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .dark .header-content h1.page-title {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 
 .page-description {
-    color: rgb(107, 114, 128);
-    margin: 0;
-    font-size: 1rem;
+  color: rgb(107, 114, 128);
+  margin: 0;
+  font-size: 1rem;
 }
 
 .dark .page-description {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .header-actions {
-    display: flex;
-    gap: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
 }
 
 .stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border: 1px solid rgb(229, 231, 235);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgb(229, 231, 235);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
 }
 
 .dark .stat-card {
-    background: rgba(31, 41, 55, 0.9);
-    border-color: rgb(55, 65, 81);
+  background: rgba(31, 41, 55, 0.9);
+  border-color: rgb(55, 65, 81);
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .stat-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
 }
 
 .stat-icon.downloading {
-    background: linear-gradient(135deg, rgb(59, 130, 246), rgb(37, 99, 235));
+  background: linear-gradient(135deg, rgb(59, 130, 246), rgb(37, 99, 235));
 }
 
 .stat-icon.completed {
-    background: linear-gradient(135deg, rgb(34, 197, 94), rgb(21, 128, 61));
+  background: linear-gradient(135deg, rgb(34, 197, 94), rgb(21, 128, 61));
 }
 
 .stat-icon.failed {
-    background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));
+  background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38));
 }
 
 .stat-icon.total {
-    background: linear-gradient(135deg, rgb(107, 114, 128), rgb(75, 85, 99));
+  background: linear-gradient(135deg, rgb(107, 114, 128), rgb(75, 85, 99));
 }
 
 .stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: rgb(17, 24, 39);
-    line-height: 1;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(17, 24, 39);
+  line-height: 1;
 }
 
 .dark .stat-value {
-    color: rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
 }
 
 .stat-label {
-    font-size: 0.875rem;
-    color: rgb(107, 114, 128);
-    font-weight: 500;
+  font-size: 0.875rem;
+  color: rgb(107, 114, 128);
+  font-weight: 500;
 }
 
 .dark .stat-label {
-    color: rgb(156, 163, 175);
+  color: rgb(156, 163, 175);
 }
 
 .dialog-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .field-label {
-    font-weight: 500;
-    color: rgb(55, 65, 81);
-    font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+  font-size: 0.875rem;
 }
 
 .dark .field-label {
-    color: rgb(209, 213, 219);
+  color: rgb(209, 213, 219);
 }
 
 .path-input {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .checkbox-field {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .checkbox-label {
-    font-size: 0.875rem;
-    color: rgb(55, 65, 81);
+  font-size: 0.875rem;
+  color: rgb(55, 65, 81);
 }
 
 .dark .checkbox-label {
-    color: rgb(209, 213, 219);
+  color: rgb(209, 213, 219);
 }
 
 .error-message {
-    color: rgb(220, 38, 38);
-    font-size: 0.75rem;
+  color: rgb(220, 38, 38);
+  font-size: 0.75rem;
 }
 
 .dark .error-message {
-    color: rgb(248, 113, 113);
+  color: rgb(248, 113, 113);
 }
 
 .settings-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .settings-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .settings-section h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: rgb(17, 24, 39);
-    margin: 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgb(229, 231, 235);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17, 24, 39);
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
 }
 
 .dark .settings-section h3 {
-    color: rgb(255, 255, 255);
-    border-bottom-color: rgb(55, 65, 81);
+  color: rgb(255, 255, 255);
+  border-bottom-color: rgb(55, 65, 81);
 }
 
 .setting-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .setting-item label {
-    font-size: 0.875rem;
-    color: rgb(55, 65, 81);
-    flex: 1;
+  font-size: 0.875rem;
+  color: rgb(55, 65, 81);
+  flex: 1;
 }
 
 .dark .setting-item label {
-    color: rgb(209, 213, 219);
+  color: rgb(209, 213, 219);
 }
 
 .setting-item :deep(.p-dropdown),
 .setting-item :deep(.p-inputnumber) {
-    min-width: 150px;
+  min-width: 150px;
 }
 </style>

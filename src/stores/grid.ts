@@ -1,4 +1,9 @@
-import type { DragState, GridConfig, GridHistory, GridItem } from '@/types/components'
+import type {
+  DragState,
+  GridConfig,
+  GridHistory,
+  GridItem,
+} from '@/types/components'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
@@ -40,11 +45,16 @@ export const useGridStore = defineStore('grid', () => {
   const items = ref<GridItem[]>([])
 
   // 插件注册的自定义项目类型
-  const pluginItemTypes = ref<Map<string, {
-    renderer: any
-    validator: (data: any) => boolean
-    defaultData: Record<string, any>
-      }>>(new Map())
+  const pluginItemTypes = ref<
+    Map<
+      string,
+      {
+        renderer: any
+        validator: (data: any) => boolean
+        defaultData: Record<string, any>
+          }
+          >
+          >(new Map())
 
   // 拖拽状态
   const dragState = ref<DragState>({
@@ -143,8 +153,13 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const moveItem = (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 ||
-            fromIndex >= items.value.length || toIndex >= items.value.length) {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= items.value.length ||
+      toIndex >= items.value.length
+    ) {
       return false
     }
 
@@ -234,8 +249,11 @@ export const useGridStore = defineStore('grid', () => {
   const endDrag = () => {
     const { draggedFromIndex, draggedToIndex } = dragState.value
 
-    if (draggedFromIndex !== undefined && draggedToIndex !== undefined &&
-            draggedFromIndex !== draggedToIndex) {
+    if (
+      draggedFromIndex !== undefined &&
+      draggedToIndex !== undefined &&
+      draggedFromIndex !== draggedToIndex
+    ) {
       moveItem(draggedFromIndex, draggedToIndex)
     }
 
@@ -399,7 +417,7 @@ export const useGridStore = defineStore('grid', () => {
       validator,
       defaultData,
     })
-    
+
     console.log(`[Grid] Registered plugin item type: ${typeKey}`)
     return typeKey
   }
@@ -420,14 +438,19 @@ export const useGridStore = defineStore('grid', () => {
     }
   }
 
-  const addPluginItem = (pluginId: string, itemData: Partial<PluginGridItem>) => {
+  const addPluginItem = (
+    pluginId: string,
+    itemData: Partial<PluginGridItem>,
+  ) => {
     if (!pluginConfig.value.allowPluginItems) {
       throw new Error('Plugin items are disabled')
     }
 
     const pluginItems = items.value.filter((item: any) => item.pluginId)
     if (pluginItems.length >= pluginConfig.value.pluginItemsLimit) {
-      throw new Error(`Plugin items limit reached: ${pluginConfig.value.pluginItemsLimit}`)
+      throw new Error(
+        `Plugin items limit reached: ${pluginConfig.value.pluginItemsLimit}`,
+      )
     }
 
     const newItem: PluginGridItem = {
@@ -456,7 +479,9 @@ export const useGridStore = defineStore('grid', () => {
     const removedCount = initialLength - items.value.length
     if (removedCount > 0) {
       saveToStorage()
-      console.log(`[Grid] Removed ${removedCount} items for plugin: ${pluginId}`)
+      console.log(
+        `[Grid] Removed ${removedCount} items for plugin: ${pluginId}`,
+      )
     }
 
     return removedCount
@@ -470,17 +495,20 @@ export const useGridStore = defineStore('grid', () => {
 
   const getPluginItems = (pluginId?: string) => {
     const pluginItems = items.value.filter((item: any) => item.pluginId)
-    
+
     if (pluginId) {
       return pluginItems.filter((item: any) => item.pluginId === pluginId)
     }
-    
+
     return pluginItems
   }
 
-  const syncWithPlugin = (pluginId: string, callback: (items: PluginGridItem[]) => void) => {
+  const syncWithPlugin = (
+    pluginId: string,
+    callback: (items: PluginGridItem[]) => void,
+  ) => {
     const pluginItems = getPluginItems(pluginId) as PluginGridItem[]
-    
+
     try {
       callback(pluginItems)
       console.log(`[Grid] Synced with plugin: ${pluginId}`)
@@ -498,9 +526,13 @@ export const useGridStore = defineStore('grid', () => {
   loadFromStorage()
 
   // 自动保存监听
-  watch([config, pluginConfig, items, selectedItems], () => {
-    saveToStorage()
-  }, { deep: true })
+  watch(
+    [config, pluginConfig, items, selectedItems],
+    () => {
+      saveToStorage()
+    },
+    { deep: true },
+  )
 
   return {
     // 状态

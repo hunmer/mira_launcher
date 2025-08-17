@@ -55,11 +55,9 @@
                                         <div class="font-medium">
                                             {{ option.name }}
                                         </div>
-                                        <small
-                                            v-if="option.description"
-                                            class="text-gray-500"
-                                        >{{ option.description
-                                        }}</small>
+                                        <small v-if="option.description" class="text-gray-500">
+                                            {{ option.description }}
+                                        </small>
                                     </div>
                                 </div>
                             </template>
@@ -93,8 +91,12 @@
                         <template #option="{ option }">
                             <div class="flex items-center gap-2">
                                 <i
-                                    :class="option.value === 'global' ? 'pi pi-globe text-red-500' : 'pi pi-desktop text-blue-500'"
-                                    style="padding-right: 10px;"
+                                    :class="
+                                        option.value === 'global'
+                                            ? 'pi pi-globe text-red-500'
+                                            : 'pi pi-desktop text-blue-500'
+                                    "
+                                    style="padding-right: 10px"
                                 />
                                 <span>{{ option.label }}</span>
                             </div>
@@ -102,7 +104,9 @@
                     </SelectButton>
                 </div>
                 <small class="text-gray-500 dark:text-gray-400">
-                    <span v-if="formData.type === 'global'">全局快捷键在任何时候都可以触发</span>
+                    <span v-if="formData.type === 'global'">
+                        全局快捷键在任何时候都可以触发
+                    </span>
                     <span v-else>应用内快捷键仅在应用窗口激活时生效</span>
                 </small>
             </div>
@@ -226,33 +230,44 @@ const canSave = computed(() => {
 })
 
 // 监听初始数据变化，重置表单
-watch(() => props.initialData, (newData) => {
-    if (newData) {
-        formData.key = newData.key || ''
-        formData.actionId = newData.actionId || ''
-        formData.type = newData.type || 'application'
-        formData.description = newData.description || ''
-    }
-}, { immediate: true, deep: true })
+watch(
+    () => props.initialData,
+    newData => {
+        if (newData) {
+            formData.key = newData.key || ''
+            formData.actionId = newData.actionId || ''
+            formData.type = newData.type || 'application'
+            formData.description = newData.description || ''
+        }
+    },
+    { immediate: true, deep: true },
+)
 
 // 监听显示状态变化，重置表单
-watch(() => props.visible, (newVisible) => {
-    if (newVisible && props.mode === 'add') {
-        // 添加模式时重置表单
-        formData.key = ''
-        formData.actionId = ''
-        formData.type = 'application'
-        formData.description = ''
-    }
-})
+watch(
+    () => props.visible,
+    newVisible => {
+        if (newVisible && props.mode === 'add') {
+            // 添加模式时重置表单
+            formData.key = ''
+            formData.actionId = ''
+            formData.type = 'application'
+            formData.description = ''
+        }
+    },
+)
 
 // 监听可用动作变化
-watch(() => props.availableActions, (newActions) => {
-    actionsLoading.value = false
-    if (newActions.length === 0) {
-        console.warn('[ShortcutDialog] No available actions detected')
-    }
-}, { immediate: true })
+watch(
+    () => props.availableActions,
+    newActions => {
+        actionsLoading.value = false
+        if (newActions.length === 0) {
+            console.warn('[ShortcutDialog] No available actions detected')
+        }
+    },
+    { immediate: true },
+)
 
 // 组件挂载时检查动作加载状态
 onMounted(() => {
@@ -292,215 +307,215 @@ const handleCancel = () => {
 <style scoped>
 /* 对话框样式优化 */
 :deep(.p-dialog .p-dialog-header) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 0.5rem 0.5rem 0 0;
-    padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 0.5rem 0.5rem 0 0;
+  padding: 1.25rem 1.5rem;
 }
 
 :deep(.p-dialog .p-dialog-header .p-dialog-title) {
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
 }
 
 :deep(.p-dialog .p-dialog-header .p-dialog-title::before) {
-    content: "⌨️";
-    font-size: 1.25rem;
+  content: '⌨️';
+  font-size: 1.25rem;
 }
 
 :deep(.p-dialog .p-dialog-content) {
-    padding: 0;
-    background-color: #fafbfc;
+  padding: 0;
+  background-color: #fafbfc;
 }
 
 :deep(.p-dialog .p-dialog-footer) {
-    padding: 1.25rem 1.5rem;
-    background-color: #f8fafc;
-    border-radius: 0 0 0.5rem 0.5rem;
-    border-top: 1px solid #e2e8f0;
+  padding: 1.25rem 1.5rem;
+  background-color: #f8fafc;
+  border-radius: 0 0 0.5rem 0.5rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 /* IftaLabel 样式优化 */
 :deep(.p-iftalabel) {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 :deep(.p-iftalabel label) {
-    font-weight: 600;
-    color: #374151;
-    transition: all 0.2s ease;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.2s ease;
 }
 
 /* IconField 样式 */
 :deep(.p-iconfield .p-inputicon) {
-    color: #6b7280;
+  color: #6b7280;
 }
 
 :deep(.p-iconfield .p-inputtext:focus ~ .p-inputicon) {
-    color: #4f46e5;
+  color: #4f46e5;
 }
 
 /* SelectButton 样式优化 */
 :deep(.p-selectbutton) {
-    width: 100%;
-    display: flex;
+  width: 100%;
+  display: flex;
 }
 
 :deep(.p-selectbutton .p-togglebutton) {
-    flex: 1;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-    border-radius: 0.375rem;
-    transition: all 0.2s ease;
-    background-color: #f8fafc;
-    color: #374151;
-    border: 1px solid #d1d5db;
+  flex: 1;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 :deep(.p-selectbutton .p-togglebutton:first-child) {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
 }
 
 :deep(.p-selectbutton .p-togglebutton:last-child) {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 :deep(.p-selectbutton .p-togglebutton:hover) {
-    background-color: #f1f5f9;
-    border-color: #94a3b8;
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked) {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    border-color: #4f46e5;
-    color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
-    font-weight: 600;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-color: #4f46e5;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+  font-weight: 600;
 }
 
 /* 清除默认颜色 */
 :deep(.p-togglebutton-checked .p-togglebutton-content) {
-    background: unset !important;
-    box-shadow: unset !important;
+  background: unset !important;
+  box-shadow: unset !important;
 }
 
 :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked .pi) {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* FilterSelect 样式 */
 :deep(.filter-select) {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 :deep(.filter-select-full-width) {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 :deep(.filter-select-full-width .p-select) {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 :deep(.filter-select-full-width .p-select .p-select-label) {
-    width: calc(100% - 3rem) !important;
+  width: calc(100% - 3rem) !important;
 }
 
 /* KeyCaptureInput 固定宽度样式 */
 :deep(.key-capture-fixed-width) {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 
 :deep(.key-capture-fixed-width .p-inputtext) {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 
 /* IconField 样式优化 */
 :deep(.p-iconfield) {
-    width: 100%;
-    position: relative;
+  width: 100%;
+  position: relative;
 }
 
 :deep(.p-iconfield.w-full) {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 /* 输入框样式统一 */
 :deep(.p-inputtext.p-variant-filled) {
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
-    transition: all 0.2s ease;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s ease;
 }
 
 :deep(.p-inputtext.p-variant-filled:focus) {
-    background-color: white;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  background-color: white;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 /* 暗色主题适配 */
 .dark :deep(.p-dialog .p-dialog-content) {
-    background-color: #1e293b;
+  background-color: #1e293b;
 }
 
 .dark :deep(.p-dialog .p-dialog-footer) {
-    background-color: #1e293b;
-    border-top-color: #334155;
+  background-color: #1e293b;
+  border-top-color: #334155;
 }
 
 .dark :deep(.p-iftalabel label) {
-    color: #e5e7eb;
+  color: #e5e7eb;
 }
 
 .dark :deep(.p-inputtext.p-variant-filled) {
-    background-color: #374151;
-    border-color: #4b5563;
-    color: #f3f4f6;
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
 }
 
 .dark :deep(.p-inputtext.p-variant-filled:focus) {
-    background-color: #4b5563;
-    border-color: #6366f1;
+  background-color: #4b5563;
+  border-color: #6366f1;
 }
 
 .dark :deep(.p-iconfield .p-inputicon) {
-    color: #9ca3af;
+  color: #9ca3af;
 }
 
 .dark :deep(.p-iconfield .p-inputtext:focus ~ .p-inputicon) {
-    color: #a5b4fc;
+  color: #a5b4fc;
 }
 
 /* 暗色主题 SelectButton 样式 */
 .dark :deep(.p-selectbutton .p-togglebutton) {
-    background-color: #374151;
-    color: #e5e7eb;
-    border-color: #4b5563;
+  background-color: #374151;
+  color: #e5e7eb;
+  border-color: #4b5563;
 }
 
 .dark :deep(.p-selectbutton .p-togglebutton:hover) {
-    background-color: #4b5563;
-    border-color: #6b7280;
+  background-color: #4b5563;
+  border-color: #6b7280;
 }
 
 .dark :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked) {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    border-color: #4f46e5;
-    color: #ffffff !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-color: #4f46e5;
+  color: #ffffff !important;
 }
 
 .dark :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked .pi) {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 </style>

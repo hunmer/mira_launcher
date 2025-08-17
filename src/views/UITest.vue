@@ -17,9 +17,7 @@
                             <PrimeButton severity="primary">
                                 主要按钮
                             </PrimeButton>
-                            <PrimeButton>
-                                默认按钮
-                            </PrimeButton>
+                            <PrimeButton>默认按钮</PrimeButton>
                             <PrimeButton severity="info">
                                 信息按钮
                             </PrimeButton>
@@ -41,10 +39,7 @@
                             输入框组件
                         </h3>
                         <div class="space-y-2">
-                            <InputText
-                                v-model="inputValue"
-                                placeholder="请输入内容"
-                            />
+                            <InputText v-model="inputValue" placeholder="请输入内容" />
                             <InputText
                                 v-model="inputValue"
                                 placeholder="禁用状态"

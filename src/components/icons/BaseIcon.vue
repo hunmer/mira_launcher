@@ -1,5 +1,5 @@
 <template>
-    <span 
+    <span
         :style="iconStyle"
         :class="iconClass"
         v-bind="$attrs"
@@ -12,7 +12,7 @@
 import { computed, type Component } from 'vue'
 
 interface Props {
-    iconComponent: Component  // lucide-vue-next 图标组件
+    iconComponent: Component // lucide-vue-next 图标组件
     size?: string | number
     color?: string
     class?: string
@@ -36,9 +36,8 @@ const iconStyle = computed(() => {
 
 // 样式类
 const iconClass = computed(() => {
-    return [
-        'inline-flex items-center justify-center',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['inline-flex items-center justify-center', props.class]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>

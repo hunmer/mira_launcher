@@ -61,7 +61,8 @@ const menuPosition = computed(() => {
     const separators = props.items.filter(item => item.separator).length
 
     // 估算菜单高度：菜单项 + 分隔符（高度较小）+ 内边距
-    const menuHeight = actualItems * MENU_ITEM_HEIGHT + separators * 9 + MENU_PADDING
+    const menuHeight =
+        actualItems * MENU_ITEM_HEIGHT + separators * 9 + MENU_PADDING
 
     // 使用最小宽度作为估算宽度
     const menuWidth = MENU_MIN_WIDTH
@@ -120,14 +121,14 @@ const menuItems = computed(() => {
 <style scoped>
 /* 遮罩层样式 */
 .context-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999;
-    /* 透明遮罩，用于捕获点击事件 */
-    background-color: transparent;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  /* 透明遮罩，用于捕获点击事件 */
+  background-color: transparent;
 }
 
 /* TieredMenu自定义样式 */
@@ -168,19 +169,19 @@ const menuItems = computed(() => {
 }
 
 /* 危险样式 */
-:deep(.p-tieredmenu .p-menuitem-link[style*="color: #dc2626"]) {
+:deep(.p-tieredmenu .p-menuitem-link[style*='color: #dc2626']) {
   color: #dc2626 !important;
 }
 
-:deep(.dark .p-tieredmenu .p-menuitem-link[style*="color: #dc2626"]) {
+:deep(.dark .p-tieredmenu .p-menuitem-link[style*='color: #dc2626']) {
   color: #f87171 !important;
 }
 
-:deep(.p-tieredmenu .p-menuitem-link[style*="color: #dc2626"]:hover) {
+:deep(.p-tieredmenu .p-menuitem-link[style*='color: #dc2626']:hover) {
   background-color: #fef2f2 !important;
 }
 
-:deep(.dark .p-tieredmenu .p-menuitem-link[style*="color: #dc2626"]:hover) {
+:deep(.dark .p-tieredmenu .p-menuitem-link[style*='color: #dc2626']:hover) {
   background-color: rgba(127, 29, 29, 0.2) !important;
 }
 </style>

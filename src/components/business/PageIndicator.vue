@@ -9,12 +9,11 @@
                 :key="page.id"
                 :class="pageButtonClass(index)"
                 @click="$emit('pageSelect', index)"
-                @contextmenu.prevent="$emit('pageContextMenu', { page, index, event: $event })"
+                @contextmenu.prevent="
+                    $emit('pageContextMenu', { page, index, event: $event })
+                "
             >
-                <span
-                    v-if="page.icon"
-                    class="page-icon mr-1"
-                >{{ page.icon }}</span>
+                <span v-if="page.icon" class="page-icon mr-1">{{ page.icon }}</span>
                 <span class="page-name">{{ page.name || `页面 ${index + 1}` }}</span>
                 <button
                     v-if="pages.length > 1"
@@ -131,19 +130,20 @@ const props = defineProps<{
 
 // Emits
 defineEmits<{
-    'pageSelect': [index: number]
-    'pageAdd': []
-    'pageRemove': [pageId: string]
-    'pagePrevious': []
-    'pageNext': []
-    'pageMenu': [event: MouseEvent]
-    'pageContextMenu': [data: { page: Page; index: number; event: MouseEvent }]
+    pageSelect: [index: number]
+    pageAdd: []
+    pageRemove: [pageId: string]
+    pagePrevious: []
+    pageNext: []
+    pageMenu: [event: MouseEvent]
+    pageContextMenu: [data: { page: Page; index: number; event: MouseEvent }]
 }>()
 
 // 计算页面按钮样式
 const pageButtonClass = (index: number) => {
     const isActive = index === props.currentPage
-    const baseClass = 'page-tab group relative flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 min-w-0 max-w-32'
+    const baseClass =
+        'page-tab group relative flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 min-w-0 max-w-32'
 
     if (isActive) {
         return `${baseClass} bg-blue-500 text-white shadow-sm`
@@ -155,80 +155,80 @@ const pageButtonClass = (index: number) => {
 
 <style scoped>
 .page-indicator {
-    min-height: 48px;
+  min-height: 48px;
 }
 
 .page-tabs {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .page-tabs::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .page-tab {
-    white-space: nowrap;
-    flex-shrink: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .page-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page-close {
-    transition: all 0.15s ease-in-out;
-    line-height: 1;
-    font-size: 12px;
-    font-weight: bold;
+  transition: all 0.15s ease-in-out;
+  line-height: 1;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .page-action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    color: rgb(75 85 99);
-    border-radius: 0.375rem;
-    transition: colors 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: rgb(75 85 99);
+  border-radius: 0.375rem;
+  transition: colors 0.2s ease-in-out;
 }
 
 .page-action-btn:hover {
-    background-color: rgb(243 244 246);
-    color: rgb(17 24 39);
+  background-color: rgb(243 244 246);
+  color: rgb(17 24 39);
 }
 
 .page-action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .page-action-btn:disabled:hover {
-    background-color: transparent;
+  background-color: transparent;
 }
 
 /* 深色模式 */
 .dark .page-action-btn {
-    color: rgb(209 213 219);
+  color: rgb(209 213 219);
 }
 
 .dark .page-action-btn:hover {
-    background-color: rgb(55 65 81);
-    color: white;
+  background-color: rgb(55 65 81);
+  color: white;
 }
 
 .page-icon {
-    font-size: 14px;
-    line-height: 1;
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* 深色模式优化 */
 @media (prefers-color-scheme: dark) {
-    .page-indicator {
-        border-color: rgb(55 65 81);
-    }
+  .page-indicator {
+    border-color: rgb(55 65 81);
+  }
 }
 </style>

@@ -26,15 +26,17 @@
                             text
                             @click="navigateToPluginStore"
                         />
-                        <Button 
-                            v-tooltip="'系统信息'" 
+                        <Button
+                            v-tooltip="'系统信息'"
                             icon="pi pi-info-circle"
                             severity="info"
                             text
-                            @click="showSystemInfo = true" 
+                            @click="showSystemInfo = true"
                         />
                         <Button
-                            v-tooltip="`性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`"
+                            v-tooltip="
+                                `性能监控: ${performanceStats.plugins} 个插件, ${performanceStats.memory}MB 内存, 状态 ${performanceStats.status === 'good' ? '良好' : '需优化'}`
+                            "
                             icon="pi pi-chart-line"
                             severity="warning"
                             text
@@ -42,8 +44,14 @@
                         />
                         <Button
                             v-if="isDev"
-                            v-tooltip="`热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`"
-                            :icon="hotReloadStatus.isReloading ? 'pi pi-spin pi-spinner' : 'pi pi-replay'"
+                            v-tooltip="
+                                `热重载: ${hotReloadStatus.isReloading ? '重载中' : '就绪'} (成功: ${hotReloadStatus.stats.successfulReloads}, 失败: ${hotReloadStatus.stats.failedReloads})`
+                            "
+                            :icon="
+                                hotReloadStatus.isReloading
+                                    ? 'pi pi-spin pi-spinner'
+                                    : 'pi pi-replay'
+                            "
                             severity="secondary"
                             text
                             :disabled="hotReloadStatus.isReloading"
@@ -90,8 +98,8 @@
                     :pt="{
                         table: { style: 'min-width: 50rem' },
                         paginator: {
-                            root: { class: 'border-t-1 border-gray-300 px-6 py-3' }
-                        }
+                            root: { class: 'border-t-1 border-gray-300 px-6 py-3' },
+                        },
                     }"
                 >
                     <template #empty>
@@ -103,9 +111,9 @@
                             <p class="text-xs text-gray-400 mt-2">
                                 原始数据: {{ plugins.length }} 项
                             </p>
-                            <Button 
-                                label="安装第一个插件" 
-                                severity="secondary" 
+                            <Button
+                                label="安装第一个插件"
+                                severity="secondary"
                                 class="mt-3"
                                 @click="showInstallModal = true"
                             />
@@ -132,17 +140,24 @@
                     >
                         <template #body="{ data }">
                             <div class="flex items-center gap-3">
-                                <Avatar 
-                                    :label="data.name.charAt(0).toUpperCase()" 
-                                    shape="circle" 
+                                <Avatar
+                                    :label="data.name.charAt(0).toUpperCase()"
+                                    shape="circle"
                                     size="normal"
-                                    :style="{ backgroundColor: getPluginColor(data.id), color: 'white' }"
+                                    :style="{
+                                        backgroundColor: getPluginColor(data.id),
+                                        color: 'white',
+                                    }"
                                 />
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                    <div
+                                        class="font-medium text-gray-900 dark:text-gray-100 truncate"
+                                    >
                                         {{ data.name }}
                                     </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                    <div
+                                        class="text-sm text-gray-500 dark:text-gray-400 truncate"
+                                    >
                                         {{ data.description }}
                                     </div>
                                 </div>
@@ -172,7 +187,9 @@
                         style="width: 150px"
                     >
                         <template #body="{ data }">
-                            <span class="text-gray-700 dark:text-gray-300">{{ data.author }}</span>
+                            <span class="text-gray-700 dark:text-gray-300">
+                                {{ data.author }}
+                            </span>
                         </template>
                     </Column>
 
@@ -183,8 +200,8 @@
                         style="width: 120px"
                     >
                         <template #body="{ data }">
-                            <Tag 
-                                :value="getStatusText(data.state)" 
+                            <Tag
+                                :value="getStatusText(data.state)"
                                 :severity="getStatusSeverity(data.state)"
                                 rounded
                             />
@@ -197,7 +214,7 @@
                         style="width: 80px"
                     >
                         <template #body="{ data }">
-                            <ToggleSwitch 
+                            <ToggleSwitch
                                 :model-value="data.state === 'active'"
                                 :disabled="isLoading"
                                 @update:model-value="togglePlugin(data)"
@@ -205,10 +222,7 @@
                         </template>
                     </Column>
 
-                    <Column
-                        header="操作"
-                        style="width: 150px"
-                    >
+                    <Column header="操作" style="width: 150px">
                         <template #body="{ data }">
                             <div class="flex gap-1">
                                 <Button
@@ -250,7 +264,9 @@
             >
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2">插件包路径或URL</label>
+                        <label class="block text-sm font-medium mb-2">
+                            插件包路径或URL
+                        </label>
                         <InputText
                             v-model="installPath"
                             placeholder="输入插件包路径或下载链接"
@@ -263,14 +279,14 @@
                 </div>
                 <template #footer>
                     <div class="flex justify-end gap-2">
-                        <Button 
-                            label="取消" 
-                            severity="secondary" 
-                            @click="showInstallModal = false" 
+                        <Button
+                            label="取消"
+                            severity="secondary"
+                            @click="showInstallModal = false"
                         />
-                        <Button 
-                            label="安装" 
-                            :disabled="!installPath.trim()" 
+                        <Button
+                            label="安装"
+                            :disabled="!installPath.trim()"
                             @click="installPlugin"
                         />
                     </div>
@@ -294,7 +310,9 @@
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">已启用:</span>
-                                    <span class="ml-2 font-semibold">{{ activePluginCount }}</span>
+                                    <span class="ml-2 font-semibold">
+                                        {{ activePluginCount }}
+                                    </span>
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">系统版本:</span>
@@ -309,10 +327,7 @@
                     </Card>
                 </div>
                 <template #footer>
-                    <Button 
-                        label="关闭" 
-                        @click="showSystemInfo = false" 
-                    />
+                    <Button label="关闭" @click="showSystemInfo = false" />
                 </template>
             </Dialog>
         </Container>
@@ -411,18 +426,25 @@ const hotReloadStatus = ref({
 const filteredPlugins = computed(() => {
     if (!searchQuery.value) return plugins.value
     const query = searchQuery.value.toLowerCase()
-    return plugins.value.filter(plugin =>
-        plugin.metadata.name.toLowerCase().includes(query) ||
-        (plugin.metadata.description?.toLowerCase().includes(query)) ||
-        (plugin.metadata.author?.toLowerCase().includes(query)),
+    return plugins.value.filter(
+        plugin =>
+            plugin.metadata.name.toLowerCase().includes(query) ||
+            plugin.metadata.description?.toLowerCase().includes(query) ||
+            plugin.metadata.author?.toLowerCase().includes(query),
     )
 })
 
 // 工具函数
 const getPluginColor = (pluginId: string): string => {
     const colors = [
-        '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
-        '#8B5CF6', '#06B6D4', '#84CC16', '#F97316',
+        '#3B82F6',
+        '#EF4444',
+        '#10B981',
+        '#F59E0B',
+        '#8B5CF6',
+        '#06B6D4',
+        '#84CC16',
+        '#F97316',
     ]
     let hash = 0
     for (let i = 0; i < pluginId.length; i++) {
@@ -433,32 +455,52 @@ const getPluginColor = (pluginId: string): string => {
 
 const getStatusText = (state: PluginState): string => {
     const statusMap: Partial<Record<PluginState, string>> = {
-        'registered': '已注册',
-        'loaded': '已加载',
-        'loading': '加载中',
-        'active': '已启用',
-        'activating': '启用中',
-        'inactive': '已禁用',
-        'deactivating': '禁用中',
-        'error': '错误',
-        'unloaded': '已卸载',
-        'unloading': '卸载中',
+        registered: '已注册',
+        loaded: '已加载',
+        loading: '加载中',
+        active: '已启用',
+        activating: '启用中',
+        inactive: '已禁用',
+        deactivating: '禁用中',
+        error: '错误',
+        unloaded: '已卸载',
+        unloading: '卸载中',
     }
     return statusMap[state] || '未知'
 }
 
-const getStatusSeverity = (state: PluginState): 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast' => {
-    const severityMap: Partial<Record<PluginState, 'secondary' | 'success' | 'info' | 'warning' | 'warn' | 'danger' | 'contrast'>> = {
-        'registered': 'info',
-        'loaded': 'warn',
-        'loading': 'info',
-        'active': 'success',
-        'activating': 'info',
-        'inactive': 'secondary',
-        'deactivating': 'warn',
-        'error': 'danger',
-        'unloaded': 'secondary',
-        'unloading': 'warn',
+const getStatusSeverity = (
+    state: PluginState,
+):
+    | 'secondary'
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'warn'
+    | 'danger'
+    | 'contrast' => {
+    const severityMap: Partial<
+        Record<
+            PluginState,
+            | 'secondary'
+                | 'success'
+                | 'info'
+                | 'warning'
+                | 'warn'
+                | 'danger'
+                | 'contrast'
+        >
+    > = {
+        registered: 'info',
+        loaded: 'warn',
+        loading: 'info',
+        active: 'success',
+        activating: 'info',
+        inactive: 'secondary',
+        deactivating: 'warn',
+        error: 'danger',
+        unloaded: 'secondary',
+        unloading: 'warn',
     }
     return severityMap[state] || 'secondary'
 }
@@ -473,12 +515,16 @@ const updateIntegrationStatus = () => {
         status: pluginGridItems.length > 50 ? 'warning' : 'healthy',
     }
 
-    // 更新 Page 集成状态  
+    // 更新 Page 集成状态
     const pluginPages = pageStore.getPluginPages?.() || []
     pageIntegration.value = {
         count: pluginPages.length,
         routes: pluginPages.length,
-        status: pluginPages.length > (pageStore.pluginPageConfig?.maxPluginPages || 20) * 0.8 ? 'warning' : 'healthy',
+        status:
+            pluginPages.length >
+            (pageStore.pluginPageConfig?.maxPluginPages || 20) * 0.8
+                ? 'warning'
+                : 'healthy',
     }
 
     // 更新 Theme 集成状态
@@ -494,12 +540,22 @@ const updateIntegrationStatus = () => {
     performanceStats.value = {
         plugins: pluginCount.value,
         memory: Math.round(Math.random() * 100), // 模拟内存使用
-        status: pluginCount.value > 20 ? 'warning' : pluginCount.value > 50 ? 'error' : 'good',
+        status:
+            pluginCount.value > 20
+                ? 'warning'
+                : pluginCount.value > 50
+                    ? 'error'
+                    : 'good',
     }
 
     // 更新热重载状态
-    if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
-        const hotReloadManager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
+    if (
+        isDev.value &&
+        (window as unknown as Record<string, unknown>)['__hotReloadManager']
+    ) {
+        const hotReloadManager = (window as unknown as Record<string, unknown>)[
+            '__hotReloadManager'
+        ] as {
             getReloadStatus: () => typeof hotReloadStatus.value
         }
         const status = hotReloadManager.getReloadStatus()
@@ -509,12 +565,19 @@ const updateIntegrationStatus = () => {
 
 // 手动重载
 const manualReload = async () => {
-    if (isDev.value && (window as unknown as Record<string, unknown>)['__hotReloadManager']) {
+    if (
+        isDev.value &&
+        (window as unknown as Record<string, unknown>)['__hotReloadManager']
+    ) {
         try {
-            const manager = (window as unknown as Record<string, unknown>)['__hotReloadManager'] as {
+            const manager = (window as unknown as Record<string, unknown>)[
+                '__hotReloadManager'
+            ] as {
                 manualReload: (pluginId: string) => Promise<void>
             }
-            const pluginIds = plugins.value.filter(p => p.state === 'active').map(p => p.metadata.id)
+            const pluginIds = plugins.value
+                .filter(p => p.state === 'active')
+                .map(p => p.metadata.id)
 
             for (const pluginId of pluginIds) {
                 await manager.manualReload(pluginId)
@@ -741,7 +804,8 @@ if (typeof window !== 'undefined') {
 
 /* 热重载指示器动画 */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -758,11 +822,11 @@ if (typeof window !== 'undefined') {
   .plugins-page {
     padding: 1rem 0.5rem;
   }
-  
+
   .plugin-table :deep(.p-datatable) {
     font-size: 0.875rem;
   }
-  
+
   .plugin-table :deep(.p-datatable-tbody > tr > td) {
     padding: 0.75rem 0.5rem;
   }
@@ -770,11 +834,15 @@ if (typeof window !== 'undefined') {
 
 /* PrimeVue 组件样式重写 */
 :deep(.p-card) {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 :deep(.p-card:hover) {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 :deep(.p-toolbar) {

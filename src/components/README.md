@@ -14,31 +14,32 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 <template>
   <!-- 基础用法 -->
   <Button @click="handleClick">点击我</Button>
-  
+
   <!-- 不同类型 -->
   <Button type="primary">主要按钮</Button>
   <Button type="secondary">次要按钮</Button>
   <Button type="success">成功按钮</Button>
   <Button type="warning">警告按钮</Button>
   <Button type="error">错误按钮</Button>
-  
+
   <!-- 不同尺寸 -->
   <Button size="small">小按钮</Button>
   <Button size="medium">中等按钮</Button>
   <Button size="large">大按钮</Button>
-  
+
   <!-- 加载状态 -->
   <Button :loading="isLoading">加载中</Button>
-  
+
   <!-- 禁用状态 -->
   <Button disabled>禁用按钮</Button>
-  
+
   <!-- 块级按钮 -->
   <Button block>块级按钮</Button>
 </template>
 ```
 
 **Props:**
+
 - `type`: 按钮类型，可选值：`'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'`
 - `size`: 按钮尺寸，可选值：`'small' | 'medium' | 'large'`
 - `loading`: 是否显示加载状态
@@ -53,27 +54,26 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 <template>
   <!-- 基础用法 -->
   <Input v-model:value="inputValue" placeholder="请输入内容" />
-  
+
   <!-- 不同类型 -->
   <Input type="password" placeholder="请输入密码" />
   <Input type="textarea" placeholder="请输入多行内容" />
-  
+
   <!-- 可清除 -->
   <Input v-model:value="inputValue" clearable />
-  
+
   <!-- 前缀后缀 -->
   <Input v-model:value="inputValue">
     <template #prefix>
       <SearchIcon />
     </template>
-    <template #suffix>
-      .com
-    </template>
+    <template #suffix>.com</template>
   </Input>
 </template>
 ```
 
 **Props:**
+
 - `value`: 输入值（支持 v-model）
 - `type`: 输入类型，可选值：`'text' | 'password' | 'textarea'`
 - `placeholder`: 占位符文本
@@ -96,7 +96,7 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
       <Button type="primary" @click="handleConfirm">确认</Button>
     </template>
   </Modal>
-  
+
   <!-- 自定义头部 -->
   <Modal v-model:show="showModal">
     <template #header>
@@ -111,6 +111,7 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 ```
 
 **Props:**
+
 - `show`: 是否显示（支持 v-model）
 - `title`: 模态框标题
 - `width`: 模态框宽度
@@ -128,12 +129,12 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
   <Card title="卡片标题">
     <p>这是卡片内容</p>
   </Card>
-  
+
   <!-- 可悬停 -->
   <Card title="可悬停卡片" hoverable>
     <p>鼠标悬停有阴影效果</p>
   </Card>
-  
+
   <!-- 自定义头部 -->
   <Card>
     <template #header>
@@ -160,12 +161,12 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
   <Tooltip content="这是提示内容">
     <Button>悬停显示提示</Button>
   </Tooltip>
-  
+
   <!-- 不同位置 -->
   <Tooltip content="顶部提示" placement="top">
     <Button>顶部</Button>
   </Tooltip>
-  
+
   <!-- 自定义内容 -->
   <Tooltip>
     <Button>自定义提示</Button>
@@ -189,21 +190,19 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 <template>
   <!-- 基础用法 -->
   <LoadingSpinner />
-  
+
   <!-- 不同尺寸 -->
   <LoadingSpinner size="small" />
   <LoadingSpinner size="large" />
   <LoadingSpinner :size="32" />
-  
+
   <!-- 带描述 -->
   <LoadingSpinner description="加载中..." />
-  
+
   <!-- 自定义描述 -->
   <LoadingSpinner>
     <template #description>
-      <div class="mt-2 text-sm text-gray-600">
-        正在处理数据...
-      </div>
+      <div class="mt-2 text-sm text-gray-600">正在处理数据...</div>
     </template>
   </LoadingSpinner>
 </template>
@@ -234,12 +233,12 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
   <Badge :value="5">
     <Button>消息</Button>
   </Badge>
-  
+
   <!-- 点状徽章 -->
   <Badge dot>
     <Button>通知</Button>
   </Badge>
-  
+
   <!-- 不同类型 -->
   <Badge :value="99" type="error">
     <Button>错误</Button>
@@ -255,16 +254,16 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 <template>
   <!-- 基础标签 -->
   <Tag>标签</Tag>
-  
+
   <!-- 不同类型 -->
   <Tag type="primary">主要</Tag>
   <Tag type="success">成功</Tag>
   <Tag type="warning">警告</Tag>
   <Tag type="error">错误</Tag>
-  
+
   <!-- 可关闭 -->
   <Tag closable @close="handleClose">可关闭标签</Tag>
-  
+
   <!-- 可选择 -->
   <Tag checkable v-model:checked="checked">可选择标签</Tag>
 </template>
@@ -278,19 +277,17 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 <template>
   <!-- 基础用法 -->
   <Empty />
-  
+
   <!-- 自定义描述 -->
   <Empty description="没有找到相关数据" />
-  
+
   <!-- 自定义图标和操作 -->
   <Empty description="暂无插件">
     <template #icon>
       <SearchIcon class="w-16 h-16 text-gray-400" />
     </template>
     <template #extra>
-      <Button type="primary" @click="goToStore">
-        前往插件商店
-      </Button>
+      <Button type="primary" @click="goToStore">前往插件商店</Button>
     </template>
   </Empty>
 </template>
@@ -299,21 +296,27 @@ Mira Launcher 的核心 UI 组件库基于 PrimeVue 构建，提供了一系列�
 ## 组件设计原则
 
 ### 1. 一致的 API 设计
+
 所有组件都遵循相同的 API 设计模式：
+
 - Props 使用 kebab-case
 - 事件使用 kebab-case
 - 支持 v-model 的组件使用 `update:value` 模式
 
 ### 2. 主题响应性
+
 所有组件都支持深色模式，使用 Tailwind CSS 的 `dark:` 前缀。
 
 ### 3. TypeScript 类型安全
+
 所有组件都提供完整的 TypeScript 类型定义。
 
 ### 4. 插槽支持
+
 组件提供灵活的插槽系统，支持内容定制。
 
 ### 5. 事件透传
+
 组件支持原生事件透传，使用 `v-bind="$attrs"`。
 
 ## 注意事项

@@ -8,8 +8,8 @@
  */
 export class WebAPI {
   /**
-     * 使用默认浏览器打开链接
-     */
+   * 使用默认浏览器打开链接
+   */
   static async openUrl(url: string): Promise<void> {
     try {
       const { open } = await import('@tauri-apps/plugin-shell')
@@ -21,22 +21,23 @@ export class WebAPI {
   }
 
   /**
-     * 检查URL是否有效
-     */
+   * 检查URL是否有效
+   */
   static isValidUrl(text: string): boolean {
     try {
       new URL(text)
       return true
     } catch {
       // 检查是否为域名格式
-      const domainPattern = /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/.*)?$/
+      const domainPattern =
+        /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/.*)?$/
       return domainPattern.test(text)
     }
   }
 
   /**
-     * 标准化URL
-     */
+   * 标准化URL
+   */
   static normalizeUrl(url: string): string {
     let normalized = url.trim()
 
@@ -55,8 +56,8 @@ export class WebAPI {
  */
 export class FileSystemAPI {
   /**
-     * 检查文件或文件夹是否存在
-     */
+   * 检查文件或文件夹是否存在
+   */
   static async exists(path: string): Promise<boolean> {
     try {
       const { exists } = await import('@tauri-apps/plugin-fs')
@@ -68,8 +69,8 @@ export class FileSystemAPI {
   }
 
   /**
-     * 获取文件统计信息
-     */
+   * 获取文件统计信息
+   */
   static async stat(path: string): Promise<FileStats | null> {
     try {
       const { stat } = await import('@tauri-apps/plugin-fs')
@@ -88,8 +89,8 @@ export class FileSystemAPI {
   }
 
   /**
-     * 使用默认程序打开文件或文件夹
-     */
+   * 使用默认程序打开文件或文件夹
+   */
   static async openPath(path: string): Promise<void> {
     try {
       const { open } = await import('@tauri-apps/plugin-shell')
@@ -101,8 +102,8 @@ export class FileSystemAPI {
   }
 
   /**
-     * 在文件管理器中显示文件
-     */
+   * 在文件管理器中显示文件
+   */
   static async showInExplorer(path: string): Promise<void> {
     try {
       const { invoke } = await import('@tauri-apps/api/core')
@@ -122,8 +123,8 @@ export class FileSystemAPI {
   }
 
   /**
-     * 检查路径是否为有效文件路径
-     */
+   * 检查路径是否为有效文件路径
+   */
   static isValidPath(text: string): boolean {
     if (!text) return false
 
@@ -139,14 +140,16 @@ export class FileSystemAPI {
   }
 
   /**
-     * 标准化文件路径
-     */
+   * 标准化文件路径
+   */
   static normalizePath(path: string): string {
     let normalized = path.trim()
 
     // 移除引号
-    if ((normalized.startsWith('"') && normalized.endsWith('"')) ||
-            (normalized.startsWith('\'') && normalized.endsWith('\''))) {
+    if (
+      (normalized.startsWith('"') && normalized.endsWith('"')) ||
+      (normalized.startsWith('\'') && normalized.endsWith('\''))
+    ) {
       normalized = normalized.slice(1, -1)
     }
 
@@ -155,8 +158,8 @@ export class FileSystemAPI {
   }
 
   /**
-     * 读取目录内容
-     */
+   * 读取目录内容
+   */
   static async readDir(path: string): Promise<DirEntry[]> {
     try {
       const { readDir } = await import('@tauri-apps/plugin-fs')
@@ -179,8 +182,8 @@ export class FileSystemAPI {
  */
 export class ClipboardAPI {
   /**
-     * 复制文本到剪贴板
-     */
+   * 复制文本到剪贴板
+   */
   static async writeText(text: string): Promise<void> {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -201,8 +204,8 @@ export class ClipboardAPI {
   }
 
   /**
-     * 从剪贴板读取文本
-     */
+   * 从剪贴板读取文本
+   */
   static async readText(): Promise<string> {
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
@@ -222,9 +225,12 @@ export class ClipboardAPI {
  */
 export class CommandAPI {
   /**
-     * 执行系统命令
-     */
-  static async executeCommand(command: string, args: string[] = []): Promise<string> {
+   * 执行系统命令
+   */
+  static async executeCommand(
+    command: string,
+    args: string[] = [],
+  ): Promise<string> {
     try {
       const { invoke } = await import('@tauri-apps/api/core')
       const result = await invoke('execute_command', {
@@ -239,9 +245,12 @@ export class CommandAPI {
   }
 
   /**
-     * 异步执行命令（不等待结果）
-     */
-  static async executeCommandAsync(command: string, args: string[] = []): Promise<void> {
+   * 异步执行命令（不等待结果）
+   */
+  static async executeCommandAsync(
+    command: string,
+    args: string[] = [],
+  ): Promise<void> {
     try {
       const { invoke } = await import('@tauri-apps/api/core')
       await invoke('execute_command_async', {
@@ -260,9 +269,13 @@ export class CommandAPI {
  */
 export class NotificationAPI {
   /**
-     * 显示系统通知
-     */
-  static async showNotification(title: string, body: string, icon?: string): Promise<void> {
+   * 显示系统通知
+   */
+  static async showNotification(
+    title: string,
+    body: string,
+    icon?: string,
+  ): Promise<void> {
     try {
       if ('Notification' in window) {
         // 检查权限
@@ -293,21 +306,21 @@ export class NotificationAPI {
  * 文件统计信息接口
  */
 export interface FileStats {
-    isFile: boolean
-    isDirectory: boolean
-    size: number
-    mtime: Date
-    atime: Date
+  isFile: boolean
+  isDirectory: boolean
+  size: number
+  mtime: Date
+  atime: Date
 }
 
 /**
  * 目录条目接口
  */
 export interface DirEntry {
-    name: string
-    path: string
-    isDirectory: boolean
-    isFile: boolean
+  name: string
+  path: string
+  isDirectory: boolean
+  isFile: boolean
 }
 
 /**
@@ -315,8 +328,8 @@ export interface DirEntry {
  */
 export class SystemAPI {
   /**
-     * 获取操作系统信息（简化版本）
-     */
+   * 获取操作系统信息（简化版本）
+   */
   static getPlatform(): string {
     // 通过用户代理字符串简单判断
     const userAgent = navigator.userAgent.toLowerCase()
@@ -327,22 +340,22 @@ export class SystemAPI {
   }
 
   /**
-     * 检查是否为Windows系统
-     */
+   * 检查是否为Windows系统
+   */
   static isWindows(): boolean {
     return this.getPlatform() === 'win32'
   }
 
   /**
-     * 检查是否为macOS系统
-     */
+   * 检查是否为macOS系统
+   */
   static isMacOS(): boolean {
     return this.getPlatform() === 'darwin'
   }
 
   /**
-     * 检查是否为Linux系统
-     */
+   * 检查是否为Linux系统
+   */
   static isLinux(): boolean {
     return this.getPlatform() === 'linux'
   }

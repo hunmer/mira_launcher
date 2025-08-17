@@ -66,21 +66,29 @@ const displayValue = computed(() => {
 const conflictInfo = ref<string | null>(null)
 
 // 监听modelValue变化
-watch(() => props.modelValue, (newValue) => {
-    currentValue.value = newValue
-}, { immediate: true })
+watch(
+    () => props.modelValue,
+    newValue => {
+        currentValue.value = newValue
+    },
+    { immediate: true },
+)
 
 // 监听当前值变化，检测冲突
-watch(currentValue, (newValue) => {
-    if (newValue && props.conflictChecker) {
-        const conflict = props.conflictChecker(newValue)
-        conflictInfo.value = conflict
-        emit('conflict', conflict)
-    } else {
-        conflictInfo.value = null
-        emit('conflict', null)
-    }
-}, { immediate: true })
+watch(
+    currentValue,
+    newValue => {
+        if (newValue && props.conflictChecker) {
+            const conflict = props.conflictChecker(newValue)
+            conflictInfo.value = conflict
+            emit('conflict', conflict)
+        } else {
+            conflictInfo.value = null
+            emit('conflict', null)
+        }
+    },
+    { immediate: true },
+)
 
 /**
  * 开始捕获快捷键
@@ -164,18 +172,18 @@ const handleKeyDown = (event: KeyboardEvent) => {
         // 特殊按键映射
         const keyMap: Record<string, string> = {
             ' ': 'Space',
-            'Enter': 'Enter',
-            'Escape': 'Esc',
-            'Tab': 'Tab',
-            'ArrowUp': 'Up',
-            'ArrowDown': 'Down',
-            'ArrowLeft': 'Left',
-            'ArrowRight': 'Right',
-            'Home': 'Home',
-            'End': 'End',
-            'PageUp': 'PageUp',
-            'PageDown': 'PageDown',
-            'Insert': 'Insert',
+            Enter: 'Enter',
+            Escape: 'Esc',
+            Tab: 'Tab',
+            ArrowUp: 'Up',
+            ArrowDown: 'Down',
+            ArrowLeft: 'Left',
+            ArrowRight: 'Right',
+            Home: 'Home',
+            End: 'End',
+            PageUp: 'PageUp',
+            PageDown: 'PageDown',
+            Insert: 'Insert',
         }
 
         if (keyMap[key]) {
@@ -239,18 +247,18 @@ defineExpose({
 
 <style scoped>
 .key-capture-input {
-    position: relative;
-    width: 100%;
-    flex: 1;
+  position: relative;
+  width: 100%;
+  flex: 1;
 }
 
 .key-capture-input :deep(.p-inputtext) {
-    cursor: pointer;
-    user-select: none;
-    width: 100%;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
 }
 
 .key-capture-input :deep(.p-inputtext:focus) {
-    cursor: text;
+  cursor: text;
 }
 </style>

@@ -129,10 +129,7 @@
                     </p>
                 </div>
 
-                <div
-                    v-else
-                    class="space-y-4"
-                >
+                <div v-else class="space-y-4">
                     <ShortcutSettingItem
                         v-for="(shortcut, index) in customShortcuts"
                         :key="shortcut.id"
@@ -180,7 +177,7 @@
             mode="add"
             title="添加自定义快捷键"
             :available-actions="availableActions"
-            :conflict-checker="(key) => checkShortcutConflict(key, 'application')"
+            :conflict-checker="key => checkShortcutConflict(key, 'application')"
             @save="handleAddShortcut"
             @cancel="cancelAddShortcut"
         />
@@ -192,7 +189,9 @@
             title="编辑自定义快捷键"
             :initial-data="editingShortcut"
             :available-actions="availableActions"
-            :conflict-checker="(key) => checkShortcutConflictForEdit(key, editingShortcut.type)"
+            :conflict-checker="
+                key => checkShortcutConflictForEdit(key, editingShortcut.type)
+            "
             @save="handleSaveEditShortcut"
             @cancel="cancelEditShortcut"
         />
@@ -220,13 +219,15 @@ const doubleClickToLaunch = ref(true)
 const enableContextMenu = ref(true)
 
 // 自定义快捷键
-const customShortcuts = ref<Array<{
-    id: string
-    key: string
-    actionId: string
-    type: 'global' | 'application'
-    description?: string
-}>>([])
+const customShortcuts = ref<
+    Array<{
+        id: string
+        key: string
+        actionId: string
+        type: 'global' | 'application'
+        description?: string
+    }>
+>([])
 
 // 对话框状态
 const showAddShortcutDialog = ref(false)
@@ -269,7 +270,10 @@ const shortcutTypes = [
 /**
  * 检查快捷键冲突
  */
-const checkShortcutConflict = (key: string, type: 'global' | 'application'): string | null => {
+const checkShortcutConflict = (
+    key: string,
+    type: 'global' | 'application',
+): string | null => {
     if (!key) return null
 
     try {
@@ -282,8 +286,8 @@ const checkShortcutConflict = (key: string, type: 'global' | 'application'): str
         }
 
         // 检查自定义快捷键冲突
-        const conflict = customShortcuts.value.find(shortcut =>
-            shortcut.key === key && shortcut.type === type,
+        const conflict = customShortcuts.value.find(
+            shortcut => shortcut.key === key && shortcut.type === type,
         )
         if (conflict) {
             return '与自定义快捷键冲突'
@@ -312,7 +316,10 @@ const getActionName = (actionId: string): string => {
 /**
  * 保存系统快捷键设置
  */
-const saveShortcutSetting = async (key: keyof typeof settingsStore.settings.shortcuts, value: string) => {
+const saveShortcutSetting = async (
+    key: keyof typeof settingsStore.settings.shortcuts,
+    value: string,
+) => {
     try {
         settingsStore.settings.shortcuts[key] = value
         await settingsStore.saveSettings()
@@ -331,7 +338,9 @@ const saveShortcutSetting = async (key: keyof typeof settingsStore.settings.shor
  */
 const handleAddShortcut = async (data: any) => {
     if (!(await ensureShortcutManager())) {
-        console.error('[ShortcutSettings] Cannot add shortcut: shortcut manager not available')
+        console.error(
+            '[ShortcutSettings] Cannot add shortcut: shortcut manager not available',
+        )
         return
     }
 
@@ -523,7 +532,10 @@ const cancelEditShortcut = () => {
 const saveEditShortcut = async () => {
     if (!shortcutManager || editingIndex.value === -1) return
 
-    const conflict = checkShortcutConflictForEdit(editingShortcut.value.key, editingShortcut.value.type)
+    const conflict = checkShortcutConflictForEdit(
+        editingShortcut.value.key,
+        editingShortcut.value.type,
+    )
     if (conflict) {
         console.warn('快捷键冲突:', conflict)
         return
@@ -575,7 +587,10 @@ const saveEditShortcut = async () => {
 /**
  * 检查编辑时的快捷键冲突（排除当前编辑的快捷键）
  */
-const checkShortcutConflictForEdit = (key: string, type: 'global' | 'application'): string | null => {
+const checkShortcutConflictForEdit = (
+    key: string,
+    type: 'global' | 'application',
+): string | null => {
     if (!key) return null
 
     try {
@@ -588,8 +603,11 @@ const checkShortcutConflictForEdit = (key: string, type: 'global' | 'application
         }
 
         // 检查自定义快捷键冲突（排除当前编辑的快捷键）
-        const conflict = customShortcuts.value.find((shortcut, index) =>
-            shortcut.key === key && shortcut.type === type && index !== editingIndex.value,
+        const conflict = customShortcuts.value.find(
+            (shortcut, index) =>
+                shortcut.key === key &&
+                shortcut.type === type &&
+                index !== editingIndex.value,
         )
         if (conflict) {
             return '与自定义快捷键冲突'
@@ -641,19 +659,26 @@ const loadAvailableActions = async () => {
 
     try {
         if (!(await ensureShortcutManager())) {
-            console.error('[ShortcutSettings] Shortcut manager is still null after initialization')
+            console.error(
+                '[ShortcutSettings] Shortcut manager is still null after initialization',
+            )
             availableActions.value = []
             return
         }
 
         // 获取系统动作
         const systemActions = shortcutManager!.getAvailableActions()
-        console.log('[ShortcutSettings] System actions loaded:', systemActions.length)
+        console.log(
+            '[ShortcutSettings] System actions loaded:',
+            systemActions.length,
+        )
 
         availableActions.value = systemActions
 
         if (availableActions.value.length === 0) {
-            console.warn('[ShortcutSettings] No actions available, trying to reload defaults...')
+            console.warn(
+                '[ShortcutSettings] No actions available, trying to reload defaults...',
+            )
             // 尝试重新加载默认动作
             shortcutManager!.loadDefaultShortcuts()
             availableActions.value = shortcutManager!.getAvailableActions()
@@ -719,14 +744,20 @@ onMounted(async () => {
         console.log('[ShortcutSettings] Settings loaded')
 
         await loadAvailableActions()
-        console.log('[ShortcutSettings] Available actions:', availableActions.value.length)
+        console.log(
+            '[ShortcutSettings] Available actions:',
+            availableActions.value.length,
+        )
 
         loadDefaultShortcuts()
         loadCustomShortcuts()
 
         console.log('[ShortcutSettings] All settings loaded successfully')
     } catch (error) {
-        console.error('[ShortcutSettings] Error during component initialization:', error)
+        console.error(
+            '[ShortcutSettings] Error during component initialization:',
+            error,
+        )
     }
 })
 </script>

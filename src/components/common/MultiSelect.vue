@@ -4,7 +4,7 @@
         v-model="multiSelectValue"
         v-bind="{
             ...$attrs,
-            class: multiSelectClass
+            class: multiSelectClass,
         }"
         @change="handleChange"
     />
@@ -32,12 +32,15 @@ const themeStore = useThemeStore()
 const multiSelectValue = ref(props.modelValue || [])
 
 // 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
-    multiSelectValue.value = newValue || []
-})
+watch(
+    () => props.modelValue,
+    newValue => {
+        multiSelectValue.value = newValue || []
+    },
+)
 
 // 监听内部值变化
-watch(multiSelectValue, (newValue) => {
+watch(multiSelectValue, newValue => {
     emit('update:modelValue', newValue)
 })
 
@@ -48,11 +51,11 @@ const handleChange = (event: { originalEvent: Event; value: unknown[] }) => {
 // 计算多选样式类
 const multiSelectClass = computed(() => {
     const classes = ['custom-multiselect']
-  
+
     if (themeStore.currentTheme === 'dark') {
         classes.push('dark-theme')
     }
-  
+
     return classes.join(' ')
 })
 </script>
@@ -90,7 +93,8 @@ const multiSelectClass = computed(() => {
   background-color: rgb(75, 85, 99);
 }
 
-.custom-multiselect.dark-theme :deep(.p-multiselect-item.p-multiselect-item-selected) {
+.custom-multiselect.dark-theme
+  :deep(.p-multiselect-item.p-multiselect-item-selected) {
   background-color: rgb(59, 130, 246);
   color: rgb(255, 255, 255);
 }

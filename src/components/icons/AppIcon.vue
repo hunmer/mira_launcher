@@ -1,11 +1,11 @@
 <template>
-    <BaseIcon 
-        :icon-component="Zap" 
+    <BaseIcon
+        :icon-component="Zap"
         v-bind="{
             ...(size !== undefined && { size }),
             ...(color !== undefined && { color }),
             ...(iconClass !== undefined && { class: iconClass }),
-            ...$attrs
+            ...$attrs,
         }"
     />
 </template>
@@ -29,9 +29,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 // 样式类
 const iconClass = computed(() => {
-    return [
-        'text-primary-600 dark:text-primary-400',
-        props.class,
-    ].filter(Boolean).join(' ')
+    return ['text-primary-600 dark:text-primary-400', props.class]
+        .filter(Boolean)
+        .join(' ')
 })
 </script>

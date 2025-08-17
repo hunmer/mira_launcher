@@ -9,16 +9,16 @@ import type { Router } from 'vue-router'
  * 插件状态枚举
  */
 export type PluginState =
-  | 'registered'  // 已注册
-  | 'unloaded'    // 未加载
-  | 'loading'     // 加载中
-  | 'loaded'      // 已加载
-  | 'activating'  // 激活中
-  | 'active'      // 已激活
+  | 'registered' // 已注册
+  | 'unloaded' // 未加载
+  | 'loading' // 加载中
+  | 'loaded' // 已加载
+  | 'activating' // 激活中
+  | 'active' // 已激活
   | 'deactivating' // 停用中
-  | 'inactive'    // 已停用
-  | 'unloading'   // 卸载中
-  | 'error'       // 错误状态
+  | 'inactive' // 已停用
+  | 'unloading' // 卸载中
+  | 'error' // 错误状态
 
 /**
  * 插件元数据接口
@@ -263,7 +263,9 @@ export interface PluginEvent<T = unknown> {
 /**
  * 事件监听器函数类型
  */
-export type EventListener<T = unknown> = (event: PluginEvent<T>) => void | Promise<void>
+export type EventListener<T = unknown> = (
+  event: PluginEvent<T>
+) => void | Promise<void>
 
 /**
  * 事件监听器选项
@@ -334,7 +336,12 @@ export interface NotificationAPI {
   /** 显示错误通知 */
   error(message: string, title?: string, options?: NotificationOptions): void
   /** 显示自定义通知 */
-  show(type: 'info' | 'success' | 'warn' | 'error', message: string, title?: string, options?: NotificationOptions): void
+  show(
+    type: 'info' | 'success' | 'warn' | 'error',
+    message: string,
+    title?: string,
+    options?: NotificationOptions
+  ): void
 }
 
 /**
@@ -433,7 +440,11 @@ export interface PluginAPI {
   /** 事件系统 */
   events: {
     /** 监听事件 */
-    on<T = unknown>(type: PluginEventType, listener: EventListener<T>, options?: EventListenerOptions): void
+    on<T = unknown>(
+      type: PluginEventType,
+      listener: EventListener<T>,
+      options?: EventListenerOptions
+    ): void
     /** 监听一次事件 */
     once<T = unknown>(type: PluginEventType, listener: EventListener<T>): void
     /** 取消监听事件 */
@@ -441,7 +452,11 @@ export interface PluginAPI {
     /** 发布事件 */
     emit<T = unknown>(type: PluginEventType, data: T, source?: string): void
     /** 发布可取消事件 */
-    emitCancelable<T = unknown>(type: PluginEventType, data: T, source?: string): boolean
+    emitCancelable<T = unknown>(
+      type: PluginEventType,
+      data: T,
+      source?: string
+    ): boolean
   }
   /** 插件管理 */
   plugins: {
@@ -518,13 +533,14 @@ export interface PluginConfiguration {
 /**
  * 插件生命周期事件数据
  */
-export interface PluginLifecycleEvent extends PluginEvent<{
-  pluginId: string
-  metadata: PluginMetadata
-  loadTime?: number
-  activationTime?: number
-  deactivationTime?: number
-}> { }
+export interface PluginLifecycleEvent
+  extends PluginEvent<{
+    pluginId: string
+    metadata: PluginMetadata
+    loadTime?: number
+    activationTime?: number
+    deactivationTime?: number
+  }> {}
 
 /**
  * 插件加载器选项
@@ -572,11 +588,11 @@ export interface PluginDependency {
  * 任务状态枚举
  */
 export type TaskState =
-  | 'pending'    // 等待执行
-  | 'running'    // 正在执行
-  | 'completed'  // 已完成
-  | 'failed'     // 执行失败
-  | 'cancelled'  // 已取消
+  | 'pending' // 等待执行
+  | 'running' // 正在执行
+  | 'completed' // 已完成
+  | 'failed' // 执行失败
+  | 'cancelled' // 已取消
 
 /**
  * 任务接口
@@ -787,7 +803,13 @@ export interface PluginContextMenu {
 /**
  * 插件上下文类型
  */
-export type PluginContextType = 'selection' | 'link' | 'image' | 'page' | 'frame' | 'all'
+export type PluginContextType =
+  | 'selection'
+  | 'link'
+  | 'image'
+  | 'page'
+  | 'frame'
+  | 'all'
 
 /**
  * 插件右键菜单信息

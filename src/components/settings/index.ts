@@ -8,4 +8,3 @@ export { default as StartupSettings } from './StartupSettings.vue'
 export { default as SettingCard } from './SettingCard.vue'
 export { default as SettingItem } from './SettingItem.vue'
 export { default as SettingPlan } from './SettingPlan.vue'
-
