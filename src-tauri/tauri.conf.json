@@ -74,5 +74,20 @@
       }
     }
   },
-  "plugins": {}
+  "plugins": {
+    "cli": {
+      "description": "Mira Launcher - A modern application launcher",
+      "longDescription": "Mira Launcher is a modern, customizable application launcher built with Tauri",
+      "beforeHelp": "Welcome to Mira Launcher",
+      "afterHelp": "Visit https://github.com/hunmer/mira_launcher for more information",
+      "args": [],
+      "subcommands": {}
+    },
+    "updater": {
+      "active": false,
+      "endpoints": [],
+      "dialog": true,
+      "pubkey": ""
+    }
+  }
 }

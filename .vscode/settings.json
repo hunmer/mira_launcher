@@ -3,14 +3,18 @@
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
   "typescript.format.semicolons": "remove",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.format.insertSpaceAfterCommaDelimiter": true,
+  "typescript.format.insertSpaceAfterSemicolonInForStatements": true,
   "javascript.format.semicolons": "remove",
+  "javascript.preferences.quoteStyle": "single",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
   },
   "editor.formatOnSave": false,
   "[vue]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.defaultFormatter": "Vue.volar",
     "editor.tabSize": 4,
     "editor.insertSpaces": false,
     "editor.formatOnSave": false,
@@ -26,7 +30,8 @@
     "editor.formatOnPaste": false,
     "editor.formatOnType": false,
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "never"
     }
   },
   "[javascript]": {

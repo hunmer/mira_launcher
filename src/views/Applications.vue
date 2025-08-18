@@ -12,10 +12,9 @@
       :current-sort-type="applicationsStore.currentSortType"
       :sort-ascending="applicationsStore.sortAscending"
       :sort-options="applicationsStore.sortOptions"
+    :add-menu-items="addMenuItems"
       @category-change="applicationsStore.setCategory"
-      @add-file="openAddDialog('file')"
-      @add-folder="openAddDialog('folder')"
-      @add-url="openAddDialog('url')"
+        @add-entry="handleAddEntry"
       @add-test-data="addTestData"
       @layout-change="setLayoutMode"
       @sort-change="applicationsStore.setSortType"
@@ -31,9 +30,12 @@
           :layout-mode="layoutMode"
           :grid-columns="applicationsStore.gridColumns"
           :icon-size="iconSize"
+          :sort-type="applicationsStore.currentSortType"
+          :add-menu-items="addMenuItems"
           @launch-app="launchApp"
           @app-context-menu="showContextMenu"
           @blank-context-menu="showBlankAreaContextMenu"
+          @request-add-menu="showAddMenuAt"
           @drag-start="onDragStart"
           @drag-end="onDragEnd"
           @drag-change="onDragChange"
@@ -51,11 +53,16 @@
     </div>
 
     <!-- 添加应用对话框 -->
-    <AddApplicationDialog
-      v-model:show="showAddDialog"
-      :type="addDialogType"
+        <AddApplicationDialog
+            v-model:show="showAddDialog"
       :categories="applicationsStore.categories"
+        :form-defaults="currentFormDefaults"
+        :entry-label="currentEntryLabel"
+        :entry-icon="currentEntryIcon"
+        :fields="currentEntryFields"
+    :app="editingApp"
       @confirm="onAddApplication"
+    @update="onUpdateApplication"
       @cancel="showAddDialog = false"
     />
 
@@ -78,6 +85,24 @@
       @update:show="blankAreaContextMenuVisible = $event"
       @select="onBlankAreaContextMenuSelect"
     />
+        <!-- Add Menu (placeholder & external trigger) -->
+        <ContextMenu
+            :show="addMenuVisible"
+            :x="addMenuPosition.x"
+            :y="addMenuPosition.y"
+            :items="addMenuContextItems"
+            @update:show="addMenuVisible = $event"
+            @select="(item) => { item.action?.(); addMenuVisible = false }"
+        />
+            <ConfirmDialog
+                v-model:show="showDeleteDialog"
+                :title="deleteDialogTitle"
+                :message="deleteDialogMessage"
+                confirm-label="删除"
+                cancel-label="取消"
+                :danger="true"
+                @confirm="confirmDelete"
+            />
   </div>
 </template>
 
@@ -86,10 +111,13 @@ import AddApplicationDialog from '@/components/business/AddApplicationDialog.vue
 import ApplicationGridStack from '@/components/business/ApplicationGridStack.vue'
 import ApplicationToolbar from '@/components/business/ApplicationToolbar.vue'
 import PageControls from '@/components/business/PageControls.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
 import { useApplicationLayout } from '@/composables/useApplicationLayout'
+import { useAddEntriesStore, type FieldDefinition } from '@/stores/addEntries'
 import { useApplicationsStore, type Application } from '@/stores/applications'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 
 // 拖拽事件类型定义
 interface DragEventData {
@@ -116,16 +144,25 @@ interface DragEventData {
 
 // Store
 const applicationsStore = useApplicationsStore()
+const addEntriesStore = useAddEntriesStore()
+const toast = useToast()
 
 // 图标尺寸配置和布局
 const { setLayoutMode, layoutMode } = useApplicationLayout()
 
 const isDragging = ref(false) // 拖拽状态
 const sortSaved = ref(false) // 排序保存状态
+const launchingApps = ref(new Set<string>()) // 启动中的应用ID集合
 
 // 添加应用对话框
 const showAddDialog = ref(false)
-const addDialogType = ref<'file' | 'folder' | 'url'>('file')
+const currentFormDefaults = ref<Partial<{ name: string; path: string; category: string; description: string; icon: string }>>({})
+const editingApp = ref<Application | null>(null)
+// 来自插件注册的UI元数据
+const currentEntryLabel = ref<string>('')
+const currentEntryIcon = ref<string>('')
+const currentEntryFields = ref<Record<string, FieldDefinition> | undefined>(undefined)
+const currentAppType = ref<string>('')
 
 // 图标大小计算
 const iconSize = computed(() => {
@@ -137,6 +174,44 @@ const iconSize = computed(() => {
     )
     return Math.floor(baseSize)
 })
+
+// 动态添加入口（插件可注册）
+type AddMenuItem = { label: string; icon: string; type: 'app'|'test'|'custom'; id: string; handler?: (() => void | Promise<void>) | undefined }
+const addMenuItems = computed((): AddMenuItem[] => addEntriesStore.entries
+    .filter(e => ['app','test','custom'].includes(e.type))
+    .map(e => ({ label: e.label, icon: e.icon, type: e.type as AddMenuItem['type'], id: e.id, handler: e.handler ?? undefined })))
+
+// 由父级控制的添加菜单（用于占位符点击）
+const addMenuVisible = ref(false)
+const addMenuPosition = ref({ x: 0, y: 0 })
+const addMenuContextItems = computed<MenuItem[]>(() => {
+    return addMenuItems.value.flatMap(item => {
+    if (item.type === 'test') {
+            const sep: MenuItem = { label: '', separator: true }
+            return [sep, { label: item.label, icon: item.icon, action: () => addTestData() }]
+        }
+        if (item.type === 'custom') {
+            return [{ label: item.label, icon: item.icon, action: () => item.handler?.() }]
+        }
+        if (item.handler) {
+            return [{ label: item.label, icon: item.icon, action: () => item.handler?.() }]
+        }
+            return [{ label: item.label, icon: item.icon, action: () => {
+                const found = addEntriesStore.entries.find(e => e.id === item.id)
+                currentFormDefaults.value = found?.formDefaults || {}
+                currentEntryLabel.value = found?.label || ''
+                currentEntryIcon.value = found?.icon || ''
+                currentEntryFields.value = found?.fields
+                currentAppType.value = found?.appType || found?.id || ''
+        openAddDialog()
+            } }]
+    })
+})
+
+const showAddMenuAt = (pos: { x: number; y: number }) => {
+    addMenuPosition.value = pos
+    addMenuVisible.value = true
+}
 
 // 当前页面的应用（双向绑定）
 const currentPageApps = computed({
@@ -166,7 +241,7 @@ const blankAreaContextMenuItems = computed((): MenuItem[] => [
         label: '添加新项目',
         icon: 'pi pi-plus',
         action: () => {
-            openAddDialog('file')
+            openAddDialog()
         },
     },
     {
@@ -226,12 +301,58 @@ const contextMenuItems = computed((): MenuItem[] => [
 
 // 方法
 const launchApp = async (app: Application) => {
-    // 仅在当前排序为按最后使用时间时更新 lastUsed 以触发重新排序
-    if (applicationsStore.currentSortType === 'lastUsed') {
-        applicationsStore.updateLastUsed(app.id)
+    // 检查是否正在启动
+    if (launchingApps.value.has(app.id)) {
+        toast.add({
+            severity: 'warn',
+            summary: '启动中',
+            detail: `应用 ${app.name} 正在启动中，请稍候...`,
+            life: 3000,
+        })
+        return
     }
-    console.log('启动应用:', app.name)
-    // await invoke('launch_application', { path: app.path })
+    
+    // 标记为启动中
+    launchingApps.value.add(app.id)
+    
+    try {
+        // 仅在当前排序为按最后使用时间时更新 lastUsed 以触发重新排序
+        if (applicationsStore.currentSortType === 'lastUsed') {
+            applicationsStore.updateLastUsed(app.id)
+        }
+        
+        // 插件自定义 exec
+        if (app.appType) {
+            const entry = addEntriesStore.entries.find(e => (e.appType || e.id) === app.appType)
+            if (entry?.exec) {
+                const ok = await entry.exec({ fields: app.dynamicFields || {}, appId: app.id })
+                if (ok) {
+                    console.log('[Exec] 插件执行成功', app.appType, app.name)
+                    // toast.add({
+                    //     severity: 'success',
+                    //     summary: '启动成功',
+                    //     detail: `应用 ${app.name} 已成功启动`,
+                    //     life: 3000,
+                    // })
+                    return
+                } else {
+                    // 插件执行返回false，尝试回退
+                    throw new Error('插件执行返回false')
+                }
+            }
+        }
+    } catch (error) {
+        console.error('[Launch] 应用启动失败', error)
+        toast.add({
+            severity: 'error',
+            summary: '启动失败',
+            detail: `应用 ${app.name} 启动失败: ${error instanceof Error ? error.message : '未知错误'}`,
+            life: 5000,
+        })
+    } finally {
+        // 移除启动中标记
+        launchingApps.value.delete(app.id)
+    }
 }
 
 // 拖拽事件处理
@@ -277,15 +398,55 @@ const onUpdatePositions = (positions: Array<{
 }
 
 // 添加应用相关方法
-const openAddDialog = (type: 'file' | 'folder' | 'url') => {
-    addDialogType.value = type
+const handleAddEntry = (entryId?: string) => {
+    // 如果指定了entryId，查找对应的插件入口并设置相关数据
+    if (entryId) {
+        const found = addEntriesStore.entries.find(e => e.id === entryId)
+        if (found) {
+            currentFormDefaults.value = found.formDefaults || {}
+            currentEntryLabel.value = found.label || ''
+            currentEntryIcon.value = found.icon || ''
+            currentEntryFields.value = found.fields
+            currentAppType.value = found.appType || found.id || ''
+            console.log('[Applications] Setting plugin entry data:', {
+                entryId,
+                formDefaults: currentFormDefaults.value,
+                entryLabel: currentEntryLabel.value,
+                fields: currentEntryFields.value,
+                appType: currentAppType.value,
+            })
+        } else {
+            console.warn('[Applications] Entry not found:', entryId)
+        }
+    } else {
+        // 重置为默认值
+        currentFormDefaults.value = {}
+        currentEntryLabel.value = '添加项目'
+        currentEntryIcon.value = ''
+        currentEntryFields.value = undefined
+        currentAppType.value = ''
+    }
+    
+    openAddDialog()
+}
+
+const openAddDialog = (defaults?: Partial<{ name: string; path: string; category: string; description: string; icon: string }>) => {
+    editingApp.value = null
+    // 只有在没有通过handleAddEntry设置数据时才使用传入的defaults
+    if (defaults && Object.keys(currentFormDefaults.value).length === 0) {
+        currentFormDefaults.value = defaults
+    }
+    if (!currentEntryFields.value) currentEntryFields.value = undefined
+    if (!currentAppType.value) currentAppType.value = ''
+    if (!currentEntryLabel.value) currentEntryLabel.value = '添加项目'
     showAddDialog.value = true
 }
 
 const onAddApplication = (
     app: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>,
 ) => {
-    applicationsStore.addApplication(app)
+    const withType = { ...app, appType: (currentAppType.value || undefined) }
+    applicationsStore.addApplication(withType as Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>)
     showAddDialog.value = false
     console.log('添加应用:', app)
 }
@@ -312,15 +473,38 @@ const onContextMenuSelect = (item: MenuItem) => {
 }
 
 const editApp = (app: Application) => {
-    console.log(`编辑应用: ${app.name}`)
+    editingApp.value = app
+    showAddDialog.value = true
     hideContextMenu()
 }
 
+// 删除确认
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<Application | null>(null)
+const deleteDialogTitle = '删除应用'
+const deleteDialogMessage = computed(() => deleteTarget.value ? `确定要删除 "${deleteTarget.value.name}" 吗？该操作不可撤销。` : '')
 const removeApp = (app: Application) => {
-    if (confirm(`确定要移除 "${app.name}" 吗？`)) {
-        applicationsStore.removeApplication(app.id)
-    }
+    deleteTarget.value = app
+    showDeleteDialog.value = true
     hideContextMenu()
+}
+const confirmDelete = () => {
+    if (deleteTarget.value) {
+        console.log('🗑️ 删除应用:', deleteTarget.value.name)
+        applicationsStore.removeApplication(deleteTarget.value.id)
+        // 确保删除后触发重新渲染和占位符补充
+        nextTick(() => {
+            // 强制触发应用列表更新，确保占位符正确生成
+            console.log('🔄 应用删除后强制刷新，当前页应用数量:', applicationsStore.currentPageApps.length)
+        })
+    }
+    deleteTarget.value = null
+}
+
+const onUpdateApplication = (payload: { id: string; updates: Partial<Application> }) => {
+    applicationsStore.updateApplication(payload.id, payload.updates)
+    showAddDialog.value = false
+    editingApp.value = null
 }
 
 // 空白区域右键菜单
@@ -344,6 +528,8 @@ const handleClickOutside = () => {
 }
 
 onMounted(() => {
+    // 监听来自插件的应用添加事件
+    window.addEventListener('mira:add-app', onExternalAddApp as EventListener)
     document.title = 'Mira Launcher - 应用程序'
 
     // 加载数据
@@ -371,7 +557,18 @@ onUnmounted(() => {
             e.preventDefault()
         }
     })
+        window.removeEventListener('mira:add-app', onExternalAddApp as EventListener)
 })
+
+// 外部(插件)触发添加应用
+interface ExternalAddAppDetail { name: string; path: string; type?: string; category?: string }
+const onExternalAddApp = (evt: Event) => {
+    const detail = (evt as CustomEvent<ExternalAddAppDetail>).detail
+    if (!detail || !detail.name || !detail.path) return
+        const mappedType: Application['type'] = (['file','folder','url','app'].includes(detail.type || '') ? detail.type : 'file') as Application['type']
+        applicationsStore.addApplication({ name: detail.name, path: detail.path, category: detail.category || 'files', type: mappedType, isSystem: false, pinned: false })
+    console.log('[ExternalAdd] 添加应用', detail)
+}
 </script>
 
 <style scoped>

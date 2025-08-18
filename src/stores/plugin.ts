@@ -1,13 +1,12 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type {
-  PluginMetadata,
-  PluginState,
-  PluginRegistryEntry,
-  PluginConfiguration,
-} from '@/types/plugin'
-import { PluginManager } from '@/plugins/core/PluginManager'
 import { EventBus } from '@/plugins/core/EventBus'
+import { PluginManager } from '@/plugins/core/PluginManager'
+import type {
+  PluginConfiguration,
+  PluginMetadata,
+  PluginRegistryEntry,
+} from '@/types/plugin'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
 /**
  * 插件状态管理 Store
@@ -95,23 +94,23 @@ export const usePluginStore = defineStore('plugin', () => {
 
     // 监听插件状态变化事件
     eventBus.value.on('plugin:registered', () => {
-      console.log('[PluginStore] Plugin registered event received')
+      // console.log('[PluginStore] Plugin registered event received')
     })
 
     eventBus.value.on('plugin:loaded', () => {
-      console.log('[PluginStore] Plugin loaded event received')
+      // console.log('[PluginStore] Plugin loaded event received')
     })
 
     eventBus.value.on('plugin:activated', () => {
-      console.log('[PluginStore] Plugin activated event received')
+      // console.log('[PluginStore] Plugin activated event received')
     })
 
     eventBus.value.on('plugin:deactivated', () => {
-      console.log('[PluginStore] Plugin deactivated event received')
+      // console.log('[PluginStore] Plugin deactivated event received')
     })
 
     eventBus.value.on('plugin:unloaded', () => {
-      console.log('[PluginStore] Plugin unloaded event received')
+      // console.log('[PluginStore] Plugin unloaded event received')
     })
 
     eventBus.value.on('plugin:error', (event: any) => {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {
   PluginBuilderFunction,
   PluginConfigDefinition,
@@ -300,6 +302,11 @@ export class WebLinkPlugin extends BasePlugin {
      */
   override async onActivate(): Promise<void> {
     console.log('[WebLinkPlugin] Activating plugin...')
+    console.log('[WebLinkPlugin] API status:', {
+      hasApi: !!this._api,
+      hasAddEntry: !!(this._api && this._api.addEntry),
+      apiKeys: this._api ? Object.keys(this._api) : [],
+    })
 
     this.isRunning = true
 
@@ -314,6 +321,59 @@ export class WebLinkPlugin extends BasePlugin {
         duration: 3000,
       })
     }
+
+    // 注册添加网址入口
+    const registerAddEntry = async (retryCount = 0) => {
+      try {
+        if (!this._api || !this._api.addEntry) {
+          if (retryCount < 3) {
+            // 等待API准备好，最多重试3次
+            console.log(`[WebLinkPlugin] API not ready, retrying in 100ms... (attempt ${retryCount + 1}/3)`)
+            setTimeout(() => registerAddEntry(retryCount + 1), 100)
+            return
+          } else {
+            console.warn('[WebLinkPlugin] API or addEntry not available after retries')
+            return
+          }
+        }
+        
+        const addEntryAPI = this._api.addEntry
+        const entryId = addEntryAPI.register({
+          id: 'weblink-add-url',
+          label: '添加网址',
+          icon: 'pi pi-link',
+          type: 'app',
+          priority: 12,
+          formDefaults: { category: 'productivity' },
+          appType: 'web-url',
+          fields: {
+            url: { 
+              label: '网页地址', 
+              input: 'url', 
+              required: true, 
+              placeholder: 'https://example.com',
+              validation: {
+                pattern: '^https?:\\/\\/.+',
+                minLength: 7,
+              },
+            },
+          },
+          exec: async ({ fields }) => {
+            const raw = String(fields.url || '')
+            if (!raw) return false
+            const url = this.normalizeUrl(raw)
+            await this.openLink(url, 'system')
+            return true
+          },
+        })
+        
+        console.log(`[WebLinkPlugin] Successfully registered addEntry with ID: ${entryId}`)
+      } catch (e) {
+        console.warn('[WebLinkPlugin] addEntry register failed', e)
+      }
+    }
+
+    await registerAddEntry()
 
     console.log('[WebLinkPlugin] Plugin activated successfully')
   }
@@ -584,15 +644,32 @@ export class WebLinkPlugin extends BasePlugin {
      */
   private async loadConfiguration(): Promise<void> {
     try {
+      console.log('[WebLinkPlugin] Loading configuration, API status:', {
+        hasApi: !!this._api,
+        apiKeys: this._api ? Object.keys(this._api) : [],
+        hasGetStorage: !!(this._api && this._api.getStorage),
+      })
+      
+      if (!this._api) {
+        console.warn('[WebLinkPlugin] API not available in loadConfiguration, using defaults')
+        return
+      }
+      
       const storage = this.getStorage()
+      console.log('[WebLinkPlugin] Storage object:', storage)
+      
       if (storage && typeof storage === 'object' && 'get' in storage) {
         const savedConfig = await (storage as any).get('config')
         if (savedConfig) {
           this.pluginConfig = { ...this.pluginConfig, ...savedConfig }
+          console.log('[WebLinkPlugin] Loaded saved config:', savedConfig)
         }
+      } else {
+        console.log('[WebLinkPlugin] No storage available or invalid storage interface')
       }
     } catch (error) {
-      this.log('error', 'Failed to load configuration:', error)
+      console.error('[WebLinkPlugin] Failed to load configuration:', error)
+      // 不使用 this.log 避免循环错误
     }
   }
 
@@ -615,15 +692,22 @@ export class WebLinkPlugin extends BasePlugin {
      */
   private async loadHistory(): Promise<void> {
     try {
+      if (!this._api) {
+        console.warn('[WebLinkPlugin] API not available in loadHistory, using empty history')
+        return
+      }
+      
       const storage = this.getStorage()
       if (storage && typeof storage === 'object' && 'get' in storage) {
         const savedHistory = await (storage as any).get('history')
         if (savedHistory && Array.isArray(savedHistory)) {
           this.linkHistory = savedHistory
+          console.log('[WebLinkPlugin] Loaded history with', savedHistory.length, 'entries')
         }
       }
     } catch (error) {
-      this.log('error', 'Failed to load history:', error)
+      console.error('[WebLinkPlugin] Failed to load history:', error)
+      // 不使用 this.log 避免循环错误
     }
   }
 

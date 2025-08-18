@@ -37,6 +37,15 @@ export {
   PluginNotificationAPI,
 } from './NotificationAPI'
 
+// 添加入口 API
+export {
+  addEntryUtils,
+  createAddEntryAPI,
+  globalAddEntryAPI,
+  type AddEntry,
+  type PluginAddEntryAPI,
+} from './AddEntryAPI'
+
 // 沙箱環境
 export {
   createSandbox,
@@ -62,6 +71,8 @@ import {
   notificationUtils,
 } from './NotificationAPI'
 
+import { addEntryUtils, createAddEntryAPI, globalAddEntryAPI } from './AddEntryAPI'
+
 import { createSandbox, globalSandbox, sandboxUtils } from './Sandbox'
 
 /**
@@ -73,6 +84,7 @@ export function createPluginAPIs(pluginId: string) {
   const shortcutAPI = createShortcutManager()
   const storageAPI = createStorageAPI()
   const notificationAPI = createNotificationAPI()
+  const addEntryAPI = createAddEntryAPI(pluginId)
   const sandbox = createSandbox()
 
   // 設置插件上下文
@@ -106,6 +118,7 @@ export function createPluginAPIs(pluginId: string) {
     shortcut: shortcutAPI,
     storage: storageAPI,
     notification: notificationAPI,
+    addEntry: addEntryAPI,
     sandbox: context,
 
     // 工具函數
@@ -114,6 +127,7 @@ export function createPluginAPIs(pluginId: string) {
       shortcut: shortcutUtils,
       storage: storageUtils,
       notification: notificationUtils,
+      addEntry: addEntryUtils,
       sandbox: sandboxUtils,
     },
   }
@@ -127,6 +141,7 @@ export const pluginAPIs = {
   shortcut: globalShortcutAPI,
   storage: globalStorageAPI,
   notification: globalNotificationAPI,
+  addEntry: globalAddEntryAPI,
   sandbox: globalSandbox,
 }
 
@@ -143,6 +158,7 @@ export const SUPPORTED_APIS = [
   'shortcut',
   'storage',
   'notification',
+  'addEntry',
   'sandbox',
 ] as const
 
@@ -174,3 +190,4 @@ export type {
   SandboxPolicy,
   SandboxStats,
 } from './Sandbox'
+

@@ -142,6 +142,17 @@ interface SortOption {
     icon: string
 }
 
+// 扩展菜单项类型定义
+interface ExtendedAddMenuItem {
+  id: string
+  label: string
+  icon: string
+  type: 'app' | 'test' | 'custom'
+  handler?: (() => void | Promise<void>) | undefined
+  priority?: number
+  pluginId?: string
+}
+
 interface Props {
     selectedCategory: string
     categories: Category[]
@@ -149,58 +160,129 @@ interface Props {
     currentSortType: string
     sortAscending: boolean
     sortOptions: SortOption[]
+  addMenuItems?: ExtendedAddMenuItem[]
 }
 
 interface Emits {
-    (e: 'category-change', category: string): void
-    (e: 'add-file'): void
-    (e: 'add-folder'): void
-    (e: 'add-url'): void
-    (e: 'add-test-data'): void
-    (e: 'layout-change', mode: 'grid' | 'list'): void
-    (e: 'sort-change', sortType: string): void
-    (e: 'sort-order-toggle'): void
-    (e: 'sort-reset'): void
+  (e: 'category-change', category: string): void
+  (e: 'add-entry', entryId?: string): void
+  (e: 'add-test-data'): void
+  (e: 'layout-change', mode: 'grid' | 'list'): void
+  (e: 'sort-change', sortType: string): void
+  (e: 'sort-order-toggle'): void
+  (e: 'sort-reset'): void
 }
 
 // 添加菜单 (ContextMenu)
 const showAddItemMenu = ref(false)
 const addItemMenuPosition = ref({ x: 0, y: 0 })
-const addItemContextItems = computed<MenuItem[]>(() => [
-  {
-    label: '添加文件',
-    icon: 'pi pi-file',
-    action: () => emit('add-file'),
-  },
-  {
-    label: '添加文件夹',
-    icon: 'pi pi-folder',
-    action: () => emit('add-folder'),
-  },
-  {
-    label: '添加网址',
-    icon: 'pi pi-link',
-    action: () => emit('add-url'),
-  },
-  { label: '', separator: true },
-  {
-    label: '测试添加',
-    icon: 'pi pi-bolt',
-    action: () => emit('add-test-data'),
-  },
-])
+const addItemContextItems = computed<MenuItem[]>(() => {
+  if (props.addMenuItems && props.addMenuItems.length) {
+    // 按类型分组：app类型优先，custom其次，test最后
+    const groupedItems = {
+      app: props.addMenuItems.filter(m => m.type === 'app'),
+      custom: props.addMenuItems.filter(m => m.type === 'custom'),
+      test: props.addMenuItems.filter(m => m.type === 'test'),
+    }
+    
+    const items: MenuItem[] = []
+    
+    // 添加应用类型入口
+    if (groupedItems.app.length > 0) {
+      groupedItems.app
+        .sort((a, b) => {
+          // 按优先级排序（如果有），否则按label排序
+          const aPriority = a.priority ?? 100
+          const bPriority = b.priority ?? 100
+          if (aPriority !== bPriority) return aPriority - bPriority
+          return a.label.localeCompare(b.label)
+        })
+        .forEach(m => {
+          items.push({
+            label: m.pluginId ? `${m.label} (插件)` : m.label,
+            icon: m.icon,
+            action: () => emit('add-entry', m.id),
+          })
+        })
+    }
+    
+    // 添加自定义类型入口（如果存在）
+    if (groupedItems.custom.length > 0) {
+      if (items.length > 0) {
+        items.push({ label: '', separator: true })
+      }
+      groupedItems.custom
+        .sort((a, b) => {
+          const aPriority = a.priority ?? 200
+          const bPriority = b.priority ?? 200
+          if (aPriority !== bPriority) return aPriority - bPriority
+          return a.label.localeCompare(b.label)
+        })
+        .forEach(m => {
+          items.push({
+            label: `${m.label} (自定义)`,
+            icon: m.icon,
+            action: () => m.handler?.(),
+          })
+        })
+    }
+    
+    // 添加测试类型入口（如果存在）
+    if (groupedItems.test.length > 0) {
+      if (items.length > 0) {
+        items.push({ label: '', separator: true })
+      }
+      groupedItems.test.forEach(m => {
+        items.push({
+          label: `${m.label} (测试)`,
+          icon: m.icon,
+          action: () => emit('add-test-data'),
+        })
+      })
+    }
+    
+    return items
+  }
+  
+  // 默认菜单（当没有插件注册时）
+  return [
+    { label: '添加应用', icon: 'pi pi-plus', action: () => emit('add-entry') },
+    { label: '', separator: true },
+    { label: '测试数据', icon: 'pi pi-flask', action: () => emit('add-test-data') },
+  ]
+})
 
 const toggleAddItemMenu = (e: MouseEvent) => {
   if (!showAddItemMenu.value) {
-    addItemMenuPosition.value = { x: e.clientX, y: (e.clientY + 8) }
+    // 计算更精确的菜单位置
+    const target = e.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    const menuWidth = 200 // 估算菜单宽度
+    
+    // 如果右侧空间不足，则向左偏移
+    let x = rect.right - menuWidth
+    if (x < 10) {
+      x = rect.left
+    }
+    
+    addItemMenuPosition.value = { 
+      x, 
+      y: rect.bottom + 8,
+    }
     showAddItemMenu.value = true
   } else {
     showAddItemMenu.value = false
   }
 }
 
-const onAddItemSelect = (_item: MenuItem) => {
-  // action 已在 menuItems 中执行
+const onAddItemSelect = (item: MenuItem) => {
+  // 执行菜单项的action，增加错误处理
+  try {
+    item.action?.()
+  } catch (error) {
+    console.error('菜单操作执行失败:', error)
+  }
+  showAddItemMenu.value = false
 }
 
 // 获取分组图标

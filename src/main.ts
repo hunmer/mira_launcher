@@ -7,6 +7,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { MiraPreset } from './config/primevue-theme'
 import router from './router'
+import type { AddEntry } from './stores/addEntries'
+import { useAddEntriesStore } from './stores/addEntries'
 import { useSettingsStore } from './stores/settings'
 
 // PrimeVue 样式
@@ -27,6 +29,8 @@ import './plugins/registry'
 import { initializeShortcutSystem } from './utils/shortcut-system'
 // 初始化窗口管理器
 import { initWindowManager } from './utils/window-manager'
+// 注册字段组件
+import { registerFieldComponents } from './components/business/fields/components'
 
 // 導入樣式
 import './styles/main.css'
@@ -62,8 +66,32 @@ registerGlobalComponents(app)
 const pinia = createPinia()
 app.use(pinia)
 
+// 暴露 addEntries store 访问器给插件（延迟获取，避免直接引用造成顺序问题）
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare global {
+  interface Window {
+    __miraAddEntriesStore?: () => {
+      register: (entry: AddEntry) => void
+      unregister: (id: string) => void
+      entries: { id: string; label: string; icon: string; type: string; priority?: number; handler?: () => void | Promise<void>; pluginId?: string }[]
+    } | null
+  }
+}
+
+window.__miraAddEntriesStore = () => {
+  try {
+    return useAddEntriesStore()
+  } catch (e) {
+    console.warn('[AddEntries] store accessor unavailable', e)
+    return null
+  }
+}
+
 // 使用路由
 app.use(router)
+
+// 注册字段组件
+registerFieldComponents(app)
 
 // 開發環境下的額外配置
 if (import.meta.env.DEV) {

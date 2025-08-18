@@ -113,11 +113,8 @@ async fn handle_quick_search_result(
             }
         }
         "file" => {
-            if let Some(path) = result.path {
-                open_file(path)
-            } else {
-                Err("文件路径不能为空".to_string())
-            }
+            // 文件将由前端使用opener插件处理
+            Err("文件打开应由前端处理".to_string())
         }
         _ => Err(format!("未知的结果类型: {}", result.result_type)),
     }
@@ -132,7 +129,9 @@ async fn handle_system_function(app: &tauri::AppHandle, action: &str) -> Result<
                     .eval("window.location.hash = '#/settings'")
                     .map_err(|e| format!("导航到设置失败: {}", e))?;
                 window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
-                window.set_focus().map_err(|e| format!("聚焦窗口失败: {}", e))?;
+                window
+                    .set_focus()
+                    .map_err(|e| format!("聚焦窗口失败: {}", e))?;
             }
             Ok("已打开设置".to_string())
         }
@@ -142,7 +141,9 @@ async fn handle_system_function(app: &tauri::AppHandle, action: &str) -> Result<
                     .eval("window.location.hash = '#/plugins'")
                     .map_err(|e| format!("导航到插件失败: {}", e))?;
                 window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
-                window.set_focus().map_err(|e| format!("聚焦窗口失败: {}", e))?;
+                window
+                    .set_focus()
+                    .map_err(|e| format!("聚焦窗口失败: {}", e))?;
             }
             Ok("已打开插件管理".to_string())
         }
@@ -152,7 +153,9 @@ async fn handle_system_function(app: &tauri::AppHandle, action: &str) -> Result<
                     .eval("window.location.hash = '#/downloads'")
                     .map_err(|e| format!("导航到下载失败: {}", e))?;
                 window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
-                window.set_focus().map_err(|e| format!("聚焦窗口失败: {}", e))?;
+                window
+                    .set_focus()
+                    .map_err(|e| format!("聚焦窗口失败: {}", e))?;
             }
             Ok("已打开下载管理".to_string())
         }
@@ -162,7 +165,9 @@ async fn handle_system_function(app: &tauri::AppHandle, action: &str) -> Result<
                     .eval("window.location.hash = '#/about'")
                     .map_err(|e| format!("导航到关于失败: {}", e))?;
                 window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
-                window.set_focus().map_err(|e| format!("聚焦窗口失败: {}", e))?;
+                window
+                    .set_focus()
+                    .map_err(|e| format!("聚焦窗口失败: {}", e))?;
             }
             Ok("已打开关于页面".to_string())
         }
@@ -170,62 +175,96 @@ async fn handle_system_function(app: &tauri::AppHandle, action: &str) -> Result<
     }
 }
 
-// 打开文件
-fn open_file(file_path: String) -> Result<String, String> {
+// 执行系统命令
+#[tauri::command]
+fn execute_command(command: String, args: Vec<String>) -> Result<String, String> {
+    use std::process::Command;
+
+    println!("执行命令: {} {:?}", command, args);
+
+    // 特殊处理Windows的start命令
     #[cfg(target_os = "windows")]
     {
-        use std::process::Command;
+        if command == "cmd" && args.len() >= 4 && args[1] == "start" {
+            // 如果是 cmd /c start "" "path" 的形式，使用更简单的方法
+            if let Some(file_path) = args.get(3) {
+                // 去掉引号并使用PowerShell的Start-Process
+                let cleaned_path = file_path.trim_matches('"');
+                let output = Command::new("powershell")
+                    .args([
+                        "-Command",
+                        &format!(
+                            "Start-Process -FilePath '{}' -ErrorAction Stop",
+                            cleaned_path.replace("'", "''")
+                        ),
+                    ])
+                    .output()
+                    .map_err(|e| format!("执行命令失败: {}", e))?;
 
-        let output = Command::new("cmd")
-            .args(["/C", "start", "", &file_path])
-            .output()
-            .map_err(|e| format!("打开文件失败: {}", e))?;
+                if output.status.success() {
+                    Ok("命令执行成功".to_string())
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if stderr.is_empty() {
+                        Ok("命令执行成功".to_string())
+                    } else {
+                        Err(format!("命令执行失败: {}", stderr))
+                    }
+                }
+            } else {
+                // 回退到原始方法
+                let output = Command::new(command)
+                    .args(args)
+                    .output()
+                    .map_err(|e| format!("执行命令失败: {}", e))?;
 
-        if output.status.success() {
-            Ok("文件已打开".to_string())
+                if output.status.success() {
+                    Ok("命令执行成功".to_string())
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if stderr.is_empty() {
+                        Ok("命令执行成功".to_string())
+                    } else {
+                        Err(format!("命令执行失败: {}", stderr))
+                    }
+                }
+            }
         } else {
-            Err(format!(
-                "打开文件失败: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ))
+            // 普通命令
+            let output = Command::new(command)
+                .args(args)
+                .output()
+                .map_err(|e| format!("执行命令失败: {}", e))?;
+
+            if output.status.success() {
+                Ok("命令执行成功".to_string())
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if stderr.is_empty() {
+                    Ok("命令执行成功".to_string())
+                } else {
+                    Err(format!("命令执行失败: {}", stderr))
+                }
+            }
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(not(target_os = "windows"))]
     {
-        use std::process::Command;
-
-        let output = Command::new("open")
-            .arg(&file_path)
+        let output = Command::new(command)
+            .args(args)
             .output()
-            .map_err(|e| format!("打开文件失败: {}", e))?;
+            .map_err(|e| format!("执行命令失败: {}", e))?;
 
         if output.status.success() {
-            Ok("文件已打开".to_string())
+            Ok("命令执行成功".to_string())
         } else {
-            Err(format!(
-                "打开文件失败: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ))
-        }
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        use std::process::Command;
-
-        let output = Command::new("xdg-open")
-            .arg(&file_path)
-            .output()
-            .map_err(|e| format!("打开文件失败: {}", e))?;
-
-        if output.status.success() {
-            Ok("文件已打开".to_string())
-        } else {
-            Err(format!(
-                "打开文件失败: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ))
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            if stderr.is_empty() {
+                Ok("命令执行成功".to_string())
+            } else {
+                Err(format!("命令执行失败: {}", stderr))
+            }
         }
     }
 }
@@ -233,6 +272,19 @@ fn open_file(file_path: String) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(tauri_plugin_websocket::init())
+        .plugin(tauri_plugin_upload::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_cli::init())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_notification::init())
@@ -249,7 +301,8 @@ pub fn run() {
             get_system_info,
             open_devtools,
             is_debug_mode,
-            handle_quick_search_result
+            handle_quick_search_result,
+            execute_command
         ])
         .setup(|app| {
             // 設置應用程式標題 (僅在桌面平台)
@@ -257,7 +310,7 @@ pub fn run() {
             {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_title("Mira Launcher");
-                    
+
                     // 确保窗口完全透明
                     let _ = window.set_decorations(false);
                     #[cfg(target_os = "windows")]

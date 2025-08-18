@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createAddEntryAPI } from '@/plugins/api/AddEntryAPI'
 import { createShortcutManager } from '@/plugins/api/ShortcutAPI'
 import type {
   EventListener,
   EventListenerOptions,
-  PluginAPI,
   PluginConfiguration,
   PluginEventType,
   PluginLifecycleEvent,
@@ -112,9 +115,19 @@ export class PluginManager {
 
       // 设置插件API（仅对支持的插件）
       const pluginAPI = this.createPluginAPI(metadata.id)
+      console.log(`[PluginManager] Creating API for plugin ${metadata.id}:`, {
+        hasSetAPI: typeof pluginInstance._setAPI === 'function',
+        hasInitialize: typeof (pluginInstance as any).initialize === 'function',
+        apiKeys: Object.keys(pluginAPI),
+      })
+      
       if (typeof pluginInstance._setAPI === 'function') {
         pluginInstance._setAPI(pluginAPI)
         console.log(`[PluginManager] Set API for plugin ${metadata.id}`)
+      } else if (typeof (pluginInstance as any).initialize === 'function') {
+        // 尝试使用 initialize 方法（用于 plugin-sdk BasePlugin）
+        (pluginInstance as any).initialize(pluginAPI)
+        console.log(`[PluginManager] Initialized API for plugin ${metadata.id}`)
       } else {
         console.log(
           `[PluginManager] Plugin ${metadata.id} doesn't support API injection (external plugin)`,
@@ -745,9 +758,65 @@ export class PluginManager {
   /**
    * 创建插件API
    */
-  private createPluginAPI(pluginId: string): PluginAPI {
-    // 简化版 API，将在后续任务中完善
-    return {
+  private createPluginAPI(pluginId: string): any {
+    // 返回扩展的 API，包含 plugin-sdk.ts 需要的方法
+    const api = {
+      // 添加 plugin-sdk.ts 需要的基础方法
+      log: (level: string, message: string, ...args: any[]) => {
+        const logLevel = level as 'debug' | 'info' | 'warn' | 'error'
+        console[logLevel](`[Plugin ${pluginId}] ${message}`, ...args)
+      },
+      sendNotification: (type: string, options: any) => {
+        console.log(`[Plugin ${pluginId}] Notification:`, type, options)
+        // TODO: 集成实际通知系统
+      },
+      getStorage: () => {
+        // 返回简化的存储接口
+        return {
+          get: async (key: string) => {
+            try {
+              const stored = localStorage.getItem(`plugin-${pluginId}-${key}`)
+              return stored ? JSON.parse(stored) : null
+            } catch (e) {
+              console.warn(`[Plugin ${pluginId}] Storage get error:`, e)
+              return null
+            }
+          },
+          set: async (key: string, value: any) => {
+            try {
+              localStorage.setItem(`plugin-${pluginId}-${key}`, JSON.stringify(value))
+            } catch (e) {
+              console.warn(`[Plugin ${pluginId}] Storage set error:`, e)
+            }
+          },
+          remove: async (key: string) => {
+            localStorage.removeItem(`plugin-${pluginId}-${key}`)
+          },
+        }
+      },
+      emit: (event: string, data?: any) => {
+        this.eventBus.emit(event as any, data, pluginId)
+      },
+      on: (event: string, handler: (data?: any) => void) => {
+        this.eventBus.on(event as any, handler as any)
+      },
+      off: (event: string, handler?: (data?: any) => void) => {
+        if (handler) {
+          this.eventBus.off(event as any, handler as any)
+        }
+      },
+      getConfig: () => {
+        // TODO: 返回插件配置
+        return {}
+      },
+      setConfig: (config: any) => {
+        // TODO: 设置插件配置
+        console.log(`[Plugin ${pluginId}] Set config:`, config)
+      },
+      registerComponent: (name: string, component: any) => {
+        console.log(`[Plugin ${pluginId}] Register component:`, name, component)
+        // TODO: 集成组件注册
+      },
       app: {
         name: 'Mira Launcher',
         version: '1.0.0',
@@ -760,6 +829,67 @@ export class PluginManager {
       component: this.createSimpleComponentAPI(pluginId),
       route: this.createSimpleRouteAPI(pluginId),
       plugins: this.createSimplePluginsAPI(pluginId),
+      addEntry: (() => {
+        // 使用新的 AddEntryAPI 实现
+        const addEntryAPI = createAddEntryAPI(pluginId)
+        
+        return {
+          register: (entry: {
+            id?: string
+            label: string
+            icon: string
+            type: 'app' | 'test' | 'custom'
+            priority?: number
+            formDefaults?: Record<string, unknown>
+            appType?: string
+            fields?: Record<string, {
+              label: string
+              input: string
+              required?: boolean
+              placeholder?: string
+              validation?: {
+                pattern?: string
+                minLength?: number
+                maxLength?: number
+                min?: number
+                max?: number
+              }
+              options?: Array<{ label: string; value: unknown }>
+              description?: string
+            }>
+            exec?: (ctx: { fields: Record<string, unknown> }) => boolean | Promise<boolean>
+            handler?: () => void | Promise<void>
+          }) => {
+            try {
+              return addEntryAPI.register(entry as any)
+            } catch (error) {
+              console.error(`[Plugin ${pluginId}] Failed to register addEntry:`, error)
+              return ''
+            }
+          },
+          unregister: (id: string) => {
+            try {
+              addEntryAPI.unregister(id)
+            } catch (error) {
+              console.error(`[Plugin ${pluginId}] Failed to unregister addEntry:`, error)
+            }
+          },
+          list: () => {
+            try {
+              return addEntryAPI.getEntries().map((entry: any) => ({
+                id: entry.id,
+                label: entry.label,
+                icon: entry.icon,
+                type: entry.type,
+                priority: entry.priority,
+              }))
+            } catch (error) {
+              console.error(`[Plugin ${pluginId}] Failed to list addEntries:`, error)
+              return []
+            }
+          },
+        }
+      })(),
       events: {
         on: <T = unknown>(
           type: PluginEventType,
@@ -801,7 +931,10 @@ export class PluginManager {
       },
       utils: this.createSimpleUtilsAPI(pluginId),
     }
+    
+    return api
   }
+
 
   /**
    * 创建简化菜单API

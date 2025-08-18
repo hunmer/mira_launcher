@@ -6,6 +6,21 @@
         @click="$emit('launch', app)"
         @contextmenu.prevent="$emit('context-menu', app, $event)"
     >
+        <!-- 插件标识Badge -->
+        <div 
+            v-if="pluginInfo" 
+            class="app-card__plugin-badge" 
+            :class="{ 
+                'app-card__plugin-badge--grid': layoutMode === 'grid', 
+                'app-card__plugin-badge--list': layoutMode === 'list' 
+            }"
+            :title="`通过插件添加: ${pluginInfo.label}`"
+        >
+            <div class="plugin-badge">
+                <i :class="pluginInfo.icon || 'pi pi-puzzle-piece'" />
+            </div>
+        </div>
+        
         <div class="app-card__icon">
             <img
                 v-if="app.icon"
@@ -38,6 +53,7 @@
 </template>
 
 <script setup lang="ts">
+import { useAddEntriesStore } from '@/stores/addEntries'
 import type { Application } from '@/stores/applications'
 import { computed } from 'vue'
 
@@ -54,6 +70,14 @@ interface Emits {
 
 const props = defineProps<Props>()
 defineEmits<Emits>()
+
+const addEntriesStore = useAddEntriesStore()
+
+// 获取插件信息
+const pluginInfo = computed(() => {
+    if (!props.app.appType) return null
+    return addEntriesStore.entries.find(entry => entry.appType === props.app.appType || entry.id === props.app.appType)
+})
 
 const iconStyle = computed(() => {
     const currentIconSize = props.layoutMode === 'list' ? Math.min(props.iconSize, 48) : props.iconSize
@@ -76,7 +100,49 @@ const iconStyle = computed(() => {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     overflow: hidden;
+    position: relative;
+}
 
+/* 插件标识Badge */
+.app-card__plugin-badge {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.app-card__plugin-badge--grid {
+    top: 4px;
+    right: 4px;
+}
+
+.app-card__plugin-badge--list {
+    top: 8px;
+    right: 8px;
+}
+
+.plugin-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.app-card:hover .plugin-badge {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark .plugin-badge {
+    background: rgba(59, 130, 246, 0.8);
+    color: #dbeafe;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* 使用 BEM 命名避免冲突 */

@@ -9,7 +9,10 @@ export interface Application {
   category: string
   lastUsed?: Date
   pinned?: boolean
-  type: 'file' | 'folder' | 'url' | 'app'
+  /** 固定主类型统一为 app */
+  type: 'app'
+  /** 插件自定义类型（原 file/folder/url 迁移至此） */
+  appType?: string
   description?: string
   tags?: string[]
   isSystem?: boolean
@@ -18,13 +21,13 @@ export interface Application {
   createdAt: Date
   updatedAt: Date
   sortOrder?: number
-  // 网格布局信息
   gridPosition?: {
     x: number
     y: number
     w: number
     h: number
   }
+  dynamicFields?: Record<string, unknown>
 }
 
 export interface Category {
@@ -55,7 +58,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     { label: '按名称排序', value: 'name', icon: 'pi pi-sort-alpha-down' },
     { label: '按创建时间', value: 'created', icon: 'pi pi-calendar' },
     { label: '按使用时间', value: 'lastUsed', icon: 'pi pi-clock' },
-    { label: '按类型排序', value: 'type', icon: 'pi pi-tags' },
+  { label: '按类型排序', value: 'type', icon: 'pi pi-tags' },
   ])
 
   // 分类选项
@@ -116,8 +119,10 @@ export const useApplicationsStore = defineStore('applications', () => {
         break
       }
       case 'type': {
-        // 按类型排序
-        result = a.type.localeCompare(b.type)
+        // 按自定义 appType 排序
+        const at = a.appType || 'app'
+        const bt = b.appType || 'app'
+        result = at.localeCompare(bt)
         break
       }
       default: {
@@ -357,78 +362,25 @@ export const useApplicationsStore = defineStore('applications', () => {
   // 初始化默认应用数据
   const initDefaultApplications = () => {
     const defaultApps: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>[] = [
-      {
-        name: 'Google Chrome',
-        path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        icon: '/icons/chrome.svg',
-        category: 'productivity',
-        type: 'app',
-        description: 'Google Chrome 浏览器',
-        isSystem: false,
-      },
-      {
-        name: 'Visual Studio Code',
-        path: 'C:\\Users\\Username\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe',
-        icon: '/icons/vscode.svg',
-        category: 'development',
-        type: 'app',
-        description: '代码编辑器',
-        isSystem: false,
-      },
-      {
-        name: '记事本',
-        path: 'C:\\Windows\\System32\\notepad.exe',
-        icon: '/icons/notepad.svg',
-        category: 'utility',
-        type: 'app',
-        description: 'Windows 记事本',
-        isSystem: true,
-      },
-      {
-        name: 'Figma',
-        path: 'https://www.figma.com',
-        icon: '/icons/figma.svg',
-        category: 'design',
-        type: 'url',
-        description: '在线设计工具',
-        isSystem: false,
-      },
-      {
-        name: 'Slack',
-        path: 'path-to-slack',
-        icon: '/icons/slack.svg',
-        category: 'productivity',
-        type: 'app',
-        description: '团队协作工具',
-        isSystem: false,
-      },
-      {
-        name: 'Spotify',
-        path: 'path-to-spotify',
-        icon: '/icons/spotify.svg',
-        category: 'entertainment',
-        type: 'app',
-        description: '音乐播放器',
-        isSystem: false,
-      },
-      {
-        name: 'Notion',
-        path: 'https://www.notion.so',
-        icon: '/icons/notion.svg',
-        category: 'productivity',
-        type: 'url',
-        description: '笔记和协作工具',
-        isSystem: false,
-      },
-      {
-        name: 'Postman',
-        path: 'path-to-postman',
-        icon: '/icons/postman.svg',
-        category: 'development',
-        type: 'app',
-        description: 'API 测试工具',
-        isSystem: false,
-      },
+      // {
+      //   name: 'Notion',
+      //   path: 'https://www.notion.so',
+      //   icon: '/icons/notion.svg',
+      //   category: 'productivity',
+      //   type: 'app',
+      //   appType: 'web-url',
+      //   description: '笔记和协作工具',
+      //   isSystem: false,
+      // },
+      // {
+      //   name: 'Postman',
+      //   path: 'path-to-postman',
+      //   icon: '/icons/postman.svg',
+      //   category: 'development',
+      //   type: 'app',
+      //   description: 'API 测试工具',
+      //   isSystem: false,
+      // },
     ]
 
     applications.value = defaultApps.map(app => addApplication(app))
@@ -471,32 +423,29 @@ export const useApplicationsStore = defineStore('applications', () => {
       'productivity',
       'utility',
     ]
-    const testTypes: ('app' | 'url' | 'file' | 'folder')[] = [
-      'app',
-      'url',
-      'file',
-      'folder',
-    ]
+  const legacyTestTypes = ['app','url','file','folder'] as const
 
     for (let i = 0; i < count; i++) {
       const randomName = testNames[Math.floor(Math.random() * testNames.length)]
       const randomCategory =
         testCategories[Math.floor(Math.random() * testCategories.length)]
-      const randomType = testTypes[Math.floor(Math.random() * testTypes.length)]
+  const randomType = legacyTestTypes[Math.floor(Math.random() * legacyTestTypes.length)]
 
-      addApplication({
+      const appTypeValue = randomType === 'app' ? undefined : (randomType === 'url' ? 'web-url' : randomType)
+      const baseApp: Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'> = {
         name: `${randomName} ${i + 1}`,
-        path:
-          randomType === 'url'
-            ? `https://example-${i}.com`
-            : `C:\\Test\\${randomName}\\app.exe`,
+        path: randomType === 'url'
+          ? `https://example-${i}.com`
+          : `C:\\Test\\${randomName}\\app.exe`,
         category: randomCategory || 'utility',
-        type: randomType || 'app',
+        type: 'app',
         description: `测试应用 ${i + 1}`,
         icon: '/icons/placeholder.svg',
         isSystem: false,
         pinned: Math.random() > 0.8,
-      })
+      }
+      if (appTypeValue) (baseApp as { appType?: string }).appType = appTypeValue
+      addApplication(baseApp)
     }
   }
 

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {
   PluginBuilderFunction,
   PluginConfigDefinition,
@@ -36,16 +38,17 @@ export class FileSystemPlugin extends BasePlugin {
       icon: 'pi pi-folder',
       tags: ['文件', '文件夹', '路径'],
       regexps: [
-        '^[A-Za-z]:[\\\\\/].*',                    // Windows 绝对路径 (C:\path 或 C:/path)
-        '^\/[^\/\\s]*',                           // Unix 绝对路径 (/path)
-        '^~\/.*',                                 // Home 目录路径 (~/path)
-        '^\\.{1,2}[\\\\\/].*',                    // 相对路径 (./path 或 ../path)
+        '^[A-Za-z]:[\\\\/].*',                    // Windows 绝对路径 (C:\path 或 C:/path)
+        '^\\/[^/\\s]*',                           // Unix 绝对路径 (/path)
+        '^~/.*',                                 // Home 目录路径 (~/path)
+        '^\\.{1,2}[\\\\/].*',                    // 相对路径 (./path 或 ../path)
       ],
       parser: async ({ args }) => {
         // 检查是否为有效的文件路径格式
         const { query } = args
-        return /^([A-Za-z]:[\\\/]|\/|~\/|\.[\\\/])/.test(query)
+        return /^([A-Za-z]:[\\/]|\/|~\/|\.[\\/])/.test(query)
       },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       runner: async ({ args, api }) => {
         // 执行文件路径打开操作
         const { query } = args
@@ -81,7 +84,7 @@ export class FileSystemPlugin extends BasePlugin {
       icon: 'pi pi-folder-open',
       tags: ['下载', '桌面', '文档', '图片'],
       regexps: [
-        '.*[\\\\\/](?:Downloads|Desktop|Documents|Pictures|Videos|Music)[\\\\\/].*', // 常见文件夹路径
+        '.*[\\\\/](?:Downloads|Desktop|Documents|Pictures|Videos|Music)[\\\\/].*', // 常见文件夹路径
       ],
       // 这个入口没有parser，直接通过正则匹配即可
       runner: async ({ args, api }) => {
@@ -309,6 +312,7 @@ export class FileSystemPlugin extends BasePlugin {
     enableNotifications: true,
     showHiddenFiles: false,
   }
+  private registeredAddEntryId: string | null = null
 
   /**
      * 获取插件元数据
@@ -368,6 +372,126 @@ export class FileSystemPlugin extends BasePlugin {
       })
     }
 
+    // 注册文件/文件夹/自定义路径添加入口（若API可用）
+    const registerAddEntry = async (retryCount = 0) => {
+      try {
+        if (!this._api || !this._api.addEntry) {
+          if (retryCount < 3) {
+            // 等待API准备好，最多重试3次
+            console.log(`[FileSystemPlugin] API not ready, retrying in 100ms... (attempt ${retryCount + 1}/3)`)
+            setTimeout(() => registerAddEntry(retryCount + 1), 100)
+            return
+          } else {
+            console.warn('[FileSystemPlugin] API or addEntry not available after retries')
+            return
+          }
+        }
+        
+        const addEntryAPI = this._api.addEntry
+        
+        // 注册添加文件入口
+        const fileEntryId = addEntryAPI.register({
+          id: 'fs-add-file',
+          label: '添加文件',
+          icon: 'pi pi-file',
+          type: 'app',
+          priority: 10,
+          formDefaults: { category: 'files' },
+          appType: 'file-system-file',
+          fields: {
+            path: {
+              label: '文件路径',
+              input: 'file',
+              required: true,
+              placeholder: 'C:\\path\\to\\file.txt 或 /path/to/file.txt',
+              validation: {
+                pattern: '^.+',
+                minLength: 1,
+              },
+              filters: [
+                { name: '所有文件', extensions: ['*'] },
+                { name: '可执行文件', extensions: ['exe', 'msi', 'app', 'deb', 'rpm'] },
+                { name: '文档文件', extensions: ['txt', 'doc', 'docx', 'pdf', 'md'] },
+                { name: '图片文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'] },
+                { name: '音频文件', extensions: ['mp3', 'wav', 'flac', 'aac', 'm4a'] },
+                { name: '视频文件', extensions: ['mp4', 'avi', 'mkv', 'mov', 'wmv'] },
+              ],
+            },
+          },
+          exec: async ({ fields }) => {
+            const filePath = String(fields.path || '')
+            if (!filePath) return false
+            const normalizedPath = this.normalizePath(filePath)
+            await this.openPath(normalizedPath, 'system')
+            return true
+          },
+        })
+        
+        // 注册添加文件夹入口
+        const folderEntryId = addEntryAPI.register({
+          id: 'fs-add-folder',
+          label: '添加文件夹',
+          icon: 'pi pi-folder',
+          type: 'app',
+          priority: 11,
+          formDefaults: { category: 'files' },
+          appType: 'file-system-folder',
+          fields: {
+            path: {
+              label: '文件夹路径',
+              input: 'path',
+              required: true,
+              placeholder: 'C:\\path\\to\\folder 或 /path/to/folder',
+              validation: {
+                pattern: '^.+',
+                minLength: 1,
+              },
+            },
+          },
+          exec: async ({ fields }) => {
+            const folderPath = String(fields.path || '')
+            if (!folderPath) return false
+            const normalizedPath = this.normalizePath(folderPath)
+            await this.openPath(normalizedPath, 'explorer')
+            return true
+          },
+        })
+        
+        // 注册快速路径创建入口（自定义类型）
+        this.registeredAddEntryId = addEntryAPI.register({
+          id: 'fs-quick-create',
+          label: '从路径快速创建',
+          icon: 'pi pi-hdd',
+          type: 'custom',
+          priority: 19,
+          handler: async () => {
+            const path = prompt('输入路径(文件/文件夹):') || ''
+            if (!path) return
+            const name = path.split(/[\\/]/).pop() || path
+            window.dispatchEvent(new CustomEvent('mira:add-app', { 
+              detail: { 
+                name, 
+                path, 
+                type: 'file', 
+                category: 'files',
+                appType: this.isDirectory(path) ? 'file-system-folder' : 'file-system-file',
+              }, 
+            }))
+          },
+        })
+        
+        console.log('[FileSystemPlugin] Successfully registered addEntry entries:', {
+          fileEntryId,
+          folderEntryId,
+          customEntryId: this.registeredAddEntryId,
+        })
+      } catch (e) {
+        console.warn('[FileSystemPlugin] addEntry register failed', e)
+      }
+    }
+
+    await registerAddEntry()
+
     console.log('[FileSystemPlugin] Plugin activated successfully')
   }
 
@@ -381,6 +505,15 @@ export class FileSystemPlugin extends BasePlugin {
 
     // 保存历史记录
     await this.saveHistory()
+
+    // 注销添加入口
+    try {
+      const api: any = (this as any)._api
+      if (this.registeredAddEntryId && api?.addEntry) {
+        api.addEntry.unregister(this.registeredAddEntryId)
+      }
+    // eslint-disable-next-line no-empty
+    } catch {}
 
     console.log('[FileSystemPlugin] Plugin deactivated successfully')
   }
@@ -437,6 +570,21 @@ export class FileSystemPlugin extends BasePlugin {
   }
 
   /**
+     * 简单判断路径是否可能是目录（基于常见模式）
+     */
+  private isDirectory(path: string): boolean {
+    // 简单的启发式判断：
+    // 1. 没有文件扩展名
+    // 2. 以常见文件夹名结尾
+    const name = path.split(/[\\/]/).pop() || ''
+    const hasExtension = /\.[a-zA-Z0-9]+$/.test(name)
+    const commonFolders = ['Documents', 'Downloads', 'Desktop', 'Pictures', 'Videos', 'Music', 'temp', 'tmp', 'bin', 'lib', 'src', 'assets']
+    const isCommonFolder = commonFolders.some(folder => name.toLowerCase().includes(folder.toLowerCase()))
+    
+    return !hasExtension || isCommonFolder
+  }
+
+  /**
      * 检查文件或文件夹是否存在
      */
   private async pathExists(path: string): Promise<boolean> {
@@ -476,8 +624,10 @@ export class FileSystemPlugin extends BasePlugin {
      */
   private async openWithSystem(path: string): Promise<void> {
     try {
-      const { open } = await import('@tauri-apps/plugin-shell')
-      await open(path)
+      // 使用Tauri官方的opener插件
+      const { openPath } = await import('@tauri-apps/plugin-opener')
+      
+      await openPath(path)
       this.log('info', `Opened with system default: ${path}`)
 
       const fileInfo = await this.getFileInfo(path)
@@ -510,10 +660,10 @@ export class FileSystemPlugin extends BasePlugin {
       // 根据操作系统选择合适的命令
       const userAgent = navigator.userAgent
       if (userAgent.includes('Windows')) {
-        // Windows: 使用 explorer 命令
+        // Windows: 使用 explorer 命令选择文件
         await invoke('execute_command', {
           command: 'explorer',
-          args: ['/select,', path],
+          args: [`/select,"${path}"`],
         })
       } else if (userAgent.includes('Macintosh')) {
         // macOS: 使用 open 命令

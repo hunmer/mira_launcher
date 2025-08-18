@@ -1,8 +1,4 @@
-/**
- * Plugin SDK for Mira Launcher
- * This file provides the necessary types and base classes for plugin development
- * without requiring direct imports from the main application source code.
- */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Plugin Metadata Interface
@@ -22,6 +18,54 @@ export interface PluginMetadata {
     license?: string
     configSchema?: any
 }
+
+/**
+ * Plugin API (simplified for external plugins)
+ */
+export interface PluginAPI {
+    log: (level: string, message: string, ...args: any[]) => void
+    sendNotification: (type: string, options: any) => void
+    getStorage: () => any
+    emit: (event: string, data?: any) => void
+  on: (event: string, handler: (data?: any) => void) => void
+    off: (event: string, handler?: (data?: any) => void) => void
+    getConfig: () => PluginConfig
+    setConfig: (config: Partial<PluginConfig>) => void
+    registerComponent: (name: string, component: any) => void
+  /** 添加入口注册 API（与核心系统交互，用于在"添加"菜单中动态插入项） */
+  addEntry?: {
+    register(entry: {
+      id?: string
+      label: string
+      icon: string
+      type: 'app' | 'test' | 'custom'
+      priority?: number
+      formDefaults?: Record<string, unknown>
+      appType?: string
+      fields?: Record<string, {
+        label: string
+        input: string
+        required?: boolean
+        placeholder?: string
+        validation?: {
+          pattern?: string
+          minLength?: number
+          maxLength?: number
+          min?: number
+          max?: number
+        }
+        options?: Array<{ label: string; value: unknown }>
+        filters?: Array<{ name: string; extensions: string[] }>
+        description?: string
+      }>
+      exec?: (ctx: { fields: Record<string, unknown> }) => boolean | Promise<boolean>
+      handler?: () => void | Promise<void>
+    }): string
+    unregister(id: string): void
+    list(): Array<{ id: string; label: string; icon: string; type: string; priority?: number }>
+  }
+}
+
 
 /**
  * Plugin Configuration Definition
@@ -176,21 +220,6 @@ export interface PluginSearchContext {
  */
 export interface PluginComponents {
     [componentName: string]: any
-}
-
-/**
- * Plugin API (simplified for external plugins)
- */
-export interface PluginAPI {
-    log: (level: string, message: string, ...args: any[]) => void
-    sendNotification: (type: string, options: any) => void
-    getStorage: () => any
-    emit: (event: string, data?: any) => void
-    on: (event: string, handler: (data?: any) => void) => void
-    off: (event: string, handler?: (data?: any) => void) => void
-    getConfig: () => PluginConfig
-    setConfig: (config: Partial<PluginConfig>) => void
-    registerComponent: (name: string, component: any) => void
 }
 
 /**

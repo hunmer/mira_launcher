@@ -10,32 +10,25 @@
             class="grid-stack"
             @contextmenu.self.prevent="$emit('blank-context-menu', $event)"
         />
-        <ContextMenu
-            :show="placeholderMenuVisible"
-            :x="placeholderMenuPosition.x"
-            :y="placeholderMenuPosition.y"
-            :items="placeholderMenuItems"
-            @update:show="placeholderMenuVisible = $event"
-            @select="onPlaceholderMenuSelect"
-        />
     </div>
 </template>
 
 <script setup lang="ts">
 import ApplicationCard from '@/components/business/ApplicationCard.vue'
-import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
+// ContextMenu 移除：改由父组件统一控制添加菜单显示
 import type { Application } from '@/stores/applications'
 import type { GridStackNode } from 'gridstack'
 import { GridStack } from 'gridstack'
 import 'gridstack/dist/gridstack.min.css'
-import { computed, createApp, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { createApp, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 interface Props {
     applications: Application[]
     layoutMode: 'grid' | 'list'
     gridColumns: number
     iconSize: number
-    addMenuItems?: { label: string; icon: string; type: 'file' | 'folder' | 'url' | 'test' }[]
+    sortType?: string // 添加排序类型属性
+    addMenuItems?: { label: string; icon: string; type: 'app' | 'test' | 'custom'; handler?: (() => void | Promise<void>) | undefined }[]
 }
 
 interface DragEventData {
@@ -49,11 +42,8 @@ interface Emits {
     (e: 'launch-app', app: Application): void
     (e: 'app-context-menu', app: Application, event: MouseEvent): void
     (e: 'blank-context-menu', event: MouseEvent): void
-    (e: 'placeholder-click'): void
-    (e: 'add-file'): void
-    (e: 'add-folder'): void
-    (e: 'add-url'): void
-    (e: 'add-test-data'): void
+    // 请求父组件打开“添加”菜单（位置由占位符或空白处点击提供）
+    (e: 'request-add-menu', position: { x: number; y: number }): void
     (e: 'drag-start', event: DragEventData): void
     (e: 'drag-end', event: DragEventData): void
     (e: 'update-positions', positions: Array<{
@@ -70,38 +60,7 @@ let grid: GridStack | null = null
 let suppressChange = false // 初始化或重载时抑制 change 事件
 const isInitialized = ref(false)
 
-// 占位符类型选择菜单
-const placeholderMenuVisible = ref(false)
-const placeholderMenuPosition = ref({ x: 0, y: 0 })
-const placeholderMenuItems = computed<MenuItem[]>(() => {
-    if (props.addMenuItems && props.addMenuItems.length) {
-        const result: MenuItem[] = []
-        props.addMenuItems.forEach(item => {
-            if (item.type === 'test') {
-                result.push({ label: '', separator: true })
-                result.push({ label: item.label, icon: item.icon, action: () => emit('add-test-data') })
-            } else {
-                const map: Record<'file' | 'folder' | 'url', () => void> = {
-                    file: () => emit('add-file'),
-                    folder: () => emit('add-folder'),
-                    url: () => emit('add-url'),
-                }
-                result.push({ label: item.label, icon: item.icon, action: map[item.type as 'file' | 'folder' | 'url'] })
-            }
-        })
-        return result
-    }
-    return [
-        { label: '添加文件', icon: 'pi pi-file', action: () => emit('add-file') },
-        { label: '添加文件夹', icon: 'pi pi-folder', action: () => emit('add-folder') },
-        { label: '添加网址', icon: 'pi pi-link', action: () => emit('add-url') },
-        { label: '', separator: true },
-        { label: '测试添加', icon: 'pi pi-bolt', action: () => emit('add-test-data') },
-    ]
-})
-const onPlaceholderMenuSelect = () => {
-    // 动作已在 action 内执行
-}
+// 占位符菜单改为父组件统一管理，这里仅负责触发事件
 
 // 计算网格项目的尺寸
 const FIXED_COLUMNS = 4
@@ -247,15 +206,16 @@ const loadApplications = async () => {
                 gw = 12
                 gh = 1
                 console.log(`📃 [List] 应用 "${app.name}" 顺序位置: y=${gy}`)
-            } else if (pos) {
-                // 网格模式：使用保存位置（归一化到固定4列）
+            } else if (pos && props.sortType === 'custom') {
+                // 网格模式：仅在自定义排序时使用保存位置，其他排序方式按数组顺序排布以保持一致性
                 gx = Math.min(12 - GRID_UNIT_WIDTH, Math.round((pos.x || 0) / GRID_UNIT_WIDTH) * GRID_UNIT_WIDTH)
                 gy = pos.y
                 gw = GRID_UNIT_WIDTH // 固定列宽
                 gh = pos.h || itemSize.h
-                console.log(`🎯 [Grid] 应用 "${app.name}" 使用归一化位置: x=${gx}, y=${gy}, w=${gw}, h=${gh}`)
+                console.log(`🎯 [Grid] 应用 "${app.name}" 使用归一化位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (自定义排序)`)
             } else {
-                console.log(`📍 [Grid] 应用 "${app.name}" 使用默认顺序位置: x=${gx}, y=${gy}, w=${gw}, h=${gh}`)
+                // 网格模式：非自定义排序或无保存位置时，按照数组顺序排布
+                console.log(`📍 [Grid] 应用 "${app.name}" 使用默认顺序位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (排序类型: ${props.sortType || 'unknown'})`)
             }
 
             element.setAttribute('gs-id', app.id)
@@ -267,8 +227,8 @@ const loadApplications = async () => {
             grid.makeWidget(element)
         }
 
-        // 计算下一个顺序位置（列表模式始终使用；网格模式仅当没有保存位置时）
-        if (props.layoutMode === 'list' || !app.gridPosition) {
+        // 计算下一个顺序位置（列表模式始终使用；网格模式仅当没有保存位置或非自定义排序时）
+        if (props.layoutMode === 'list' || !app.gridPosition || props.sortType !== 'custom') {
             x += itemSize.w
             if (x >= 12 || props.layoutMode === 'list') { // 列表模式每行一个
                 x = 0
@@ -319,8 +279,7 @@ const loadApplications = async () => {
             placeholder.setAttribute('gs-locked', 'true')
             // 点击占位符视为在空白处点击，可触发添加逻辑
             content.addEventListener('click', (e) => {
-                placeholderMenuPosition.value = { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY }
-                placeholderMenuVisible.value = true
+                emit('request-add-menu', { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY })
             })
             grid.makeWidget(placeholder)
             created++
@@ -375,6 +334,13 @@ watch(() => props.applications, async () => {
     await loadApplications()
 }, { deep: true })
 
+// 监听排序类型变化
+watch(() => props.sortType, async () => {
+    console.log('🔍 GridStack - sortType变化:', props.sortType)
+    // 排序类型变化时重新加载应用以确保布局一致性
+    await loadApplications()
+})
+
 // 生命周期
 onMounted(async () => {
     await nextTick()
@@ -394,7 +360,7 @@ onUnmounted(() => {
 .app-page {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* 隐藏滚动条 */
+    overflow: auto;
 }
 
 .empty-grid {

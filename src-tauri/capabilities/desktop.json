@@ -121,7 +121,17 @@
     "os:allow-locale",
     "os:allow-os-type",
     "os:allow-platform",
-    "os:allow-version"
+    "os:allow-version",
+    "opener:default",
+    "opener:allow-open-path",
+    "opener:allow-open-url",
+    "opener:allow-reveal-item-in-dir",
+    "autostart:default",
+    "autostart:default",
+    "cli:default",
+    "positioner:default",
+    "updater:default",
+    "window-state:default"
   ],
   "platforms": [
     "linux",

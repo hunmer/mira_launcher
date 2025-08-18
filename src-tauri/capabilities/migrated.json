@@ -142,6 +142,17 @@
     "os:allow-arch",
     "os:allow-exe-extension",
     "os:allow-locale",
-    "os:allow-hostname"
+    "os:allow-hostname",
+    "opener:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
+    },
+    "opener:allow-open-url",
+    "opener:allow-reveal-item-in-dir"
   ]
 }

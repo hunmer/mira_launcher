@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // 插件相关类型定义
 // 扩展现有 components.ts 类型系统，确保与项目架构一致
 
@@ -479,6 +480,12 @@ export interface PluginAPI {
     debounce<T extends (...args: unknown[]) => unknown>(fn: T, delay: number): T
     /** 节流函数 */
     throttle<T extends (...args: unknown[]) => unknown>(fn: T, delay: number): T
+  }
+  /** 添加入口注册 (应用创建入口) */
+  addEntry: {
+    register(entry: { id?: string; label: string; icon: string; type: 'file' | 'folder' | 'url' | 'test' | 'custom'; priority?: number; handler?: () => void | Promise<void> }): string
+    unregister(id: string): void
+    list(): Array<{ id: string; label: string; icon: string; type: string; priority?: number }>
   }
 }
 
