@@ -59,7 +59,6 @@ interface Emits {
     (e: 'blank-context-menu', event: MouseEvent): void
     (e: 'drag-start', event: DragEventData): void
     (e: 'drag-end', event: DragEventData): void
-    (e: 'drag-change', event: DragEventData): void
 }
 
 const props = defineProps<Props>()
@@ -68,6 +67,60 @@ const emit = defineEmits<Emits>()
 const gridContainer = ref<HTMLElement>()
 let grid: GridStack | null = null
 const isInitialized = ref(false)
+
+// ===== 布局控制状态 =====
+let debounceTimer: number | null = null
+let isRelayoutRunning = false
+// (可选) 布局签名仅用于日志比较，不做持久化
+let interactionProtectedStartY: number | null = null // 保护分界线：该行之上的内容不再调整
+let currentInteractionWidgetId: string | null = null // 当前拖拽/调整中的 widget
+
+// 原始尺寸记录：只记录第一次（或用户手动 resize 更新）用于避免累积偏移
+const originalSizes = new Map<string, { w: number; h: number }>()
+
+// 统一的重排调度（可延迟）
+const scheduleRelayout = (opts: { startY?: number; reason?: string; delay?: number; excludeIds?: string[] } = {}) => {
+    const { startY, reason = '', delay = 120, excludeIds = [] } = opts
+    // 只向下扩展保护线，不向上收缩
+    if (typeof startY === 'number') {
+        if (interactionProtectedStartY == null) interactionProtectedStartY = startY
+        else interactionProtectedStartY = Math.min(interactionProtectedStartY, startY)
+    }
+    if (debounceTimer) window.clearTimeout(debounceTimer)
+    debounceTimer = window.setTimeout(() => runRelayout({ excludeIds }), delay)
+    if (reason) console.log(`🕒 [Relayout Scheduled] ${reason} startY=${interactionProtectedStartY}`)
+}
+
+// 立即运行重排（内部防重入）
+const runRelayout = (opts: { excludeIds?: string[] } = {}) => {
+    if (!grid) return
+    if (isRelayoutRunning) return
+    isRelayoutRunning = true
+    try {
+        const signatureBefore = computeLayoutSignature()
+        const all = collectNodes()
+        const protectedY = interactionProtectedStartY
+        verticalCompact(all, { protectedY, excludeIds: opts.excludeIds ?? [] })
+        fillGaps(all, { protectedY, excludeIds: opts.excludeIds ?? [] })
+        justifyRows(all, { protectedY, excludeIds: opts.excludeIds ?? [] })
+        const signatureAfter = computeLayoutSignature()
+        if (signatureAfter !== signatureBefore) console.log('✅ [Relayout Applied]')
+        else console.log('⚖️  [Relayout Stable] 无变化')
+    } finally {
+        isRelayoutRunning = false
+    }
+}
+
+// ===== 工具函数 =====
+const computeLayoutSignature = (): string => {
+    if (!grid) return ''
+    return grid.getGridItems()
+        .map(el => (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode)
+        .filter(n => n && n.id)
+        .sort((a, b) => ((a.y || 0) - (b.y || 0)) || ((a.x || 0) - (b.x || 0)))
+        .map(n => `${n.id}:${n.x},${n.y},${n.w},${n.h}`)
+        .join('|')
+}
 
 // 计算网格项目的尺寸
 const getItemSize = () => {
@@ -88,86 +141,55 @@ const initGridStack = async () => {
         // GridStack 配置
         const options = {
             column: 12, // 使用12列系统
-            cellHeight: props.layoutMode === 'list' ? '80px' : '140px', // 为网格模式提供足够高度
+            cellHeight: 'auto',
             margin: 8, // 增加边距避免边框被遮挡
             float: false, // 禁用浮动，保持网格对齐
-            removable: false, // 禁用删除
-            animate: false, // 完全禁用动画，避免卡顿
             alwaysShowResizeHandle: false,
+            // columnOpts: {
+            //     columnWidth: 150,
+            //     columnMax: 12,
+            //     // layout: 'none',
+            // },
         }
 
         grid = GridStack.init(options, gridContainer.value)
         isInitialized.value = true
 
         // 绑定事件
+        // ===== 交互事件 =====
         grid.on('dragstart', (event, element) => {
-            console.log('🟢 GridStack - 开始拖拽:', element)
+            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
+            currentInteractionWidgetId = node?.id || null
+            interactionProtectedStartY = node?.y ?? null
             emit('drag-start', { element, event })
         })
-
         grid.on('dragstop', (event, element) => {
-            console.log('🔴 GridStack - 拖拽结束:', element)
-            
-            // 更新应用顺序
-            if (grid) {
-                const nodes = grid.getGridItems().map((el: Element) => {
-                    const node = (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
-                    return {
-                        id: node.id,
-                        x: node.x || 0,
-                        y: node.y || 0,
-                        w: node.w || 1,
-                        h: node.h || 1,
-                    }
-                })
-
-                // 根据位置重新排序应用（按照拖拽后的实际位置）
-                const sortedApps = [...props.applications].sort((a, b) => {
-                    const nodeA = nodes.find(n => n.id === a.id)
-                    const nodeB = nodes.find(n => n.id === b.id)
-                    
-                    if (!nodeA || !nodeB) return 0
-                    
-                    // 首先按行排序，然后按列排序
-                    if (nodeA.y !== nodeB.y) {
-                        return nodeA.y - nodeB.y
-                    }
-                    return nodeA.x - nodeB.x
-                })
-
-                // 保存新的拖拽排序，不考虑反序状态
-                // 拖拽操作本身就是用户的自定义排序意图
-                emit('update:applications', sortedApps)
-            }
+            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
+            const startY = node?.y || 0
+            currentInteractionWidgetId = null
+            // 结束后基于新位置向下重排
+            scheduleRelayout({ startY, reason: 'dragstop relayout', excludeIds: node?.id ? [node.id] : [] })
             emit('drag-end', { element, event })
+            // 更新顺序（按 y,x 排）
+            persistOrder()
         })
-
-        grid.on('change', (event, items) => {
-            console.log('🔄 GridStack - 网格变化:', items)
-            emit('drag-change', { event, items })
-        })
-
-        grid.on('resizestop', (event, element) => {
-            console.log('📏 GridStack - 调整大小结束:', element)
-            
-            // 只触发change事件，不重新排序应用
-            // 调整大小不应该改变应用的顺序，只需要保存网格状态
-            if (grid) {
-                const nodes = grid.getGridItems().map((el: Element) => {
-                    const node = (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
-                    return {
-                        id: node.id,
-                        x: node.x || 0,
-                        y: node.y || 0,
-                        w: node.w || 1,
-                        h: node.h || 1,
-                    }
-                })
-                
-                // 只保存网格布局状态，不改变应用数组顺序
-                console.log('💾 GridStack - 保存网格布局状态:', nodes)
+        grid.on('resizestop', (_e, element) => {
+            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
+            if (node?.id) recordOriginalSize(node.id, node.w || 1, node.h || 1, true)
+            interactionProtectedStartY = node?.y ?? interactionProtectedStartY
+            currentInteractionWidgetId = null
+            // 构造参数对象，避免 undefined 属性
+            const opts: { reason: string; excludeIds: string[]; startY?: number } = {
+                reason: 'resizestop relayout',
+                excludeIds: node?.id ? [node.id] : [],
             }
-            emit('drag-change', { element, event })
+            if (typeof node?.y === 'number') opts.startY = node.y
+            scheduleRelayout(opts)
+        })
+        grid.on('change', () => {
+            // 拖拽/调整进行中不触发
+            if (currentInteractionWidgetId) return
+            scheduleRelayout({ reason: 'grid change' })
         })
 
         // 加载应用数据
@@ -189,7 +211,6 @@ const loadApplications = async () => {
     
     // 清空现有项目
     grid.removeAll()
-    console.log('🧹 GridStack - 已清空现有项目')
 
     if (props.applications.length === 0) {
         console.log('⚠️  GridStack - 没有应用需要加载')
@@ -218,26 +239,34 @@ const loadApplications = async () => {
         content.appendChild(appContent)
         element.appendChild(content)
 
-        console.log('🎨 GridStack - 创建DOM元素完成:', element)
-
         if (grid) {
-            // 先设置GridStack属性到元素上
+            // 如果有已保存的网格位置信息，使用它；否则使用顺序位置
+            const pos = app.gridPosition
+            const gx = pos?.x ?? x
+            const gy = pos?.y ?? y
+            const gw = pos?.w ?? itemSize.w
+            const gh = pos?.h ?? itemSize.h
+
             element.setAttribute('gs-id', app.id)
-            element.setAttribute('gs-x', x.toString())
-            element.setAttribute('gs-y', y.toString())
-            element.setAttribute('gs-w', itemSize.w.toString())
-            element.setAttribute('gs-h', itemSize.h.toString())
-            
-            // 使用 makeWidget 创建widget
-            const widget = grid.makeWidget(element)
-            console.log('📦 GridStack - makeWidget 完成:', widget)
+            element.setAttribute('gs-x', gx.toString())
+            element.setAttribute('gs-y', gy.toString())
+            element.setAttribute('gs-w', gw.toString())
+            element.setAttribute('gs-h', gh.toString())
+
+            // 记录原始大小（使用保存的大小）
+            recordOriginalSize(app.id, gw, gh)
+
+            grid.makeWidget(element)
         }
 
         // 计算下一个位置
-        x += itemSize.w
-        if (x >= 12) {
-            x = 0
-            y += itemSize.h
+        // 仅当没有保存位置时，按顺序计算下一个位置
+        if (!app.gridPosition) {
+            x += itemSize.w
+            if (x >= 12) {
+                x = 0
+                y += itemSize.h
+            }
         }
     })
 
@@ -267,112 +296,230 @@ const createAppContent = (app: Application): HTMLElement => {
     return container
 }
 
-// 更新应用位置而不重新渲染
-const updateApplicationPositions = (apps: Application[]) => {
-    if (!grid) return
-    
-    // 对于位置重新排序，我们需要保留用户手动调整的大小
-    // 但重新计算位置以避免重叠
-    
-    // 首先收集所有当前的节点信息（包括调整后的大小）
-    const currentNodes = new Map<string, { w: number; h: number }>()
-    grid.getGridItems().forEach((el: Element) => {
+// ===== 新布局算法实现 =====
+
+interface NodeInfo { element: HTMLElement; node: GridStackNode; id: string; x: number; y: number; w: number; h: number; baselineW: number; baselineH: number }
+
+const collectNodes = (): NodeInfo[] => {
+    if (!grid) return []
+    return grid.getGridItems().map(el => {
         const node = (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
-        if (node.id) {
-            currentNodes.set(node.id, {
-                w: node.w || getItemSize().w,
-                h: node.h || getItemSize().h,
-            })
+        const base = originalSizes.get(node.id || '')
+        return {
+            element: el as HTMLElement,
+            node,
+            id: node.id || '',
+            x: node.x || 0,
+            y: node.y || 0,
+            w: node.w || 1,
+            h: node.h || 1,
+            baselineW: base?.w ?? (node.w || 1),
+            baselineH: base?.h ?? (node.h || 1),
         }
-    })
-    
-    // 重新排列所有widget，保持它们的自定义大小
-    let currentRow = 0
-    let currentCol = 0
-    const defaultItemSize = getItemSize()
-    
-    apps.forEach((app) => {
-        if (!grid) return
-        
-        // 查找对应的DOM元素
-        const element = grid.getGridItems().find((el: Element) => {
-            const node = (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
-            return node.id === app.id
-        }) as HTMLElement
-        
-        if (element) {
-            // 获取当前widget的实际大小（保留用户调整的大小）
-            const savedNode = currentNodes.get(app.id)
-            const currentW = savedNode?.w || defaultItemSize.w
-            const currentH = savedNode?.h || defaultItemSize.h
-            
-            // 检查当前位置是否能放下这个widget
-            let newX = currentCol
-            let newY = currentRow
-            
-            // 如果当前行放不下，移到下一行
-            if (newX + currentW > 12) {
-                newX = 0
-                newY = currentRow + (savedNode?.h || defaultItemSize.h)
-                currentCol = 0
-                currentRow = newY
-            }
-            
-            // 更新位置但保留当前大小
-            grid.update(element, { x: newX, y: newY, w: currentW, h: currentH })
-            console.log(`📍 更新应用位置: ${app.name} -> (${newX}, ${newY}) 大小: ${currentW}x${currentH}`)
-            
-            // 计算下一个位置
-            currentCol = newX + currentW
-            if (currentCol >= 12) {
-                currentCol = 0
-                currentRow += currentH
-            }
-        }
-    })
+    }).filter(n => n.id)
 }
 
-// 监听属性变化
-watch(() => props.applications, async (newApps, oldApps) => {
-    console.log('🔍 GridStack - applications变化:', newApps.length, '个应用')
-    if (grid && isInitialized.value) {
-        // 检查是否只是重新排序（相同的应用，不同的顺序）
-        const isSameApps = newApps.length === oldApps?.length && 
-            newApps.every(app => oldApps?.some(oldApp => oldApp.id === app.id))
-        
-        if (isSameApps) {
-            console.log('🔄 GridStack - 应用重新排序，更新位置而不重新渲染')
-            updateApplicationPositions(newApps)
-        } else {
-            console.log('🔄 GridStack - 应用内容变化，重新加载')
-            await loadApplications()
+// 垂直压缩：只处理受保护行(含)之后的区域
+const verticalCompact = (nodes: NodeInfo[], opts: { protectedY: number | null; excludeIds?: string[] }) => {
+    if (!grid) return
+    const exclude = new Set(opts.excludeIds || [])
+    // 按 y,x 排序后向上尝试
+    const sorted = [...nodes].sort((a, b) => (a.y - b.y) || (a.x - b.x))
+    for (const n of sorted) {
+        if (exclude.has(n.id)) continue
+        if (opts.protectedY != null && n.y < opts.protectedY) continue
+        let targetY = n.y
+        while (targetY > 0) {
+            const tryY = targetY - 1
+            if (opts.protectedY != null && tryY < opts.protectedY) break
+            const collision = nodes.some(o => {
+                if (o.id === n.id) return false
+                if (o.y + o.h <= tryY || tryY + n.h <= o.y) return false
+                // 垂直重叠，检查水平
+                return !(o.x + o.w <= n.x || n.x + n.w <= o.x)
+            })
+            if (collision) break
+            targetY = tryY
+        }
+        if (targetY !== n.y) {
+            grid.update(n.element, { y: targetY })
+            n.y = targetY
         }
     }
-}, { deep: true })
+}
+
+// 填补空洞：扫描每个 y 行层（高度单位）生成空段，尝试从下方提升合适高度和宽度的 widget
+const fillGaps = (nodes: NodeInfo[], opts: { protectedY: number | null; excludeIds?: string[] }) => {
+    if (!grid) return
+    const exclude = new Set(opts.excludeIds || [])
+    const maxY = Math.max(0, ...nodes.map(n => n.y + n.h))
+    for (let row = opts.protectedY ?? 0; row < maxY; row++) {
+        // 收集当前层占用区间
+        const layer = nodes.filter(n => n.y <= row && row < n.y + n.h)
+        const segments: Array<{ start: number; end: number }> = []
+        // 初始空段 [0,12)
+        let free: Array<{ s: number; e: number }> = [{ s: 0, e: 12 }]
+        layer.forEach(n => {
+            const nx1 = n.x
+            const nx2 = n.x + n.w
+            free = free.flatMap(seg => {
+                // 无交集
+                if (nx2 <= seg.s || nx1 >= seg.e) return [seg]
+                const arr: Array<{ s: number; e: number }> = []
+                if (nx1 > seg.s) arr.push({ s: seg.s, e: nx1 })
+                if (nx2 < seg.e) arr.push({ s: nx2, e: seg.e })
+                return arr
+            })
+        })
+        segments.push(...free.map(f => ({ start: f.s, end: f.e })))
+        if (!segments.length) continue
+        // 尝试填充每个空段
+        for (const gap of segments) {
+            const width = gap.end - gap.start
+            if (width <= 0) continue
+            // 找候选：在 gap 下方(>row) 的 widget，且高度覆盖 row+其自身高度 (可上移)，宽度基线<=gap宽
+            const candidates = nodes.filter(n => {
+                if (exclude.has(n.id)) return false
+                if (n.y <= row) return false // 仅考虑下方
+                if (n.baselineW > width) return false
+                // 上移后检查是否与行内其它 widget 冲突
+                return true
+            })
+            // 按距离与宽度差排序
+            candidates.sort((a, b) => (a.y - b.y) || (a.baselineW - b.baselineW))
+            for (const c of candidates) {
+                // 目标位置：y = row - (c.h - 1) （保持底部贴合 row+1）但为简单直接放到 row 行顶部
+                const targetY = row
+                // 检查是否与已在此新层区域(或跨行区域)的其它节点冲突
+                const collision = nodes.some(o => {
+                    if (o.id === c.id) return false
+                    // 未来位置占用区间
+                    const nx = gap.start
+                    const nw = c.baselineW
+                    const ny = targetY
+                    const nh = c.h
+                    if (o.x + o.w <= nx || nx + nw <= o.x) return false
+                    if (o.y + o.h <= ny || ny + nh <= o.y) return false
+                    return true
+                })
+                if (collision) continue
+                // 移动 & 复原宽度到 baseline（避免累积放大）
+                grid.update(c.element, { x: gap.start, y: targetY, w: c.baselineW })
+                c.x = gap.start
+                c.y = targetY
+                c.w = c.baselineW
+                // 更新 gap 剩余
+                const remain = width - c.w
+                if (remain > 0) {
+                    // 产生新的次级 gap
+                    segments.push({ start: gap.start + c.w, end: gap.end })
+                }
+                break // 每个 gap 只填一次（留给后续循环继续）
+            }
+        }
+    }
+}
+
+// 行横向压缩并尝试“更宽松的填满”：允许在不超过 baseline+2 范围内扩展以填满 12 列
+const justifyRows = (nodes: NodeInfo[], opts: { protectedY: number | null; excludeIds?: string[] }) => {
+    if (!grid) return
+    const exclude = new Set(opts.excludeIds || [])
+    // 按行聚合（以 y 作为行顶部）
+    const rows = new Map<number, NodeInfo[]>()
+    for (const n of nodes) {
+        if (opts.protectedY != null && n.y < opts.protectedY) continue
+        if (!rows.has(n.y)) rows.set(n.y, [])
+        const arr = rows.get(n.y)
+        if (arr) arr.push(n)
+    }
+    for (const [, list] of [...rows.entries()].sort((a, b) => a[0] - b[0])) {
+        // 横向压缩
+        list.sort((a, b) => a.x - b.x)
+        let cursor = 0
+        for (const n of list) {
+            if (n.x !== cursor && !exclude.has(n.id)) {
+                grid.update(n.element, { x: cursor })
+                n.x = cursor
+            }
+            cursor += n.w
+        }
+        const deficit = 12 - cursor
+        if (deficit <= 0) continue
+        // 按 baseline 剩余可扩展空间计算权重
+        const expandable = list.filter(n => !exclude.has(n.id))
+        if (!expandable.length) continue
+        const capacities = expandable.map(n => ({ n, cap: Math.max(0, (n.baselineW + 2) - n.w) })) // baseline+2 上限
+    const totalCap = capacities.reduce((s, c) => s + c.cap, 0)
+        if (totalCap <= 0) continue
+        let remain = deficit
+        for (const c of capacities) {
+            if (remain <= 0) break
+            const add = Math.min(c.cap, Math.ceil(deficit * (c.cap / totalCap)))
+            if (add > 0) {
+                grid.update(c.n.element, { w: c.n.w + add })
+                c.n.w += add
+                remain -= add
+            }
+        }
+        // 若还有剩余，顺序分配
+        if (remain > 0) {
+            for (const c of capacities) {
+                if (remain <= 0) break
+                if (c.n.w < c.n.baselineW + 2) {
+                    grid.update(c.n.element, { w: c.n.w + 1 })
+                    c.n.w += 1
+                    remain--
+                }
+            }
+        }
+    }
+}
+
+// 记录原始大小（只在首次或用户手动调整 overwrite=true）
+const recordOriginalSize = (id: string, w: number, h: number, overwrite = false) => {
+    if (!originalSizes.has(id) || overwrite) originalSizes.set(id, { w, h })
+}
+
+// 更新应用顺序（拖拽结束后按照 y,x 排）
+const persistOrder = () => {
+    if (!grid) return
+    const nodes = grid.getGridItems().map((el: Element) => {
+        const node = (el as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
+        return { id: node.id, x: node.x || 0, y: node.y || 0 }
+    })
+    const sortedApps = [...props.applications].sort((a, b) => {
+        const A = nodes.find(n => n.id === a.id)
+        const B = nodes.find(n => n.id === b.id)
+        if (!A || !B) return 0
+        if (A.y !== B.y) return A.y - B.y
+        return A.x - B.x
+    })
+    emit('update:applications', sortedApps)
+}
+
+// 更新应用位置（模式切换时，只重排不改变原始大小）
+const updateApplicationPositions = (apps: Application[]) => {
+    if (!grid) return
+    const nodes = collectNodes()
+    // 简单按顺序重新计算 x,y（保留原始 w,h）
+    let x = 0, y = 0, rowHeight = 0
+    apps.forEach(app => {
+        const info = nodes.find(n => n.id === app.id)
+        if (!info) return
+        if (x + info.w > 12) { x = 0; y += rowHeight; rowHeight = 0 }
+    grid?.update(info.element, { x, y })
+        info.x = x; info.y = y
+        x += info.w
+        rowHeight = Math.max(rowHeight, info.h)
+    })
+    scheduleRelayout({ startY: 0, reason: 'layoutMode change reposition' })
+}
+
 
 watch(() => props.layoutMode, async () => {
     console.log('🔍 GridStack - layoutMode变化:', props.layoutMode)
     if (grid && isInitialized.value) {
-        // 重新设置单元格高度
-        grid.cellHeight(props.layoutMode === 'list' ? '80px' : '140px')
-        // 更新现有项目的尺寸而不是重新加载
-        if (props.applications.length > 0) {
-            updateApplicationPositions(props.applications)
-        }
-    }
-})
-
-watch(() => props.gridColumns, async () => {
-    console.log('🔍 GridStack - gridColumns变化:', props.gridColumns)
-    if (grid && isInitialized.value && props.applications.length > 0) {
-        // 更新应用位置以适应新的列数
-        updateApplicationPositions(props.applications)
-    }
-})
-
-watch(() => props.iconSize, async () => {
-    if (grid && isInitialized.value) {
-        await loadApplications()
+    if (props.applications.length > 0) updateApplicationPositions(props.applications)
     }
 })
 
@@ -432,7 +579,6 @@ onUnmounted(() => {
 /* GridStack 容器样式 */
 .grid-stack {
     width: 100%;
-    min-height: 400px;
 }
 
 :deep(.grid-stack-item) {

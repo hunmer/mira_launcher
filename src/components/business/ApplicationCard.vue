@@ -75,6 +75,8 @@ const iconStyle = computed(() => {
     user-select: none;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    overflow: hidden;
+
 }
 
 /* 使用 BEM 命名避免冲突 */

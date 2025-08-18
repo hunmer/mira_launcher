@@ -9,8 +9,6 @@
       :selected-category="applicationsStore.selectedCategory"
       :categories="applicationsStore.categories"
       :layout-mode="layoutMode"
-      :grid-columns="gridColumnsStr"
-      :container-width="containerWidth"
       :current-sort-type="applicationsStore.currentSortType"
       :sort-ascending="applicationsStore.sortAscending"
       :sort-options="applicationsStore.sortOptions"
@@ -20,7 +18,6 @@
       @add-url="openAddDialog('url')"
       @add-test-data="addTestData"
       @layout-change="setLayoutMode"
-      @grid-size-change="onGridSizeChange"
       @sort-change="applicationsStore.setSortType"
       @sort-order-toggle="applicationsStore.toggleSortOrder"
     />
@@ -122,8 +119,6 @@ const applicationsStore = useApplicationsStore()
 // 图标尺寸配置和布局
 const { setLayoutMode, layoutMode } = useApplicationLayout()
 
-const gridColumnsStr = ref('4') // 字符串形式的网格列数，用于下拉菜单
-const containerWidth = ref(1200) // 容器宽度
 const isDragging = ref(false) // 拖拽状态
 const sortSaved = ref(false) // 排序保存状态
 
@@ -133,10 +128,11 @@ const addDialogType = ref<'file' | 'folder' | 'url'>('file')
 
 // 图标大小计算
 const iconSize = computed(() => {
-    // 根据网格列数动态计算图标大小
+    // 根据网格列数动态计算图标大小，使用固定基础值
+    const baseWidth = 1200 // 使用固定的基础宽度
     const baseSize = Math.max(
         40,
-        Math.min(200, (containerWidth.value / applicationsStore.gridColumns) * 0.6),
+        Math.min(200, (baseWidth / applicationsStore.gridColumns) * 0.6),
     )
     return Math.floor(baseSize)
 })
@@ -232,38 +228,6 @@ const launchApp = async (app: Application) => {
     applicationsStore.updateLastUsed(app.id)
     console.log('启动应用:', app.name)
     // await invoke('launch_application', { path: app.path })
-}
-
-// 网格大小变更处理
-const onGridSizeChange = (newSize: string) => {
-    console.log('网格大小变更:', newSize)
-    gridColumnsStr.value = newSize
-
-    // 保存到localStorage
-    localStorage.setItem('mira-grid-columns', newSize)
-
-    if (newSize === 'auto') {
-        // 自适应模式：根据容器宽度自动计算列数
-        const autoColumns = Math.floor(containerWidth.value / 150)
-        applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
-    } else {
-        // 固定列数模式
-        applicationsStore.setGridColumns(parseInt(newSize))
-    }
-}
-
-// 监听容器大小变化
-const updateContainerWidth = () => {
-    const container = document.querySelector('.page-container')
-    if (container) {
-        containerWidth.value = container.clientWidth
-
-        // 如果是自适应模式，重新计算列数
-        if (gridColumnsStr.value === 'auto') {
-            const autoColumns = Math.floor(containerWidth.value / 150)
-            applicationsStore.setGridColumns(Math.max(1, Math.min(autoColumns, 10)))
-        }
-    }
 }
 
 // 拖拽事件处理
@@ -365,34 +329,6 @@ const handleClickOutside = () => {
     hideBlankAreaContextMenu()
 }
 
-// Ctrl+滚轮快速调整大小
-const handleWheelResize = (event: WheelEvent) => {
-    // 只在按住 Ctrl 键时响应
-    if (!event.ctrlKey) return
-
-    // 阻止默认的页面缩放行为
-    event.preventDefault()
-
-    // 只在网格模式下生效
-    if (layoutMode.value !== 'grid') return
-
-    const currentColumns = parseInt(gridColumnsStr.value) || 4
-    let newColumns = currentColumns
-
-    // 向上滚动减少列数（增大图标），向下滚动增加列数（减小图标）
-    if (event.deltaY < 0 && currentColumns > 1) {
-        // 向上滚动，减少列数
-        newColumns = currentColumns - 1
-    } else if (event.deltaY > 0 && currentColumns < 10) {
-        // 向下滚动，增加列数
-        newColumns = currentColumns + 1
-    }
-
-    if (newColumns !== currentColumns) {
-        onGridSizeChange(newColumns.toString())
-    }
-}
-
 onMounted(() => {
     document.title = 'Mira Launcher - 应用程序'
 
@@ -400,22 +336,7 @@ onMounted(() => {
     applicationsStore.loadApplications()
     applicationsStore.loadPageSettings()
 
-    // 加载保存的网格设置
-    const savedGridColumns = localStorage.getItem('mira-grid-columns')
-    if (savedGridColumns) {
-        gridColumnsStr.value = savedGridColumns
-        onGridSizeChange(savedGridColumns)
-    }
-
-    // 初始化容器宽度
-    updateContainerWidth()
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', updateContainerWidth)
     document.addEventListener('click', handleClickOutside)
-
-    // 添加滚轮事件监听器用于快速调整大小
-    document.addEventListener('wheel', handleWheelResize, { passive: false })
 
     // 阻止右键菜单的默认行为
     document.addEventListener('contextmenu', e => {
@@ -428,9 +349,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    window.removeEventListener('resize', updateContainerWidth)
     document.removeEventListener('click', handleClickOutside)
-    document.removeEventListener('wheel', handleWheelResize)
     document.removeEventListener('contextmenu', e => {
         const target = e.target as HTMLElement
         // 只在不是菜单组件和特定可右键元素时阻止默认行为

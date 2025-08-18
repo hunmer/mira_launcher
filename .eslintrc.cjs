@@ -88,7 +88,7 @@ module.exports = {
     'comma-dangle': ['error', 'always-multiline'],
     'semi': ['error', 'never'],
     'quotes': ['error', 'single'],
-    'indent': ['error', 2],
+    'indent': 'off',
   },
   overrides: [
     {
@@ -100,9 +100,9 @@ module.exports = {
     {
       files: ['*.vue'],
       rules: {
-        'indent': ['error', 4],
-        'vue/html-indent': ['error', 4],
-        'vue/script-indent': ['error', 4],
+        'indent': 'off',
+        'vue/html-indent': 'off',
+        'vue/script-indent': 'off',
       },
     },
   ],

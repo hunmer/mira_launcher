@@ -18,6 +18,13 @@ export interface Application {
   createdAt: Date
   updatedAt: Date
   sortOrder?: number
+  // 网格布局信息
+  gridPosition?: {
+    x: number
+    y: number
+    w: number
+    h: number
+  }
 }
 
 export interface Category {
@@ -518,6 +525,52 @@ export const useApplicationsStore = defineStore('applications', () => {
     savePageSettings()
   }
 
+  // 批量更新应用的网格位置信息（x,y,w,h）
+  const updateGridPositions = (
+    positions: Array<{
+      id: string
+      position: { x: number; y: number; w: number; h: number }
+    }>,
+  ) => {
+    let changed = false
+    positions.forEach(p => {
+      const app = applications.value.find(a => a.id === p.id)
+      if (app) {
+        const old = app.gridPosition
+        if (
+          !old ||
+          old.x !== p.position.x ||
+          old.y !== p.position.y ||
+          old.w !== p.position.w ||
+          old.h !== p.position.h
+        ) {
+          app.gridPosition = { ...p.position }
+          app.updatedAt = new Date()
+          changed = true
+        }
+      }
+    })
+    if (changed) {
+      console.log('[ApplicationsStore] 批量保存网格位置信息', positions)
+      saveApplications()
+    }
+  }
+
+  // 清空当前页面所有应用的网格位置信息
+  const clearCurrentPageGridPositions = () => {
+    const pageApps = currentPageApps.value
+    if (pageApps.length === 0) return
+    pageApps.forEach(app => {
+      const target = applications.value.find(a => a.id === app.id)
+      if (target && target.gridPosition) {
+        delete target.gridPosition
+        target.updatedAt = new Date()
+      }
+    })
+    console.log('[ApplicationsStore] 已清空当前页布局信息')
+    saveApplications()
+  }
+
   // 排序相关方法
   const setSortType = (sortType: string) => {
     // 验证并转换为 SortType
@@ -534,6 +587,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     sortAscending.value = !sortAscending.value
     savePageSettings()
   }
+
 
   return {
     // 状态
@@ -572,5 +626,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     updateCurrentPageApps,
     setSortType,
     toggleSortOrder,
+    updateGridPositions,
+    clearCurrentPageGridPositions,
   }
 })

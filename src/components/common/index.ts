@@ -85,6 +85,3 @@ export { default as Tabs } from './Tabs.vue'
 
 // 过滤选择组件 - 包装 PrimeVue Select 并带有过滤功能
 export { default as FilterSelect } from './FilterSelect.vue'
-
-// 图标大小下拉菜单组件 - 用于调整网格图标大小和列数
-export { default as IconSizeDropdown } from './IconSizeDropdown.vue'

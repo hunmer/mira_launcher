@@ -82,7 +82,15 @@
                 >
                     <i :class="sortAscending ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down-alt'" />
                 </button>
+                <button
+                    class="sort-reset-btn"
+                    title="清空排序"
+                    @click="applicationsStore.clearCurrentPageGridPositions"
+                >
+                    <i class="pi pi-refresh" />
+                </button>
             </div>
+            
 
             <!-- 视图切换 -->
             <div class="view-controls">
@@ -101,15 +109,6 @@
                     <i class="pi pi-list" />
                 </button>
             </div>
-
-            <!-- 图标大小控制 - 仅在网格模式下显示 -->
-            <div v-if="layoutMode === 'grid'" class="size-controls">
-                <IconSizeDropdown
-                    :model-value="gridColumns"
-                    :container-width="containerWidth"
-                    @update:model-value="$emit('grid-size-change', $event)"
-                />
-            </div>
         </div>
     </div>
 </template>
@@ -117,9 +116,17 @@
 <script setup lang="ts">
 import Button from '@/components/common/Button.vue'
 import FilterSelect from '@/components/common/FilterSelect.vue'
-import IconSizeDropdown from '@/components/common/IconSizeDropdown.vue'
+import { useApplicationsStore } from '@/stores/applications'
 import TieredMenu from 'primevue/tieredmenu'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+const props = defineProps<Props>()
+
+
+const emit = defineEmits<Emits>()
+
+
+const applicationsStore = useApplicationsStore()
+
 
 interface Category {
     label: string
@@ -137,8 +144,6 @@ interface Props {
     selectedCategory: string
     categories: Category[]
     layoutMode: 'grid' | 'list'
-    gridColumns: string
-    containerWidth: number
     currentSortType: string
     sortAscending: boolean
     sortOptions: SortOption[]
@@ -151,13 +156,10 @@ interface Emits {
     (e: 'add-url'): void
     (e: 'add-test-data'): void
     (e: 'layout-change', mode: 'grid' | 'list'): void
-    (e: 'grid-size-change', size: string): void
     (e: 'sort-change', sortType: string): void
     (e: 'sort-order-toggle'): void
+    (e: 'sort-reset'): void
 }
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
 
 // 下拉菜单状态
 const showAddItemDropdown = ref(false)
@@ -299,19 +301,17 @@ onUnmounted(() => {
 }
 
 .view-controls,
-.size-controls,
 .sort-controls {
-  display: flex;
-  background-color: rgb(243 244 246);
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  gap: 0.125rem;
+    display: flex;
+    background-color: rgb(243 244 246);
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    gap: 0.125rem;
 }
 
 .dark .view-controls,
-.dark .size-controls,
 .dark .sort-controls {
-  background-color: rgb(55 65 81);
+    background-color: rgb(55 65 81);
 }
 
 .view-btn {
@@ -387,6 +387,26 @@ onUnmounted(() => {
   color: rgb(34 197 94);
 }
 
+.sort-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+}
+
+.sort-reset-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239 68 68);
+}
+
 .dark .sort-order-btn {
   color: rgb(156 163 175);
 }
@@ -399,6 +419,15 @@ onUnmounted(() => {
 .dark .sort-order-btn.ascending {
   background-color: rgba(34, 197, 94, 0.2);
   color: rgb(74 222 128);
+}
+
+.dark .sort-reset-btn {
+  color: rgb(156 163 175);
+}
+
+.dark .sort-reset-btn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: rgb(248 113 113);
 }
 
 .add-item-btn {
