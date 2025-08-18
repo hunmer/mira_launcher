@@ -8,7 +8,6 @@ export { default as PageManager } from './PageManager.vue'
 
 // 应用程序相关组件
 export { default as AddApplicationDialog } from './AddApplicationDialog.vue'
-export { default as ApplicationGrid } from './ApplicationGrid.vue'
 export { default as ApplicationToolbar } from './ApplicationToolbar.vue'
 
 // 下载管理组件

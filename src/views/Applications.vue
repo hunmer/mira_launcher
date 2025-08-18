@@ -37,6 +37,7 @@
           @drag-start="onDragStart"
           @drag-end="onDragEnd"
           @drag-change="onDragChange"
+          @update-positions="onUpdatePositions"
         />
       </div>
 
@@ -225,7 +226,10 @@ const contextMenuItems = computed((): MenuItem[] => [
 
 // 方法
 const launchApp = async (app: Application) => {
-    applicationsStore.updateLastUsed(app.id)
+    // 仅在当前排序为按最后使用时间时更新 lastUsed 以触发重新排序
+    if (applicationsStore.currentSortType === 'lastUsed') {
+        applicationsStore.updateLastUsed(app.id)
+    }
     console.log('启动应用:', app.name)
     // await invoke('launch_application', { path: app.path })
 }
@@ -260,6 +264,16 @@ const onDragChange = (evt: DragEventData) => {
     if (evt.removed) {
         console.log('➖ 移除了应用:', evt.removed)
     }
+}
+
+// 处理GridStack位置更新
+const onUpdatePositions = (positions: Array<{
+    id: string
+    position: { x: number; y: number; w: number; h: number }
+}>) => {
+    console.log('📍 Applications - 更新应用位置:', positions)
+    // 使用静默保存，不触发UI刷新
+    applicationsStore.updateGridPositions(positions, true)
 }
 
 // 添加应用相关方法

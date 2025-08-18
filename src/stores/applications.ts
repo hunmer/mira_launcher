@@ -531,28 +531,71 @@ export const useApplicationsStore = defineStore('applications', () => {
       id: string
       position: { x: number; y: number; w: number; h: number }
     }>,
+    silent = false, // 是否静默保存，不触发响应式更新
   ) => {
-    let changed = false
-    positions.forEach(p => {
-      const app = applications.value.find(a => a.id === p.id)
-      if (app) {
-        const old = app.gridPosition
-        if (
-          !old ||
-          old.x !== p.position.x ||
-          old.y !== p.position.y ||
-          old.w !== p.position.w ||
-          old.h !== p.position.h
-        ) {
-          app.gridPosition = { ...p.position }
-          app.updatedAt = new Date()
-          changed = true
+    if (silent) {
+      // 静默模式：基于当前内存状态深拷贝，避免直接读取 localStorage（可能顺序不一致）
+      try {
+        // 创建一个可序列化的浅深混合拷贝，确保不触发响应式
+        const appsCopy = applications.value.map(a => ({
+          ...a,
+          // Date 序列化仍然交给 JSON.stringify
+          lastUsed: a.lastUsed ? new Date(a.lastUsed) : undefined,
+          createdAt: new Date(a.createdAt),
+            updatedAt: new Date(a.updatedAt),
+          gridPosition: a.gridPosition ? { ...a.gridPosition } : undefined,
+        })) as Application[]
+
+        let changed = false
+        positions.forEach(p => {
+          const app = appsCopy.find(x => x.id === p.id)
+          if (app) {
+            const old = app.gridPosition
+            if (
+              !old ||
+              old.x !== p.position.x ||
+              old.y !== p.position.y ||
+              old.w !== p.position.w ||
+              old.h !== p.position.h
+            ) {
+              app.gridPosition = { ...p.position }
+              app.updatedAt = new Date()
+              changed = true
+            }
+          }
+        })
+        if (changed) {
+          console.log('[ApplicationsStore] 静默批量保存网格位置信息', positions)
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appsCopy))
         }
+      } catch (error) {
+        console.error('静默保存应用数据失败:', error)
       }
-    })
-    if (changed) {
-      console.log('[ApplicationsStore] 批量保存网格位置信息', positions)
-      saveApplications()
+      return // 结束，避免继续修改响应式数据
+    } else {
+      // 正常模式：修改响应式数据
+      let changed = false
+      positions.forEach(p => {
+        const app = applications.value.find(a => a.id === p.id)
+        if (app) {
+          const old = app.gridPosition
+          if (
+            !old || 
+            old.x !== p.position.x ||
+            old.y !== p.position.y ||
+            old.w !== p.position.w ||
+            old.h !== p.position.h
+          ) {
+            app.gridPosition = { ...p.position }
+            app.updatedAt = new Date()
+            changed = true
+          }
+        }
+      })
+      if (changed) {
+        console.log('[ApplicationsStore] 批量保存网格位置信息', positions)
+        saveApplications()
+      }
     }
   }
 

@@ -30,25 +30,25 @@
         </div>
 
         <div class="toolbar-right">
-            <!-- 添加新项目下拉菜单 -->
-            <div ref="addItemDropdownRef" class="add-item-dropdown">
-                <Button
-                    icon="pi pi-plus-circle"
-                    class="add-item-btn"
-                    size="small"
-                    variant="primary"
-                    title="添加新项目"
-                    @click="toggleAddItemDropdown"
-                />
-                <TieredMenu
-                    v-if="showAddItemDropdown"
-                    ref="addItemMenu"
-                    :model="addItemMenuItems"
-                    :popup="false"
-                    class="dropdown-menu-tiered"
-                    @hide="showAddItemDropdown = false"
-                />
-            </div>
+      <!-- 添加新项目下拉菜单 (使用通用 ContextMenu) -->
+      <div class="add-item-dropdown">
+        <Button
+          icon="pi pi-plus-circle"
+          class="add-item-btn"
+          size="small"
+          variant="primary"
+          title="添加新项目"
+          @click="toggleAddItemMenu"
+        />
+        <ContextMenu
+          :show="showAddItemMenu"
+          :x="addItemMenuPosition.x"
+          :y="addItemMenuPosition.y"
+          :items="addItemContextItems"
+          @update:show="showAddItemMenu = $event"
+          @select="onAddItemSelect"
+        />
+      </div>
 
             <!-- 排序控制 -->
             <div class="sort-controls">
@@ -75,13 +75,15 @@
                         </div>
                     </template>
                 </FilterSelect>
-                <button
-                    :class="['sort-order-btn', { ascending: sortAscending }]"
-                    :title="sortAscending ? '升序' : '降序'"
-                    @click="$emit('sort-order-toggle')"
-                >
-                    <i :class="sortAscending ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down-alt'" />
-                </button>
+        <!-- 自定义排序模式不显示升/降序按钮 -->
+        <button
+          v-if="currentSortType !== 'custom'"
+          :class="['sort-order-btn', { ascending: sortAscending }]"
+          :title="sortAscending ? '升序' : '降序'"
+          @click="$emit('sort-order-toggle')"
+        >
+          <i :class="sortAscending ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down-alt'" />
+        </button>
                 <button
                     class="sort-reset-btn"
                     title="清空排序"
@@ -115,9 +117,9 @@
 
 <script setup lang="ts">
 import Button from '@/components/common/Button.vue'
+import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
 import FilterSelect from '@/components/common/FilterSelect.vue'
 import { useApplicationsStore } from '@/stores/applications'
-import TieredMenu from 'primevue/tieredmenu'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 const props = defineProps<Props>()
 
@@ -161,49 +163,45 @@ interface Emits {
     (e: 'sort-reset'): void
 }
 
-// 下拉菜单状态
-const showAddItemDropdown = ref(false)
-const addItemDropdownRef = ref<HTMLElement>()
-const addItemMenu = ref()
-
-// TieredMenu菜单项配置
-const addItemMenuItems = computed(() => [
-    {
-        label: '添加文件',
-        icon: 'pi pi-file',
-        command: () => {
-            emit('add-file')
-            showAddItemDropdown.value = false
-        },
-    },
-    {
-        label: '添加文件夹',
-        icon: 'pi pi-folder',
-        command: () => {
-            emit('add-folder')
-            showAddItemDropdown.value = false
-        },
-    },
-    {
-        label: '添加网址',
-        icon: 'pi pi-link',
-        command: () => {
-            emit('add-url')
-            showAddItemDropdown.value = false
-        },
-    },
-    {
-        separator: true,
-    },
-    {
-        label: '测试添加',
-        icon: 'pi pi-bolt',
-        command: () => {
-            emit('add-test-data')
-            showAddItemDropdown.value = false
-        },
-    },
+// 添加菜单 (ContextMenu)
+const showAddItemMenu = ref(false)
+const addItemMenuPosition = ref({ x: 0, y: 0 })
+const addItemContextItems = computed<MenuItem[]>(() => [
+  {
+    label: '添加文件',
+    icon: 'pi pi-file',
+    action: () => emit('add-file'),
+  },
+  {
+    label: '添加文件夹',
+    icon: 'pi pi-folder',
+    action: () => emit('add-folder'),
+  },
+  {
+    label: '添加网址',
+    icon: 'pi pi-link',
+    action: () => emit('add-url'),
+  },
+  { label: '', separator: true },
+  {
+    label: '测试添加',
+    icon: 'pi pi-bolt',
+    action: () => emit('add-test-data'),
+  },
 ])
+
+const toggleAddItemMenu = (e: MouseEvent) => {
+  if (!showAddItemMenu.value) {
+    addItemMenuPosition.value = { x: e.clientX, y: (e.clientY + 8) }
+    showAddItemMenu.value = true
+  } else {
+    showAddItemMenu.value = false
+  }
+}
+
+const onAddItemSelect = (_item: MenuItem) => {
+  // action 已在 menuItems 中执行
+}
 
 // 获取分组图标
 const getCategoryIcon = (categoryValue: string) => {
@@ -229,32 +227,22 @@ const getSortLabel = (sortValue: string) => {
     return sortOption?.label || '排序'
 }
 
-// 切换下拉菜单
-const toggleAddItemDropdown = () => {
-    showAddItemDropdown.value = !showAddItemDropdown.value
-}
-
-// 关闭下拉菜单
-const closeAddItemDropdown = () => {
-    showAddItemDropdown.value = false
-}
-
-// 处理点击外部事件
-const handleClickOutside = (event: Event) => {
-    if (
-        addItemDropdownRef.value &&
-        !addItemDropdownRef.value.contains(event.target as Node)
-    ) {
-        closeAddItemDropdown()
+// 点击外部关闭
+const handleGlobalClick = (e: MouseEvent) => {
+  if (showAddItemMenu.value) {
+    const target = e.target as HTMLElement
+    if (!target.closest('.add-item-dropdown') && !target.closest('.p-tieredmenu')) {
+      showAddItemMenu.value = false
     }
+  }
 }
 
 onMounted(() => {
-    document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleGlobalClick)
 })
 
 onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleGlobalClick)
 })
 </script>
 
