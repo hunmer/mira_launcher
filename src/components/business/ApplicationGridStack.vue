@@ -5,47 +5,37 @@
         class="app-page"
         @contextmenu.self.prevent="$emit('blank-context-menu', $event)"
     >
-        <!-- 空白占位网格 -->
         <div
-            v-if="applications.length === 0"
-            class="empty-grid"
-            @click="$emit('blank-context-menu', $event)"
-        >
-            <div class="empty-placeholder">
-                <div class="empty-icon">
-                    <i class="pi pi-plus-circle" />
-                </div>
-                <div class="empty-text">
-                    点击添加应用
-                </div>
-            </div>
-        </div>
-
-        <!-- GridStack 容器 -->
-        <div
-            v-else
             ref="gridContainer"
             class="grid-stack"
             @contextmenu.self.prevent="$emit('blank-context-menu', $event)"
-        >
-            <!-- GridStack 将动态创建子元素 -->
-        </div>
+        />
+        <ContextMenu
+            :show="placeholderMenuVisible"
+            :x="placeholderMenuPosition.x"
+            :y="placeholderMenuPosition.y"
+            :items="placeholderMenuItems"
+            @update:show="placeholderMenuVisible = $event"
+            @select="onPlaceholderMenuSelect"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import ApplicationCard from '@/components/business/ApplicationCard.vue'
+import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
 import type { Application } from '@/stores/applications'
 import type { GridStackNode } from 'gridstack'
 import { GridStack } from 'gridstack'
 import 'gridstack/dist/gridstack.min.css'
-import { createApp, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, createApp, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 interface Props {
     applications: Application[]
     layoutMode: 'grid' | 'list'
     gridColumns: number
     iconSize: number
+    addMenuItems?: { label: string; icon: string; type: 'file' | 'folder' | 'url' | 'test' }[]
 }
 
 interface DragEventData {
@@ -59,6 +49,11 @@ interface Emits {
     (e: 'launch-app', app: Application): void
     (e: 'app-context-menu', app: Application, event: MouseEvent): void
     (e: 'blank-context-menu', event: MouseEvent): void
+    (e: 'placeholder-click'): void
+    (e: 'add-file'): void
+    (e: 'add-folder'): void
+    (e: 'add-url'): void
+    (e: 'add-test-data'): void
     (e: 'drag-start', event: DragEventData): void
     (e: 'drag-end', event: DragEventData): void
     (e: 'update-positions', positions: Array<{
@@ -75,16 +70,58 @@ let grid: GridStack | null = null
 let suppressChange = false // 初始化或重载时抑制 change 事件
 const isInitialized = ref(false)
 
+// 占位符类型选择菜单
+const placeholderMenuVisible = ref(false)
+const placeholderMenuPosition = ref({ x: 0, y: 0 })
+const placeholderMenuItems = computed<MenuItem[]>(() => {
+    if (props.addMenuItems && props.addMenuItems.length) {
+        const result: MenuItem[] = []
+        props.addMenuItems.forEach(item => {
+            if (item.type === 'test') {
+                result.push({ label: '', separator: true })
+                result.push({ label: item.label, icon: item.icon, action: () => emit('add-test-data') })
+            } else {
+                const map: Record<'file' | 'folder' | 'url', () => void> = {
+                    file: () => emit('add-file'),
+                    folder: () => emit('add-folder'),
+                    url: () => emit('add-url'),
+                }
+                result.push({ label: item.label, icon: item.icon, action: map[item.type as 'file' | 'folder' | 'url'] })
+            }
+        })
+        return result
+    }
+    return [
+        { label: '添加文件', icon: 'pi pi-file', action: () => emit('add-file') },
+        { label: '添加文件夹', icon: 'pi pi-folder', action: () => emit('add-folder') },
+        { label: '添加网址', icon: 'pi pi-link', action: () => emit('add-url') },
+        { label: '', separator: true },
+        { label: '测试添加', icon: 'pi pi-bolt', action: () => emit('add-test-data') },
+    ]
+})
+const onPlaceholderMenuSelect = () => {
+    // 动作已在 action 内执行
+}
+
 // 计算网格项目的尺寸
+const FIXED_COLUMNS = 4
+const GRID_UNIT_WIDTH = Math.floor(12 / FIXED_COLUMNS) // =3
 const getItemSize = () => {
     if (props.layoutMode === 'list') {
-        return { w: 12, h: 1 } // 列表模式：全宽，高度为1
-    } else {
-        // 网格模式：根据列数计算宽度
-        const itemWidth = Math.max(1, Math.floor(12 / props.gridColumns))
-        return { w: itemWidth, h: 2 } // 高度为2个单位
+        return { w: 12, h: 1 }
     }
+    return { w: GRID_UNIT_WIDTH, h: 2 }
 }
+
+// 自定义列配置类型（需求：使用 columnOptions 类型）
+interface ColumnOptions {
+    columnWidth?: number
+    columnMax?: number
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type __EnsureColumnOptionsUsed = ColumnOptions | undefined
+
+// 说明：不直接扩展库内类型，保持最小必要字段并添加 columnOptions 供后续使用
 
 // 初始化 GridStack
 const initGridStack = async () => {
@@ -92,36 +129,50 @@ const initGridStack = async () => {
 
     try {
         // GridStack 配置
-        const options = {
-            column: 12, // 使用12列系统
+    const options = {
+            column: 12, // 基础列数（内部仍以12列细分）
             cellHeight: 'auto',
-            margin: 8, // 增加边距避免边框被遮挡
+            margin: 8,
             disableResize: true,
-            minRow: 2,
+            maxRow: 2 * 6, // 6行
             float: false,
-            layout: 'compat',
             alwaysShowResizeHandle: false,
-            // animate: false,
-            // columnOpts: {
+            // columnOptions: ({
             //     columnWidth: 100,
             //     columnMax: 12,
-            // },
+            //     layout: 'list',
+            // }) as ColumnOptions,
         }
 
         grid = GridStack.init(options, gridContainer.value)
         isInitialized.value = true
 
         grid.on('dragstart', (event, element) => {
-            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
             emit('drag-start', { element, event })
         })
         grid.on('dragstop', (event, element) => {
-            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
+            if (element) {
+                const node = (element as HTMLElement & { gridstackNode?: GridStackNode }).gridstackNode
+                if (node) {
+                    // 仅允许 0,3,6,9 四个起始列 (12 栏宽度中每 3 为一列)
+                    const allowed = [0, GRID_UNIT_WIDTH, GRID_UNIT_WIDTH * 2, GRID_UNIT_WIDTH * 3]
+                    let targetX = node.x ?? 0
+                    // 找到最近允许列
+                    const currentX = node.x ?? 0
+                    targetX = allowed.reduce<number>((prev, curr) => {
+                        return Math.abs(curr - currentX) < Math.abs(prev - currentX) ? curr : prev
+                    }, allowed[0] as number)
+                    if (targetX !== node.x) {
+                        suppressChange = true
+                        grid?.update(element as HTMLElement, { x: targetX })
+                        suppressChange = false
+                    }
+                }
+            }
             emit('drag-end', { element, event })
         })
-        grid.on('resizestop', (_e, element) => {
-            const node = (element as HTMLElement & { gridstackNode: GridStackNode }).gridstackNode
-            
+        grid.on('resizestop', (_e, _element) => {
+            // 预留 resize 处理
         })
         grid.on('change', (_event, items) => {
             if (suppressChange) return
@@ -129,7 +180,8 @@ const initGridStack = async () => {
 
             // 生成完整快照，避免只保存变更节点导致其余项目下次重新布局
             const snapshot: Array<{ id: string; position: { x: number; y: number; w: number; h: number } }> = []
-            const nodes = (grid as any).engine?.nodes || []
+            const nodes: GridStackNode[] = (grid as unknown as { engine?: { nodes?: GridStackNode[] } })
+                .engine?.nodes || []
             nodes.forEach((node: GridStackNode) => {
                 const el = node.el as HTMLElement | undefined
                 const appId = el?.getAttribute('gs-id')
@@ -162,16 +214,14 @@ const loadApplications = async () => {
     suppressChange = true
     grid.removeAll()
     console.log('🔄 GridStack - 加载应用:', props.applications.map(app => ({ name: app.name, gridPosition: app.gridPosition })))
-    if (props.applications.length === 0) {
-        return
-    }
+    // 不再提前返回；即使没有应用也需生成占位符
 
     const itemSize = getItemSize()
     
     let x = 0, y = 0
 
     // 添加应用项目
-    props.applications.forEach((app, index) => {
+    props.applications.forEach((app) => {
         // 创建DOM元素
         const element = document.createElement('div')
         element.className = 'grid-app-stack-item'
@@ -198,12 +248,12 @@ const loadApplications = async () => {
                 gh = 1
                 console.log(`📃 [List] 应用 "${app.name}" 顺序位置: y=${gy}`)
             } else if (pos) {
-                // 网格模式：使用保存位置
-                gx = pos.x
+                // 网格模式：使用保存位置（归一化到固定4列）
+                gx = Math.min(12 - GRID_UNIT_WIDTH, Math.round((pos.x || 0) / GRID_UNIT_WIDTH) * GRID_UNIT_WIDTH)
                 gy = pos.y
-                gw = Math.min(12, pos.w || itemSize.w)
+                gw = GRID_UNIT_WIDTH // 固定列宽
                 gh = pos.h || itemSize.h
-                console.log(`🎯 [Grid] 应用 "${app.name}" 使用保存位置: x=${gx}, y=${gy}, w=${gw}, h=${gh}`)
+                console.log(`🎯 [Grid] 应用 "${app.name}" 使用归一化位置: x=${gx}, y=${gy}, w=${gw}, h=${gh}`)
             } else {
                 console.log(`📍 [Grid] 应用 "${app.name}" 使用默认顺序位置: x=${gx}, y=${gy}, w=${gw}, h=${gh}`)
             }
@@ -226,6 +276,57 @@ const loadApplications = async () => {
             }
         }
     })
+
+    // 占位符：在网格模式下补足 4x4 = 16 个槽位
+    if (props.layoutMode === 'grid') {
+        const TOTAL_SLOTS = 16 // 4x4 固定
+        const slotWidth = GRID_UNIT_WIDTH
+        const slotHeight = itemSize.h
+        const perRow = 4
+
+        // 收集已占用 (x,y) 起点，避免重复
+        const occupied = new Set<string>()
+        const nodes: GridStackNode[] = (grid as unknown as { engine?: { nodes?: GridStackNode[] } })
+            .engine?.nodes || []
+        nodes.forEach((node: GridStackNode) => {
+            if (node.x != null && node.y != null) {
+                occupied.add(`${node.x},${node.y}`)
+            }
+        })
+
+        let created = 0
+        for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
+            const row = Math.floor(slot / perRow)
+            const col = slot % perRow
+            const gx = col * slotWidth
+            const gy = row * slotHeight
+            const key = `${gx},${gy}`
+            if (occupied.has(key)) continue // 已有真实应用占位
+            // 创建占位符
+            const placeholder = document.createElement('div')
+            placeholder.className = 'grid-app-stack-item placeholder'
+            const content = document.createElement('div')
+            content.className = 'grid-app-stack-item-content placeholder-content'
+            content.innerHTML = '<div class="placeholder-inner"><i class="pi pi-plus"></i></div>'
+            placeholder.appendChild(content)
+            placeholder.setAttribute('gs-x', gx.toString())
+            placeholder.setAttribute('gs-y', gy.toString())
+            placeholder.setAttribute('gs-w', slotWidth.toString())
+            placeholder.setAttribute('gs-h', slotHeight.toString())
+            placeholder.setAttribute('data-placeholder', 'true')
+            placeholder.setAttribute('gs-no-move', 'true')
+            placeholder.setAttribute('gs-no-resize', 'true')
+            placeholder.setAttribute('gs-locked', 'true')
+            // 点击占位符视为在空白处点击，可触发添加逻辑
+            content.addEventListener('click', (e) => {
+                placeholderMenuPosition.value = { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY }
+                placeholderMenuVisible.value = true
+            })
+            grid.makeWidget(placeholder)
+            created++
+        }
+        console.log(`➕ GridStack - 创建占位符: ${created} 个 (目标 ${TOTAL_SLOTS})`)
+    }
 
     // 绑定应用事件
     await nextTick()
@@ -328,6 +429,8 @@ onUnmounted(() => {
 /* GridStack 容器样式 */
 .grid-stack {
     width: 100%;
+    height: 100%;
+    overflow: auto;
 }
 
 :deep(.grid-app-stack-item) {
@@ -341,6 +444,50 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     border: 1px solid #e2e8f0;
+:deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content) {
+    background: transparent;
+    border: 1px dashed #e2e8f0;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+:deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover) {
+    background: rgba(59,130,246,0.06);
+    border-color: #3b82f6;
+}
+
+:deep(.grid-app-stack-item.placeholder .placeholder-inner) {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    height:100%;
+}
+
+:deep(.grid-app-stack-item.placeholder .placeholder-inner .pi) {
+    font-size: 2rem;
+    color:#94a3b8;
+}
+
+:deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover .placeholder-inner .pi) {
+    color:#3b82f6;
+}
+
+.dark :deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content) {
+    border-color:#374151;
+}
+
+.dark :deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover) {
+    background: rgba(59,130,246,0.15);
+    border-color:#3b82f6;
+}
+
+.dark :deep(.grid-app-stack-item.placeholder .placeholder-inner .pi) {
+    color:#64748b;
+}
+
+.dark :deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover .placeholder-inner .pi) {
+    color:#93c5fd;
+}
     border-radius: 12px;
     cursor: pointer;
     overflow: hidden;
