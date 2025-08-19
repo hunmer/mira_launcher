@@ -4,26 +4,53 @@
 <!-- eslint-disable vue/first-attribute-linebreak -->
 <template>
   <div class="applications-page">
-    <!-- 工具栏 -->
-    <ApplicationToolbar
-      :selected-category="applicationsStore.selectedCategory"
-      :categories="applicationsStore.categories"
-      :layout-mode="layoutMode"
-      :current-sort-type="applicationsStore.currentSortType"
-      :sort-ascending="applicationsStore.sortAscending"
-      :sort-options="applicationsStore.sortOptions"
-    :add-menu-items="addMenuItems"
-      @category-change="applicationsStore.setCategory"
-        @add-entry="handleAddEntry"
-      @add-test-data="addTestData"
-      @layout-change="setLayoutMode"
-      @sort-change="applicationsStore.setSortType"
-      @sort-order-toggle="applicationsStore.toggleSortOrder"
-    />
-
     <div class="page-container">
+      <!-- 分类选择和搜索栏 -->
+      <div class="category-search-bar">
+        <CategorySelectButton
+          :selected-category="applicationsStore.selectedCategory"
+          :categories="applicationsStore.dynamicCategories"
+          :search-query="applicationsStore.searchQuery"
+          :add-menu-items="addMenuItems"
+          :current-sort-type="applicationsStore.currentSortType"
+          :sort-ascending="applicationsStore.sortAscending"
+          :sort-options="applicationsStore.sortOptions"
+          @category-change="applicationsStore.setCategory"
+          @search-change="applicationsStore.setSearchQuery"
+          @search-clear="applicationsStore.clearSearch"
+          @add-entry="handleAddEntry"
+          @add-test-data="addTestData"
+          @sort-change="applicationsStore.setSortType"
+          @sort-order-toggle="applicationsStore.toggleSortOrder"
+          @sort-reset="applicationsStore.clearCurrentPageGridPositions"
+        />
+      </div>
+
       <!-- 页面内容区域 -->
       <div class="pages-wrapper">
+        <!-- 页面头部 - 面包屑和视图选项 -->
+        <div class="page-header">
+          <!-- 左侧面包屑 -->
+          <div class="breadcrumb-container">
+            <Breadcrumb :home="breadcrumbHome" :model="breadcrumbItems" />
+          </div>
+          
+          <!-- 右侧视图选项 -->
+          <div class="view-options">
+            <div class="view-controls">
+              <i 
+                :class="['pi pi-th-large', { active: layoutMode === 'grid' }]"
+                title="网格视图"
+                @click="setLayoutMode('grid')"
+              />
+              <i 
+                :class="['pi pi-list', { active: layoutMode === 'list' }]"
+                title="列表视图"
+                @click="setLayoutMode('list')"
+              />
+            </div>
+          </div>
+        </div>
         <!-- GridStack 组件 -->
         <ApplicationGridStack
           v-model:applications="currentPageApps"
@@ -109,13 +136,14 @@
 <script setup lang="ts">
 import AddApplicationDialog from '@/components/business/AddApplicationDialog.vue'
 import ApplicationGridStack from '@/components/business/ApplicationGridStack.vue'
-import ApplicationToolbar from '@/components/business/ApplicationToolbar.vue'
+import CategorySelectButton from '@/components/business/CategorySelectButton.vue'
 import PageControls from '@/components/business/PageControls.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import ContextMenu, { type MenuItem } from '@/components/common/ContextMenu.vue'
 import { useApplicationLayout } from '@/composables/useApplicationLayout'
 import { useAddEntriesStore, type FieldDefinition } from '@/stores/addEntries'
 import { useApplicationsStore, type Application } from '@/stores/applications'
+import Breadcrumb from 'primevue/breadcrumb'
 import { useToast } from 'primevue/usetoast'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 
@@ -153,6 +181,16 @@ const { setLayoutMode, layoutMode } = useApplicationLayout()
 const isDragging = ref(false) // 拖拽状态
 const sortSaved = ref(false) // 排序保存状态
 const launchingApps = ref(new Set<string>()) // 启动中的应用ID集合
+
+// 面包屑数据
+const breadcrumbHome = ref({
+    icon: 'pi pi-home',
+})
+const breadcrumbItems = ref([
+    { label: '应用程序' },
+    { label: '分类管理' },
+    { label: '视图管理' },
+])
 
 // 添加应用对话框
 const showAddDialog = ref(false)
@@ -398,6 +436,18 @@ const onUpdatePositions = (positions: Array<{
 }
 
 // 添加应用相关方法
+const openAddDialog = (defaults?: Partial<{ name: string; path: string; category: string; description: string; icon: string }>) => {
+    editingApp.value = null
+    // 只有在没有通过handleAddEntry设置数据时才使用传入的defaults
+    if (defaults && Object.keys(currentFormDefaults.value).length === 0) {
+        currentFormDefaults.value = defaults
+    }
+    if (!currentEntryFields.value) currentEntryFields.value = undefined
+    if (!currentAppType.value) currentAppType.value = ''
+    if (!currentEntryLabel.value) currentEntryLabel.value = '添加项目'
+    showAddDialog.value = true
+}
+
 const handleAddEntry = (entryId?: string) => {
     // 如果指定了entryId，查找对应的插件入口并设置相关数据
     if (entryId) {
@@ -428,18 +478,6 @@ const handleAddEntry = (entryId?: string) => {
     }
     
     openAddDialog()
-}
-
-const openAddDialog = (defaults?: Partial<{ name: string; path: string; category: string; description: string; icon: string }>) => {
-    editingApp.value = null
-    // 只有在没有通过handleAddEntry设置数据时才使用传入的defaults
-    if (defaults && Object.keys(currentFormDefaults.value).length === 0) {
-        currentFormDefaults.value = defaults
-    }
-    if (!currentEntryFields.value) currentEntryFields.value = undefined
-    if (!currentAppType.value) currentAppType.value = ''
-    if (!currentEntryLabel.value) currentEntryLabel.value = '添加项目'
-    showAddDialog.value = true
 }
 
 const onAddApplication = (
@@ -593,11 +631,92 @@ const onExternalAddApp = (evt: Event) => {
   min-height: 0;
 }
 
+.category-search-bar {
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  border: 1px solid rgb(229 231 235);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.dark .category-search-bar {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgb(75 85 99);
+}
+
 .pages-wrapper {
   flex: 1;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
+  flex-direction: column;   
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dark .page-header {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgb(75 85 99);
+}
+
+.breadcrumb-container {
+  flex: 1;
+}
+
+.p-breadcrumb.p-component {
+    background-color: unset;;
+
+}
+
+
+.view-options {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.view-controls i {
+  font-size: 1.25rem;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.view-controls i:hover {
+  color: rgb(59 130 246);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.view-controls i.active {
+  color: rgb(59 130 246);
+  background-color: rgba(59, 130, 246, 0.15);
+  font-weight: 600;
+}
+
+.dark .view-controls i {
+  color: rgb(156 163 175);
+}
+
+.dark .view-controls i:hover {
+  color: rgb(99 102 241);
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.dark .view-controls i.active {
+  color: rgb(99 102 241);
+  background-color: rgba(99, 102, 241, 0.15);
 }
 
 /* 响应式布局优化 */
@@ -605,44 +724,5 @@ const onExternalAddApp = (evt: Event) => {
   .page-container {
     padding: 0.5rem;
   }
-}
-
-/* PrimeVue ContextMenu 深色主题定制 */
-:global(.p-contextmenu) {
-  background-color: #1f2937 !important;
-  border: 1px solid #4b5563 !important;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.3),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-}
-
-:global(.p-contextmenu .p-menuitem) {
-  transition: all 0.15s ease-out;
-}
-
-:global(.p-contextmenu .p-menuitem-link) {
-  color: #e5e7eb !important;
-  padding: 0.75rem 1rem !important;
-}
-
-:global(.p-contextmenu .p-menuitem-link:hover) {
-  background-color: #374151 !important;
-}
-
-:global(.p-contextmenu .p-menuitem-link.text-red-500) {
-  color: #f87171 !important;
-}
-
-:global(.p-contextmenu .p-menuitem-link.text-red-500:hover) {
-  background-color: rgba(127, 29, 29, 0.2) !important;
-}
-
-:global(.p-contextmenu .p-menuitem-icon) {
-  color: #9ca3af !important;
-  margin-right: 0.75rem !important;
-}
-
-:global(.p-contextmenu .p-separator) {
-  background-color: #4b5563 !important;
 }
 </style>

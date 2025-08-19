@@ -28,6 +28,8 @@ export interface Application {
     h: number
   }
   dynamicFields?: Record<string, unknown>
+  /** 标记为占位符应用（仅用于UI，不会持久化） */
+  __isPlaceholder?: boolean
 }
 
 export interface Category {
@@ -54,11 +56,11 @@ export const useApplicationsStore = defineStore('applications', () => {
 
   // 排序选项
   const sortOptions = ref<SortOption[]>([
-    { label: '自定义排序', value: 'custom', icon: 'pi pi-sort' },
-    { label: '按名称排序', value: 'name', icon: 'pi pi-sort-alpha-down' },
-    { label: '按创建时间', value: 'created', icon: 'pi pi-calendar' },
-    { label: '按使用时间', value: 'lastUsed', icon: 'pi pi-clock' },
-  { label: '按类型排序', value: 'type', icon: 'pi pi-tags' },
+    { label: '自定义', value: 'custom', icon: 'pi pi-sort' },
+    { label: '名称', value: 'name', icon: 'pi pi-sort-alpha-down' },
+    { label: '创建时间', value: 'created', icon: 'pi pi-calendar' },
+    { label: '使用时间', value: 'lastUsed', icon: 'pi pi-clock' },
+  { label: '类型', value: 'type', icon: 'pi pi-tags' },
   ])
 
   // 分类选项
@@ -73,6 +75,23 @@ export const useApplicationsStore = defineStore('applications', () => {
     { label: '文件管理', value: 'files', icon: 'pi pi-folder' },
   ])
 
+  // 动态分类（包含搜索分类）
+  const dynamicCategories = computed(() => {
+    const baseCats = [...categories.value]
+    
+    // 如果有搜索查询，添加搜索分类
+    if (searchQuery.value.trim()) {
+      const searchResults = filteredApplications.value.length
+      baseCats.unshift({
+        label: `搜索结果 (${searchResults})`,
+        value: 'search',
+        icon: 'pi pi-search',
+      })
+    }
+    
+    return baseCats
+  })
+
   // 页面相关
   const currentPageIndex = ref(0)
   const totalPages = ref(5)
@@ -81,11 +100,25 @@ export const useApplicationsStore = defineStore('applications', () => {
 
   // 过滤相关
   const selectedCategory = ref('all')
+  const searchQuery = ref('')
 
   // 计算属性
   const filteredApplications = computed(() => {
     let apps = applications.value
-    if (selectedCategory.value !== 'all') {
+    
+    // 搜索过滤
+    if (searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase().trim()
+      apps = apps.filter(app => 
+        app.name.toLowerCase().includes(query) ||
+        app.description?.toLowerCase().includes(query) ||
+        app.tags?.some(tag => tag.toLowerCase().includes(query)) ||
+        app.path.toLowerCase().includes(query),
+      )
+    }
+    
+    // 分类过滤（如果不是搜索分类且不是全部应用）
+    if (selectedCategory.value !== 'all' && selectedCategory.value !== 'search') {
       apps = apps.filter(app => app.category === selectedCategory.value)
     }
     
@@ -149,7 +182,40 @@ export const useApplicationsStore = defineStore('applications', () => {
   })
 
   const currentPageApps = computed(() => {
-    return pageApplications.value[currentPageIndex.value] || []
+    const currentApps = pageApplications.value[currentPageIndex.value] || []
+    
+    // 如果搜索模式下，直接返回当前页应用，不需要补充占位符
+    if (searchQuery.value.trim()) {
+      return currentApps
+    }
+    
+    // 非搜索模式下，检查是否需要补充占位符（占位符应用）
+    const neededCount = appsPerPage.value
+    const actualCount = currentApps.length
+    
+    if (actualCount < neededCount) {
+      // 创建占位符应用
+      const placeholders: Application[] = []
+      for (let i = actualCount; i < neededCount; i++) {
+        placeholders.push({
+          id: `placeholder-${currentPageIndex.value}-${i}`,
+          name: '',
+          path: '',
+          category: 'all',
+          type: 'app',
+          isSystem: false,
+          pinned: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          sortOrder: (currentPageIndex.value * appsPerPage.value) + i,
+          // 标记为占位符
+          __isPlaceholder: true,
+        } as Application & { __isPlaceholder: boolean })
+      }
+      return [...currentApps, ...placeholders]
+    }
+    
+    return currentApps
   })
 
   // 本地存储键名
@@ -183,9 +249,25 @@ export const useApplicationsStore = defineStore('applications', () => {
         // 如果没有存储数据，初始化默认数据
         initDefaultApplications()
       }
+      
+      // 确保单页有足够的应用数量
+      ensureMinimumAppsPerPage()
     } catch (error) {
       console.error('加载应用数据失败:', error)
       initDefaultApplications()
+      ensureMinimumAppsPerPage()
+    }
+  }
+
+  // 确保每页都有足够的应用数量
+  const ensureMinimumAppsPerPage = () => {
+    const totalNeeded = totalPages.value * appsPerPage.value
+    const currentCount = applications.value.length
+    
+    if (currentCount < totalNeeded) {
+      const neededCount = totalNeeded - currentCount
+      console.log(`📈 需要补充 ${neededCount} 个应用以填满 ${totalPages.value} 页`)
+      generateTestApplications(neededCount)
     }
   }
 
@@ -206,6 +288,7 @@ export const useApplicationsStore = defineStore('applications', () => {
         totalPages.value = settings.totalPages || 5
         gridColumns.value = settings.gridColumns || 4
         selectedCategory.value = settings.selectedCategory || 'all'
+        searchQuery.value = settings.searchQuery || ''
         currentSortType.value = settings.currentSortType || 'custom'
         sortAscending.value = settings.sortAscending ?? true
       }
@@ -221,6 +304,7 @@ export const useApplicationsStore = defineStore('applications', () => {
         totalPages: totalPages.value,
         gridColumns: gridColumns.value,
         selectedCategory: selectedCategory.value,
+        searchQuery: searchQuery.value,
         currentSortType: currentSortType.value,
         sortAscending: sortAscending.value,
       }
@@ -333,6 +417,24 @@ export const useApplicationsStore = defineStore('applications', () => {
     savePageSettings()
   }
 
+  const setSearchQuery = (query: string) => {
+    searchQuery.value = query
+    currentPageIndex.value = 0 // 搜索时回到第一页
+    
+    // 如果有搜索查询，自动切换到搜索分类
+    if (query.trim()) {
+      selectedCategory.value = 'search'
+    }
+    
+    savePageSettings() // 保存搜索状态
+  }
+
+  const clearSearch = () => {
+    searchQuery.value = ''
+    currentPageIndex.value = 0
+    savePageSettings() // 保存清空状态
+  }
+
   const setGridColumns = (columns: number) => {
     console.log(`[ApplicationsStore] 设置网格列数: ${gridColumns.value} -> ${columns}`)
     gridColumns.value = columns
@@ -362,25 +464,34 @@ export const useApplicationsStore = defineStore('applications', () => {
   // 初始化默认应用数据
   const initDefaultApplications = () => {
     const defaultApps: Omit<Application, 'id' | 'createdAt' | 'updatedAt'>[] = [
-      // {
-      //   name: 'Notion',
-      //   path: 'https://www.notion.so',
-      //   icon: '/icons/notion.svg',
-      //   category: 'productivity',
-      //   type: 'app',
-      //   appType: 'web-url',
-      //   description: '笔记和协作工具',
-      //   isSystem: false,
-      // },
-      // {
-      //   name: 'Postman',
-      //   path: 'path-to-postman',
-      //   icon: '/icons/postman.svg',
-      //   category: 'development',
-      //   type: 'app',
-      //   description: 'API 测试工具',
-      //   isSystem: false,
-      // },
+      {
+        name: 'Visual Studio Code',
+        path: 'C:\\Program Files\\Microsoft VS Code\\Code.exe',
+        icon: '/icons/vscode.svg',
+        category: 'development',
+        type: 'app',
+        description: '代码编辑器',
+        isSystem: false,
+      },
+      {
+        name: 'Chrome',
+        path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        icon: '/icons/chrome.svg',
+        category: 'productivity',
+        type: 'app',
+        description: '网页浏览器',
+        isSystem: false,
+      },
+      {
+        name: 'Figma',
+        path: 'https://www.figma.com',
+        icon: '/icons/figma.svg',
+        category: 'design',
+        type: 'app',
+        appType: 'web-url',
+        description: '设计工具',
+        isSystem: false,
+      },
     ]
 
     applications.value = defaultApps.map(app => addApplication(app))
@@ -585,11 +696,13 @@ export const useApplicationsStore = defineStore('applications', () => {
     // 状态
     applications,
     categories,
+    dynamicCategories,
     sortOptions,
     currentPageIndex,
     totalPages,
     gridColumns,
     selectedCategory,
+    searchQuery,
     currentSortType,
     sortAscending,
 
@@ -611,10 +724,13 @@ export const useApplicationsStore = defineStore('applications', () => {
     addPage,
     removePage,
     setCategory,
+    setSearchQuery,
+    clearSearch,
     setGridColumns,
     updateLastUsed,
     togglePin,
     generateTestApplications,
+    ensureMinimumAppsPerPage,
     updateCurrentPageApps,
     setSortType,
     toggleSortOrder,

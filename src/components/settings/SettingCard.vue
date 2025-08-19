@@ -12,13 +12,11 @@
             </div>
         </AccordionHeader>
         <AccordionContent>
-            <div class="p-6">
-                <Card class="shadow-sm">
-                    <div class="space-y-6">
-                        <slot />
-                    </div>
-                </Card>
-            </div>
+            <Card class="shadow-sm">
+                <div class="space-y-6">
+                    <slot />
+                </div>
+            </Card>
         </AccordionContent>
     </AccordionPanel>
 </template>

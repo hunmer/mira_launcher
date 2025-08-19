@@ -336,28 +336,28 @@
 
 <script setup lang="ts">
 import {
+    Avatar,
     Button,
-    DataTable,
     Column,
-    Toolbar,
-    Tag,
-    ToggleSwitch,
-    Input as InputText,
+    DataTable,
+    Dialog,
     IconField,
     InputIcon,
-    Dialog,
-    Avatar,
+    Input as InputText,
     ProgressSpinner,
+    Tag,
+    ToggleSwitch,
+    Toolbar,
 } from '@/components/common'
 import Card from '@/components/common/Card.vue'
 import Container from '@/components/layout/Container.vue'
-import { computed, onMounted, ref, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGridStore } from '@/stores/grid'
 import { usePageStore } from '@/stores/page'
-import { useThemeStore } from '@/stores/theme'
 import { usePluginStore } from '@/stores/plugin'
+import { useThemeStore } from '@/stores/theme'
 import type { PluginRegistryEntry, PluginState } from '@/types/plugin'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 响应式数据
 const searchQuery = ref('')
@@ -830,64 +830,5 @@ if (typeof window !== 'undefined') {
   .plugin-table :deep(.p-datatable-tbody > tr > td) {
     padding: 0.75rem 0.5rem;
   }
-}
-
-/* PrimeVue 组件样式重写 */
-:deep(.p-card) {
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-:deep(.p-card:hover) {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-:deep(.p-toolbar) {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.dark :deep(.p-toolbar) {
-  background: #1e293b;
-  border-color: #374151;
-  color: #f9fafb;
-}
-
-.dark :deep(.p-toolbar .p-button) {
-  color: #d1d5db;
-}
-
-.dark :deep(.p-toolbar .p-button:hover) {
-  background: #374151;
-  border-color: #4b5563;
-}
-
-.dark :deep(.p-toolbar .p-inputtext) {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
-}
-
-.dark :deep(.p-toolbar .p-inputtext:focus) {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
-}
-
-:deep(.p-tag) {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-}
-
-:deep(.p-toggleswitch) {
-  width: 2.5rem;
-}
-
-:deep(.p-toggleswitch .p-toggleswitch-slider) {
-  transition: all 0.2s ease;
 }
 </style>

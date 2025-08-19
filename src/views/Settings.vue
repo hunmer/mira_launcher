@@ -122,37 +122,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: #6b7280;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.tab-item:hover {
-  color: #374151;
-  background-color: #f9fafb;
-}
-
-.dark .tab-item {
-  color: #9ca3af;
-}
-
-.dark .tab-item:hover {
-  color: #d1d5db;
-  background-color: #1f2937;
-}
-
-.tab-item[data-state='active'] {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-  background-color: transparent;
-}
-
-.dark .tab-item[data-state='active'] {
-  color: #60a5fa;
-  border-bottom-color: #60a5fa;
 }
 </style>

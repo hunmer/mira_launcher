@@ -131,7 +131,7 @@ const menuItems = computed(() => {
   background-color: transparent;
 }
 
-/* TieredMenu自定义样式 */
+/* TieredMenu功能性样式 */
 :deep(.p-tieredmenu) {
   min-width: 12rem;
   max-width: 20rem;
@@ -149,39 +149,9 @@ const menuItems = computed(() => {
   transition: all 0.15s ease-out;
 }
 
-:deep(.p-tieredmenu .p-menuitem-text) {
-  color: #374151;
-}
-
-:deep(.dark .p-tieredmenu .p-menuitem-text) {
-  color: #e5e7eb;
-}
-
 :deep(.p-tieredmenu .p-menuitem-icon) {
   width: 1rem;
   height: 1rem;
   margin-right: 0.75rem;
-  color: #6b7280;
-}
-
-:deep(.dark .p-tieredmenu .p-menuitem-icon) {
-  color: #9ca3af;
-}
-
-/* 危险样式 */
-:deep(.p-tieredmenu .p-menuitem-link[style*='color: #dc2626']) {
-  color: #dc2626 !important;
-}
-
-:deep(.dark .p-tieredmenu .p-menuitem-link[style*='color: #dc2626']) {
-  color: #f87171 !important;
-}
-
-:deep(.p-tieredmenu .p-menuitem-link[style*='color: #dc2626']:hover) {
-  background-color: #fef2f2 !important;
-}
-
-:deep(.dark .p-tieredmenu .p-menuitem-link[style*='color: #dc2626']:hover) {
-  background-color: rgba(127, 29, 29, 0.2) !important;
 }
 </style>

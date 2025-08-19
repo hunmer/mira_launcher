@@ -11,9 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Avatar from 'primevue/avatar'
 import { useThemeStore } from '@/stores/theme'
+import Avatar from 'primevue/avatar'
+import { computed } from 'vue'
 
 const themeStore = useThemeStore()
 
@@ -32,15 +32,5 @@ const avatarClass = computed(() => {
 <style scoped>
 .custom-avatar {
   transition: all 0.2s ease;
-}
-
-.custom-avatar.dark-theme :deep(.p-avatar) {
-  background-color: rgb(55, 65, 81);
-  color: rgb(229, 231, 235);
-  border-color: rgb(75, 85, 99);
-}
-
-.custom-avatar.dark-theme :deep(.p-avatar.p-avatar-circle) {
-  background-color: rgb(55, 65, 81);
 }
 </style>

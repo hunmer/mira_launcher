@@ -720,18 +720,6 @@ watch(
   flex: 1;
 }
 
-.progress-bar.progress-success :deep(.p-progressbar-value) {
-  background-color: rgb(34, 197, 94);
-}
-
-.progress-bar.progress-error :deep(.p-progressbar-value) {
-  background-color: rgb(239, 68, 68);
-}
-
-.progress-bar.progress-warning :deep(.p-progressbar-value) {
-  background-color: rgb(245, 158, 11);
-}
-
 .progress-text {
   font-size: 0.875rem;
   font-weight: 500;

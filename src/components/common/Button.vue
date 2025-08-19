@@ -7,7 +7,7 @@
             ...(loading !== undefined && { loading }),
             ...(disabled !== undefined && { disabled }),
             class: buttonClass,
-        }"
+        }"  
         @click="handleClick"
     >
         <slot />

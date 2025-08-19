@@ -14,9 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import Textarea from 'primevue/textarea'
 import { useThemeStore } from '@/stores/theme'
+import Textarea from 'primevue/textarea'
+import { computed, ref, watch } from 'vue'
 
 interface Props {
     modelValue?: string
@@ -86,24 +86,5 @@ const textareaClass = computed(() => {
 <style scoped>
 .custom-textarea {
   transition: all 0.2s ease;
-}
-
-.custom-textarea.dark-theme :deep(.p-textarea) {
-  background-color: rgb(55, 65, 81);
-  border-color: rgb(75, 85, 99);
-  color: rgb(229, 231, 235);
-}
-
-.custom-textarea.dark-theme :deep(.p-textarea:hover) {
-  border-color: rgb(107, 114, 128);
-}
-
-.custom-textarea.dark-theme :deep(.p-textarea:focus) {
-  border-color: rgb(59, 130, 246);
-  box-shadow: 0 0 0 1px rgb(59, 130, 246);
-}
-
-.custom-textarea.dark-theme :deep(.p-textarea::placeholder) {
-  color: rgb(107, 114, 128);
 }
 </style>

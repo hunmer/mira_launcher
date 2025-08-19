@@ -442,17 +442,8 @@ onUnmounted(() => {
     border-color:#374151;
 }
 
-.dark :deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover) {
-    background: rgba(59,130,246,0.15);
-    border-color:#3b82f6;
-}
-
 .dark :deep(.grid-app-stack-item.placeholder .placeholder-inner .pi) {
     color:#64748b;
-}
-
-.dark :deep(.grid-app-stack-item.placeholder .grid-app-stack-item-content:hover .placeholder-inner .pi) {
-    color:#93c5fd;
 }
     border-radius: 12px;
     cursor: pointer;
@@ -481,26 +472,5 @@ onUnmounted(() => {
     opacity: 0.8;
     transform: scale(1.05) rotate(2deg);
     z-index: 1000;
-}
-
-/* 深色主题支持 */
-.dark :deep(.grid-app-stack-item-content) {
-    background: #1f2937;
-    border-color: #374151;
-}
-
-.dark :deep(.grid-app-stack-item-content:hover) {
-    background: #111827;
-    border-color: #3b82f6;
-}
-
-.dark .empty-grid {
-    background: #111827;
-    border-color: #374151;
-}
-
-.dark .empty-grid:hover {
-    border-color: #3b82f6;
-    background: #1f2937;
 }
 </style>
