@@ -150,7 +150,7 @@ const initGridStack = async () => {
             })
 
             if (snapshot.length) {
-                console.log('💾 GridStack - 保存完整位置快照 (共', snapshot.length, '项):', snapshot)
+                // console.log('💾 GridStack - 保存完整位置快照 (共', snapshot.length, '项):', snapshot)
                 emit('update-positions', snapshot)
             }
         })
@@ -205,17 +205,17 @@ const loadApplications = async () => {
                 gy = y
                 gw = 12
                 gh = 1
-                console.log(`📃 [List] 应用 "${app.name}" 顺序位置: y=${gy}`)
+                // console.log(`📃 [List] 应用 "${app.name}" 顺序位置: y=${gy}`)
             } else if (pos && props.sortType === 'custom') {
                 // 网格模式：仅在自定义排序时使用保存位置，其他排序方式按数组顺序排布以保持一致性
                 gx = Math.min(12 - GRID_UNIT_WIDTH, Math.round((pos.x || 0) / GRID_UNIT_WIDTH) * GRID_UNIT_WIDTH)
                 gy = pos.y
                 gw = GRID_UNIT_WIDTH // 固定列宽
                 gh = pos.h || itemSize.h
-                console.log(`🎯 [Grid] 应用 "${app.name}" 使用归一化位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (自定义排序)`)
+                // console.log(`🎯 [Grid] 应用 "${app.name}" 使用归一化位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (自定义排序)`)
             } else {
                 // 网格模式：非自定义排序或无保存位置时，按照数组顺序排布
-                console.log(`📍 [Grid] 应用 "${app.name}" 使用默认顺序位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (排序类型: ${props.sortType || 'unknown'})`)
+                // console.log(`📍 [Grid] 应用 "${app.name}" 使用默认顺序位置: x=${gx}, y=${gy}, w=${gw}, h=${gh} (排序类型: ${props.sortType || 'unknown'})`)
             }
 
             element.setAttribute('gs-id', app.id)
@@ -284,7 +284,7 @@ const loadApplications = async () => {
             grid.makeWidget(placeholder)
             created++
         }
-        console.log(`➕ GridStack - 创建占位符: ${created} 个 (目标 ${TOTAL_SLOTS})`)
+        // console.log(`➕ GridStack - 创建占位符: ${created} 个 (目标 ${TOTAL_SLOTS})`)
     }
 
     // 绑定应用事件

@@ -1,3 +1,4 @@
+// Plugin loader with enhanced Tauri support and eval()-based loading - Updated
 import { BasePlugin } from '@/plugins/core/BasePlugin'
 import {
   getRegisteredPlugin,
@@ -69,6 +70,133 @@ export class PluginLoader {
       allowedPermissions: ['storage', 'notification', 'menu', 'component'],
       sandboxMode: true,
       ...config,
+    }
+  }
+
+  /**
+   * 加载插件（不立即执行代码，用于发现阶段）
+   * 仅加载元数据，不执行插件代码
+   */
+  async loadPluginMetadataOnly(
+    discoveryResult: PluginDiscoveryResult,
+  ): Promise<PluginLoadResult> {
+    const { metadata } = discoveryResult
+    const startTime = performance.now()
+
+    try {
+      // 验证权限
+      const permissionCheck = this.validatePermissions(metadata)
+      if (!permissionCheck.valid) {
+        throw new Error(
+          `Invalid permissions: ${permissionCheck.errors.join(', ')}`,
+        )
+      }
+
+      const loadTime = performance.now() - startTime
+      console.log(
+        `[PluginLoader] Metadata loaded for plugin: ${metadata.id} (${loadTime.toFixed(2)}ms)`,
+      )
+
+      return {
+        pluginId: metadata.id,
+        metadata,
+        success: true,
+        loadTime,
+        // 不提供 pluginClass，表示代码未执行
+      }
+    } catch (error) {
+      const loadTime = performance.now() - startTime
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown loading error'
+
+      console.error(
+        `[PluginLoader] Failed to load metadata for plugin ${metadata.id}:`,
+        error,
+      )
+
+      return {
+        pluginId: metadata.id,
+        metadata,
+        success: false,
+        error: errorMessage,
+        loadTime,
+      }
+    }
+  }
+
+  /**
+   * 激活插件时执行代码加载
+   * 仅在插件激活时执行这个方法
+   */
+  async loadAndExecutePluginCode(
+    discoveryResult: PluginDiscoveryResult,
+  ): Promise<PluginLoadResult> {
+    const { metadata, entryPath } = discoveryResult
+    const startTime = performance.now()
+
+    try {
+      // 检查缓存
+      if (this.config.enableCache && this.moduleCache.has(metadata.id)) {
+        const cached = this.moduleCache.get(metadata.id)!
+        console.log(
+          `[PluginLoader] Using cached module for plugin: ${metadata.id}`,
+        )
+
+        return {
+          pluginId: metadata.id,
+          pluginClass: cached.module.default || cached.module.Plugin,
+          metadata: cached.metadata,
+          success: true,
+          loadTime: performance.now() - startTime,
+          module: cached.module,
+        }
+      }
+
+      // 动态导入并执行插件模块
+      const module = await this.importPluginModule(entryPath)
+
+      // 对于 eval 执行的插件，不需要验证插件类
+      // 插件代码已经在 eval 中执行，全局对象已经创建
+
+      // 缓存模块
+      if (this.config.enableCache) {
+        this.moduleCache.set(metadata.id, {
+          module,
+          loadTime: Date.now(),
+          metadata,
+        })
+      }
+
+      const loadTime = performance.now() - startTime
+      console.log(
+        `[PluginLoader] Successfully executed plugin code: ${metadata.id} (${loadTime.toFixed(2)}ms)`,
+      )
+
+      return {
+        pluginId: metadata.id,
+        metadata,
+        success: true,
+        loadTime,
+        module,
+        // 对于 eval 插件，不返回 pluginClass
+      }
+    } catch (error) {
+      const loadTime = performance.now() - startTime
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown loading error'
+
+      console.error(
+        `[PluginLoader] Failed to execute plugin code ${metadata.id}:`,
+        error,
+      )
+
+      return {
+        pluginId: metadata.id,
+        metadata,
+        success: false,
+        error: errorMessage,
+        loadTime,
+      }
     }
   }
 
@@ -203,9 +331,11 @@ export class PluginLoader {
    */
   private async importPluginModule(entryPath: string): Promise<any> {
     try {
-      // 首先检查插件是否已经在注册表中（开发环境）
+      // 检查是否在 Tauri 环境中
+      const isTauri = typeof window !== 'undefined' && '__TAURI__' in window
       const isDev = import.meta.env.DEV
 
+      // 在开发环境中，先尝试从注册表加载
       if (isDev) {
         // 从路径中提取插件 ID
         console.log(
@@ -224,8 +354,10 @@ export class PluginLoader {
 
           if (pluginId && isPluginRegistered(pluginId)) {
             console.log(`[PluginLoader] Using registered plugin: ${pluginId}`)
-            const factory = getRegisteredPlugin(pluginId)!
-            return await factory()
+            const factory = getRegisteredPlugin(pluginId)
+            if (factory) {
+              return await factory()
+            }
           } else {
             console.log(
               `[PluginLoader] Plugin ${pluginId} not found in registry. Available: ${getRegisteredPluginIds().join(', ')}`,
@@ -236,7 +368,26 @@ export class PluginLoader {
             `[PluginLoader] Could not extract plugin ID from path: ${entryPath}`,
           )
         }
-      } // 使用超时包装动态导入
+      }
+
+      // 在 Tauri 环境中，使用文件系统 API + eval() 方式
+      if (isTauri) {
+        console.log(`[PluginLoader] Loading plugin via Tauri FS API: ${entryPath}`)
+        
+        // 提取插件ID用于后置处理
+        const pluginIdMatch =
+          entryPath.match(/[\\\/]([^\\\/]+)[\\\/]index\.[tj]s?$/) ||
+          entryPath.match(/[\\\/]([^\\\/]+)[\\\/]index\.js$/) ||
+          entryPath.match(/[\\\/]([^\\\/]+)$/) ||
+          entryPath.match(/([^\\\/]+)[\\\/]index\.[tj]s?$/) ||
+          entryPath.match(/([^\\\/]+)[\\\/]index\.js$/)
+          
+        const pluginId = pluginIdMatch ? pluginIdMatch[1] : undefined
+        
+        return await this.loadPluginWithTauriFS(entryPath, pluginId)
+      }
+
+      // 非 Tauri 环境，使用传统的动态导入
       const importPromise = this.createDynamicImport(entryPath)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
@@ -257,6 +408,340 @@ export class PluginLoader {
   }
 
   /**
+   * 预处理插件代码，移除 import 语句和进行其他转换
+   */
+  private preprocessPluginCode(code: string): string {
+    let processedCode = code
+
+    // 移除 ES6 import 语句
+    // 匹配所有 import 语句的正则表达式
+    const importRegex = /^import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?['""][^'"]*['""]\s*;?$/gm
+    
+    // 记录被移除的 import 语句
+    const removedImports = processedCode.match(importRegex) || []
+    if (removedImports.length > 0) {
+      console.log('[PluginLoader] Removing import statements:', removedImports)
+    }
+
+    // 移除 import 语句
+    processedCode = processedCode.replace(importRegex, '// import statement removed for eval')
+
+    // 处理 export 语句
+    // 移除简单的 export 关键字
+    processedCode = processedCode.replace(/^export\s+(?=(?:const|let|var|function|class)\s)/gm, '')
+    
+    // 处理复杂的 export { ... } 语句，包含 as 重命名的情况
+    // 使用多行匹配来处理跨行的 export 语句
+    processedCode = processedCode.replace(
+      /export\s*\{[^}]*\}\s*;?/gs, 
+      '// export statement removed for eval',
+    )
+    
+    // 处理 export default 语句，转换为普通的变量赋值，使用合法的变量名
+    processedCode = processedCode.replace(/^export\s+default\s+/gm, 'var pluginDefault = ')
+
+    // 处理内联的 TypeScript 类型断言 (value as Type)
+    // 简单地移除 as Type 部分，保留值
+    processedCode = processedCode.replace(/\s+as\s+\w+(\[\])?/g, '')
+
+    return processedCode
+  }
+
+  /**
+   * 为插件代码添加后置处理逻辑，将插件实例暴露到全局变量
+   */
+  private addPluginPostamble(pluginId: string): string {
+    return `
+// === Plugin Instance Export ===
+// 插件应该在这里将自己的实例暴露到全局 __pluginInstances
+console.log('[PluginExport] Plugin ${pluginId} code execution completed');
+`
+  }
+
+  /**
+   * 创建eval环境的前置代码，提供必要的polyfill和模拟实现
+   */
+  private createEvalPreamble(): string {
+    return `
+// === Eval Environment Preamble ===
+// 提供在eval环境中需要的polyfill和模拟实现
+
+// 1. 确保全局插件实例容器存在（应该由外部 Tauri 应用定义）
+if (typeof window.__pluginInstances === 'undefined') {
+  console.warn('[PluginLoader] __pluginInstances not found, creating fallback');
+  window.__pluginInstances = {};
+}
+
+// 2. 模拟 __defProp, __defNormalProp, __publicField 等编译器生成的辅助函数
+if (typeof __defProp === 'undefined') {
+  var __defProp = Object.defineProperty;
+}
+if (typeof __defNormalProp === 'undefined') {
+  var __defNormalProp = function(obj, key, value) {
+    return key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value }) : obj[key] = value;
+  };
+}
+if (typeof __publicField === 'undefined') {
+  var __publicField = function(obj, key, value) {
+    return __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  };
+}
+
+// 2. 模拟常用的Node.js/TypeScript编译器生成的工具函数
+if (typeof __spreadArray === 'undefined') {
+  var __spreadArray = function(to, from, pack) {
+    if (pack === void 0) { pack = false; }
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(to, 0, i);
+        ar[i] = from[i];
+      }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+  };
+}
+if (typeof __rest === 'undefined') {
+  var __rest = function(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+        if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+          t[p[i]] = s[p[i]];
+      }
+    return t;
+  };
+}
+
+// 3. 模拟一些常用的全局变量和函数
+if (typeof global === 'undefined') {
+  var global = window;
+}
+if (typeof process === 'undefined') {
+  var process = {
+    env: {},
+    argv: [],
+    version: 'v20.0.0',
+    platform: 'browser'
+  };
+}
+
+// 4. 简单的 console polyfill（如果需要）
+if (typeof console === 'undefined') {
+  var console = {
+    log: function() { /* noop */ },
+    error: function() { /* noop */ },
+    warn: function() { /* noop */ },
+    info: function() { /* noop */ }
+  };
+}
+
+// === End of Preamble ===
+`
+  }
+
+  /**
+   * 使用 Tauri 文件系统 API 加载插件
+   */
+  private async loadPluginWithTauriFS(entryPath: string, pluginId?: string): Promise<any> {
+    try {
+      // 动态导入 Tauri 的 FS API
+      const { readTextFile } = await import('@tauri-apps/plugin-fs')
+      
+      console.log(`[PluginLoader] Reading plugin file: ${entryPath}`)
+      
+      // 读取插件文件内容
+      const pluginCode = await readTextFile(entryPath)
+      
+      console.log(`[PluginLoader] Plugin file read successfully, length: ${pluginCode.length}`)
+      
+      // 执行插件代码并返回模块
+      return await this.executePluginCode(pluginCode, entryPath, pluginId)
+    } catch (error) {
+      console.error('[PluginLoader] Error loading plugin with Tauri FS:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 执行插件代码并返回模块对象
+   */
+  private async executePluginCode(code: string, pluginPath: string, pluginId?: string): Promise<any> {
+    try {
+      console.log(`[PluginLoader] Executing plugin code from: ${pluginPath}`)
+      
+      // 预处理代码：移除或转换 import 语句
+      const processedCode = this.preprocessPluginCode(code)
+      
+      // 创建一个沙箱环境来执行插件代码
+      const sandbox = this.createPluginSandbox(pluginPath)
+      
+      // 准备执行环境
+      const moduleExports = {}
+      const moduleObj = { exports: moduleExports }
+      
+      // 将必要的变量注入到全局作用域
+      const originalModule = (window as any).module
+      const originalExports = (window as any).exports
+      const originalRequire = (window as any).require
+      
+      try {
+        // 设置模块环境
+        (window as any).module = moduleObj
+        ;(window as any).exports = moduleExports
+        ;(window as any).require = this.createRequireFunction()
+        
+        // 添加插件 SDK 到全局环境
+        await this.injectPluginSDK()
+        
+        // 创建完整的执行代码：前置代码 + 预处理后的插件代码 + 后置代码
+        const preamble = this.createEvalPreamble()
+        const postamble = pluginId ? this.addPluginPostamble(pluginId) : ''
+        const fullCode = `${preamble}\n${processedCode}\n${postamble}`
+        
+        // 执行插件代码
+        eval(fullCode)
+        
+        // 检查导出
+        let result = moduleObj.exports
+        
+        // 如果是空对象，尝试从全局变量中查找
+        if (!result || (typeof result === 'object' && Object.keys(result).length === 0)) {
+          result = this.extractExportsFromGlobal(pluginPath)
+        }
+        
+        // console.log('[PluginLoader] Plugin execution completed. Exports:', Object.keys(result))
+        
+        return result
+      } finally {
+        // 恢复全局环境
+        if (originalModule !== undefined) {
+          (window as any).module = originalModule
+        } else {
+          delete (window as any).module
+        }
+        
+        if (originalExports !== undefined) {
+          (window as any).exports = originalExports
+        } else {
+          delete (window as any).exports
+        }
+        
+        if (originalRequire !== undefined) {
+          (window as any).require = originalRequire
+        } else {
+          delete (window as any).require
+        }
+      }
+    } catch (error) {
+      console.error('[PluginLoader] Error executing plugin code:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to execute plugin: ${errorMessage}`)
+    }
+  }
+
+  /**
+   * 创建插件沙箱环境
+   */
+  private createPluginSandbox(pluginPath: string) {
+    return {
+      console,
+      setTimeout,
+      setInterval,
+      clearTimeout,
+      clearInterval,
+      Promise,
+      URL,
+      fetch: typeof fetch !== 'undefined' ? fetch : undefined,
+      __pluginPath: pluginPath,
+    }
+  }
+
+  /**
+   * 创建 require 函数的简单实现
+   */
+  private createRequireFunction() {
+    return (moduleName: string) => {
+      // console.log(`[PluginLoader] Plugin requested module: ${moduleName}`)
+      
+      // 这里可以实现模块的映射
+      switch (moduleName) {
+        case 'path':
+          // 提供简单的 path 模块实现
+          return {
+            join: (...parts: string[]) => parts.join('/'),
+            dirname: (path: string) => path.split('/').slice(0, -1).join('/'),
+            basename: (path: string) => path.split('/').pop(),
+            extname: (path: string) => {
+              const parts = path.split('.')
+              return parts.length > 1 ? `.${parts.pop()}` : ''
+            },
+          }
+        case 'fs':
+          // 不允许直接访问文件系统
+          throw new Error('Direct filesystem access is not allowed in plugins')
+        default:
+          console.warn(`[PluginLoader] Unknown module requested: ${moduleName}`)
+          return {}
+      }
+    }
+  }
+
+  /**
+   * 注入插件 SDK 到全局环境
+   */
+  private async injectPluginSDK() {
+    try {
+      // 导入 BasePlugin 类
+      const { BasePlugin } = await import('@/plugins/core/BasePlugin')
+      
+      // 将 BasePlugin 添加到全局环境
+      ;(window as any).BasePlugin = BasePlugin
+      
+      // console.log('[PluginLoader] Plugin SDK injected successfully')
+    } catch (error) {
+      console.error('[PluginLoader] Failed to inject Plugin SDK:', error)
+    }
+  }
+
+  /**
+   * 从全局变量中提取导出
+   */
+  private extractExportsFromGlobal(_pluginPath: string): any {
+    // 查找可能的插件类
+    const globalKeys = Object.keys(window).filter(key => 
+      key.includes('Plugin') || 
+      key.includes('plugin') ||
+      key.startsWith('_') ||
+      key === 'default' ||
+      key === 'pluginDefault',
+    )
+    
+    // 优先查找 pluginDefault 导出 (新转换的 export default)
+    if ((window as any).pluginDefault) {
+      console.log('[PluginLoader] Found pluginDefault export')
+      return { default: (window as any).pluginDefault }
+    }
+    
+    // 备用查找 default 导出 (旧的)
+    if ((window as any).default) {
+      console.log('[PluginLoader] Found default export')
+      return { default: (window as any).default }
+    }
+    
+    for (const key of globalKeys) {
+      const value = (window as any)[key]
+      if (typeof value === 'function' || (typeof value === 'object' && value !== null)) {
+        console.log(`[PluginLoader] Found potential export: ${key}`)
+        return { default: value, [key]: value }
+      }
+    }
+    
+    return {}
+  }
+
+  /**
    * 创建动态导入
    * 支持不同的文件类型和环境
    */
@@ -266,34 +751,36 @@ export class PluginLoader {
 
     // 在开发环境中，将文件路径转换为 Vite 可以处理的路径
     const isDev = import.meta.env.DEV
+    const isTauri = typeof window !== 'undefined' && '__TAURI__' in window
 
     if (isDev) {
       // 将绝对路径转换为相对于项目根目录的路径
       let importPath = entryPath
-
-      // 如果是 Windows 绝对路径，转换为相对路径
-      if (entryPath.match(/^[A-Za-z]:\\/)) {
-        // 提取相对于项目根目录的路径
-        const projectRootPattern = /.*[\\\/]mira_launcher[\\\/]/
-        if (projectRootPattern.test(entryPath)) {
-          importPath = entryPath.replace(projectRootPattern, './')
-          importPath = importPath.replace(/\\/g, '/')
-
-          // 确保路径以 ./ 开头
-          if (!importPath.startsWith('./')) {
-            importPath = `./${importPath}`
-          }
+      
+      // Convert absolute Windows paths to relative paths for Vite
+      if (entryPath.includes('\\') && entryPath.includes(':')) {
+        // This is a Windows absolute path, convert to relative
+        const workspaceRoot = 'd:\\mira_launcher'
+        if (entryPath.startsWith(workspaceRoot)) {
+          importPath = `./${entryPath.slice(workspaceRoot.length + 1).replace(/\\/g, '/')}`
         }
       }
-
-      console.log(
-        `[PluginLoader] Converting path: ${entryPath} -> ${importPath}`,
-      )
 
       try {
         // For JavaScript files, ensure we're using the correct extension
         if (ext === '.js' && !importPath.endsWith('.js')) {
           importPath += '.js'
+        }
+
+        console.log(`[PluginLoader] Attempting to import: ${importPath}`)
+        
+        // In Tauri environment, convert local file paths to HTTP URLs
+        if (isTauri && importPath.startsWith('./plugins/')) {
+          // Remove the ./ prefix and use the dev server URL
+          const httpPath = importPath.slice(2) // Remove './'
+          const httpUrl = `http://localhost:1420/${httpPath}`
+          console.log(`[PluginLoader] Using HTTP URL for Tauri: ${httpUrl}`)
+          return await import(/* @vite-ignore */ httpUrl)
         }
 
         // 直接使用相对路径导入

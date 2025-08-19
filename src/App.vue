@@ -27,7 +27,13 @@ const themeStore = useThemeStore()
 const pluginStore = usePluginStore()
 
 // Plugin loading status for debugging
-const pluginLoadingStatus = ref<any>(null)
+const pluginLoadingStatus = ref<{
+    discovered: number
+    loaded: number
+    registered: number
+    activated: number
+    errors: string[]
+} | null>(null)
 
 // 窗口事件处理
 const handleWindowEvent = () => {
@@ -90,7 +96,7 @@ onMounted(async () => {
         })
         console.log('✅ 插件系统初始化完成')
 
-        // 自动发现和加载插件
+        // 自动发现和加载插件 (只使用一个插件系统)
         console.log('🔍 开始自动发现和加载插件...')
         const autoStartService = new PluginAutoStartService()
         const result = await autoStartService.discoverAndLoadPlugins()

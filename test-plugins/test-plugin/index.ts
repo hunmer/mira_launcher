@@ -16,7 +16,7 @@ import { BasePlugin } from '../plugin-sdk'
  * 测试插件类
  * 展示所有新功能特性的完整实现
  */
-export class TestPlugin extends BasePlugin {
+class TestPlugin extends BasePlugin {
   // 必需的抽象属性实现
   readonly id = 'com.mira.test-plugin'
   readonly name = '测试插件'
@@ -533,15 +533,41 @@ export class TestPlugin extends BasePlugin {
 }
 
 // 导出插件工厂函数
-export default function createTestPlugin() {
+function createTestPlugin() {
   return new TestPlugin()
 }
 
 // 插件元数据
-export const metadata = {
+const metadata = {
   id: 'test-plugin',
   name: '测试插件',
   version: '1.0.0',
   description: '用于测试插件系统功能的示例插件',
   author: 'Mira Launcher Team',
+}
+
+// CommonJS 兼容性
+if (typeof module !== 'undefined' && module.exports) {
+  (module as any).exports = createTestPlugin
+  ;(module as any).exports.TestPlugin = TestPlugin
+  ;(module as any).exports.metadata = metadata
+  ;(module as any).exports.default = createTestPlugin
+}
+
+// 全局变量导出（用于 eval 环境）
+if (typeof window !== 'undefined') {
+  (window as any).TestPlugin = TestPlugin
+  ;(window as any).createTestPlugin = createTestPlugin
+  ;(window as any).testPluginMetadata = metadata
+  
+  // 将插件实例暴露到全局 __pluginInstances
+  if (typeof (window as any).__pluginInstances === 'object') {
+    const pluginInstance = createTestPlugin()
+    ;(window as any).__pluginInstances['test-plugin'] = pluginInstance
+    console.log('[TestPlugin] Exported instance to global __pluginInstances')
+  }
+} else if (typeof global !== 'undefined') {
+  (global as any).TestPlugin = TestPlugin
+  ;(global as any).createTestPlugin = createTestPlugin
+  ;(global as any).testPluginMetadata = metadata
 }

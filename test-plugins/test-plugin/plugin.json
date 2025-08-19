@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "description": "用于测试插件系统功能的示例插件",
     "author": "Mira Launcher Team",
-    "entry": "index.ts",
+    "entry": "index.js",
     "dependencies": [],
     "permissions": [
         "storage",

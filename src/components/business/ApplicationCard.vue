@@ -80,13 +80,27 @@ const pluginInfo = computed(() => {
 })
 
 const iconStyle = computed(() => {
-    const currentIconSize = props.layoutMode === 'list' ? Math.min(props.iconSize, 48) : props.iconSize
-    return {
-        width: `${currentIconSize}px`,
-        height: `${currentIconSize}px`,
-        fontSize: props.layoutMode === 'list' ? '20px' : `${Math.max(16, currentIconSize * 0.5)}px`,
-        maxWidth: '200px',
-        maxHeight: '200px',
+    // 在网格模式下，图标大小根据卡片高度自动调整
+    if (props.layoutMode === 'grid') {
+        // 从iconSize prop获取基础尺寸，但确保在合理范围内
+        const baseSize = Math.max(32, Math.min(props.iconSize, 200))
+        return {
+            width: `${baseSize}px`,
+            height: `${baseSize}px`,
+            fontSize: `${Math.max(16, baseSize * 0.5)}px`,
+            maxWidth: '80%', // 相对于卡片宽度
+            maxHeight: '80%', // 相对于卡片高度
+        }
+    } else {
+        // 列表模式固定48px高度
+        const listIconSize = 48
+        return {
+            width: `${listIconSize}px`,
+            height: `${listIconSize}px`,
+            fontSize: '20px',
+            maxWidth: `${listIconSize}px`,
+            maxHeight: `${listIconSize}px`,
+        }
     }
 })
 </script>
@@ -98,7 +112,6 @@ const iconStyle = computed(() => {
     height: 100%;
     user-select: none;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
     overflow: hidden;
     position: relative;
 }
@@ -131,7 +144,7 @@ const iconStyle = computed(() => {
     background: rgba(59, 130, 246, 0.9);
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    transition: all 0.2s ease;  
 }
 
 .app-card:hover .plugin-badge {
@@ -168,10 +181,21 @@ const iconStyle = computed(() => {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .app-card__icon-img {
     border-radius: 8px;
+    object-fit: contain;
+    transition: all 0.2s ease;
+}
+
+/* 网格模式下的图标响应式调整 */
+.app-card--grid .app-card__icon-img {
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
 }
 
@@ -187,6 +211,13 @@ const iconStyle = computed(() => {
     background: #f3f4f6;
     border-radius: 8px;
     color: #9ca3af;
+    transition: all 0.2s ease;
+}
+
+/* 网格模式下的占位符响应式调整 */
+.app-card--grid .app-card__icon-placeholder {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .app-card--list .app-card__icon-placeholder {

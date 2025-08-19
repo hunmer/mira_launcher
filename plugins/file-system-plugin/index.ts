@@ -19,7 +19,7 @@ import { BasePlugin } from '../plugin-sdk'
  * 文件系统处理插件
  * 智能识别文件和文件夹路径并提供多种打开方式
  */
-export class FileSystemPlugin extends BasePlugin {
+class FileSystemPlugin extends BasePlugin {
   // 必需的抽象属性实现
   readonly id = 'com.mira.file-system-plugin'
   readonly name = '文件系统插件'
@@ -1131,15 +1131,37 @@ interface FileDropInfo {
 }
 
 // 导出插件工厂函数
-export default function createFileSystemPlugin() {
+function createFileSystemPlugin() {
   return new FileSystemPlugin()
 }
 
 // 插件元数据
-export const metadata = {
+const metadata = {
   id: 'file-system-plugin',
   name: '文件系统插件',
   version: '1.0.0',
   description: '智能识别和处理文件与文件夹路径，提供多种打开方式选项',
   author: 'Mira Launcher Team',
+}
+
+// CommonJS 兼容性
+if (typeof module !== 'undefined' && module.exports) {
+  (module as any).exports = createFileSystemPlugin
+  ;(module as any).exports.FileSystemPlugin = FileSystemPlugin
+  ;(module as any).exports.metadata = metadata
+  ;(module as any).exports.default = createFileSystemPlugin
+}
+
+// 全局变量导出（用于 eval 环境）
+if (typeof window !== 'undefined') {
+  // 将插件实例暴露到全局 __pluginInstances
+  if (typeof (window as any).__pluginInstances === 'object') {
+    const pluginInstance = createFileSystemPlugin()
+    ;(window as any).__pluginInstances['file-system-plugin'] = pluginInstance
+    console.log('[FileSystemPlugin] Exported instance to global __pluginInstances')
+  }
+} else if (typeof global !== 'undefined') {
+  (global as any).FileSystemPlugin = FileSystemPlugin
+  ;(global as any).createFileSystemPlugin = createFileSystemPlugin
+  ;(global as any).fileSystemPluginMetadata = metadata
 }

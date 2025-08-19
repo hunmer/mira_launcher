@@ -97,3 +97,19 @@ class SimpleTestPlugin {
 export default SimpleTestPlugin
 export { SimpleTestPlugin }
 
+// CommonJS 兼容性
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SimpleTestPlugin
+  module.exports.SimpleTestPlugin = SimpleTestPlugin
+  module.exports.default = SimpleTestPlugin
+}
+
+// 全局变量导出（用于 eval 环境）
+if (typeof window !== 'undefined') {
+  window.SimpleTestPlugin = SimpleTestPlugin
+  window.createSimpleTestPlugin = () => new SimpleTestPlugin()
+} else if (typeof global !== 'undefined') {
+  global.SimpleTestPlugin = SimpleTestPlugin
+  global.createSimpleTestPlugin = () => new SimpleTestPlugin()
+}
+

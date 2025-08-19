@@ -19,7 +19,7 @@ import { BasePlugin } from '../plugin-sdk'
  * 网页链接处理插件
  * 智能识别URL并提供多种打开方式
  */
-export class WebLinkPlugin extends BasePlugin {
+class WebLinkPlugin extends BasePlugin {
   // 必需的抽象属性实现
   readonly id = 'com.mira.web-link-plugin'
   readonly name = '网页链接插件'
@@ -870,15 +870,41 @@ interface LinkHistoryEntry {
 }
 
 // 导出插件工厂函数
-export default function createWebLinkPlugin() {
+function createWebLinkPlugin() {
   return new WebLinkPlugin()
 }
 
 // 插件元数据
-export const metadata = {
+const metadata = {
   id: 'web-link-plugin',
   name: '网页链接插件',
   version: '1.0.0',
   description: '智能识别和处理网页链接，提供多种打开方式选项',
   author: 'Mira Launcher Team',
+}
+
+// CommonJS 兼容性
+if (typeof module !== 'undefined' && module.exports) {
+  (module as any).exports = createWebLinkPlugin
+  ;(module as any).exports.WebLinkPlugin = WebLinkPlugin
+  ;(module as any).exports.metadata = metadata
+  ;(module as any).exports.default = createWebLinkPlugin
+}
+
+// 全局变量导出（用于 eval 环境）
+if (typeof window !== 'undefined') {
+  (window as any).WebLinkPlugin = WebLinkPlugin
+  ;(window as any).createWebLinkPlugin = createWebLinkPlugin
+  ;(window as any).webLinkPluginMetadata = metadata
+  
+  // 将插件实例暴露到全局 __pluginInstances
+  if (typeof (window as any).__pluginInstances === 'object') {
+    const pluginInstance = createWebLinkPlugin()
+    ;(window as any).__pluginInstances['web-link-plugin'] = pluginInstance
+    console.log('[WebLinkPlugin] Exported instance to global __pluginInstances')
+  }
+} else if (typeof global !== 'undefined') {
+  (global as any).WebLinkPlugin = WebLinkPlugin
+  ;(global as any).createWebLinkPlugin = createWebLinkPlugin
+  ;(global as any).webLinkPluginMetadata = metadata
 }

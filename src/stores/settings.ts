@@ -174,7 +174,7 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!isTauriEnv()) return
 
     try {
-      const { writeTextFile, BaseDirectory, mkdir } = await import(
+      const { writeTextFile, BaseDirectory } = await import(
         '@tauri-apps/plugin-fs'
       )
 
@@ -186,13 +186,12 @@ export const useSettingsStore = defineStore('settings', () => {
           {
             baseDir: BaseDirectory.AppConfig,
             create: true,
-            createNew: true,
           },
         )
         console.log('Settings saved to Tauri storage (AppConfig)')
         return
       } catch (error) {
-        console.log('Failed to save to AppConfig, trying AppData:', error)
+        // console.log('Failed to save to AppConfig, trying AppData:', error)
       }
     } catch (error) {
       console.error('Failed to save to Tauri storage:', error)

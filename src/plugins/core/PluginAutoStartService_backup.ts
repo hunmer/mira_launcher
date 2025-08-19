@@ -3,7 +3,6 @@ import { PluginDiscovery } from '@/plugins/loader/Discovery'
 import { PluginLoader } from '@/plugins/loader/PluginLoader'
 import { usePluginStore } from '@/stores/plugin'
 import { PluginSettingsService } from './PluginSettingsService'
-import type { BasePlugin } from '@/plugins/core/BasePlugin'
 
 /**
  * 插件自动启动服务
@@ -22,57 +21,6 @@ export class PluginAutoStartService {
     this.discovery = new PluginDiscovery(discoveryConfig)
     this.loader = new PluginLoader(loaderConfig)
     this.pluginStore = usePluginStore()
-
-    // 监听代码执行请求事件
-    if (typeof window !== 'undefined') {
-      window.addEventListener('plugin:requestCodeExecution', this.handleCodeExecutionRequest.bind(this) as EventListener)
-    }
-  }
-
-  /**
-   * 处理代码执行请求
-   */
-  private async handleCodeExecutionRequest(event: Event): Promise<void> {
-    const customEvent = event as CustomEvent<{ pluginId: string }>
-    const { pluginId } = customEvent.detail
-    console.log(`[PluginAutoStartService] Received code execution request for: ${pluginId}`)
-    
-    try {
-      // 找到插件的发现结果
-      const discoveryResult = this.discovery.getPluginById(pluginId)
-      if (!discoveryResult) {
-        console.error(`[PluginAutoStartService] Plugin ${pluginId} not found in discovery results`)
-        return
-      }
-
-      // 执行插件代码
-      const executeResult = await this.loader.loadAndExecutePluginCode(discoveryResult)
-      
-      if (executeResult.success) {
-        console.log(`[PluginAutoStartService] Successfully executed plugin code: ${pluginId}`)
-        
-        // 获取插件实例
-        const pluginInstance = await this.getEvalPluginInstance(pluginId)
-        
-        if (pluginInstance) {
-          // 更新插件注册信息
-          const updated = await this.pluginStore.updatePluginClass(
-            pluginId,
-            pluginInstance.constructor as new () => BasePlugin,
-          )
-          
-          if (updated) {
-            console.log(`[PluginAutoStartService] Successfully updated plugin class: ${pluginId}`)
-          }
-        } else {
-          console.error(`[PluginAutoStartService] No plugin instance found after code execution: ${pluginId}`)
-        }
-      } else {
-        console.error(`[PluginAutoStartService] Failed to execute plugin code: ${pluginId}`, executeResult.error)
-      }
-    } catch (error) {
-      console.error(`[PluginAutoStartService] Error handling code execution request for ${pluginId}:`, error)
-    }
   }
 
   /**
@@ -97,28 +45,45 @@ export class PluginAutoStartService {
   }
 
   /**
-   * 从全局 __pluginInstances 中获取插件实例
+   * 获取 eval 执行后的插件实例
+   * 从全局对象中查找插件实例
    */
-  private async getEvalPluginInstance(pluginId: string): Promise<BasePlugin | null> {
+  private async getEvalPluginInstance(pluginId: string): Promise<any> {
     try {
-      // 直接从全局 __pluginInstances 获取插件实例
-      const globalWindow = window as unknown as Record<string, unknown> & {
-        __pluginInstances?: Record<string, BasePlugin>
-      }
-      
-      if (globalWindow.__pluginInstances && globalWindow.__pluginInstances[pluginId]) {
-        const instance = globalWindow.__pluginInstances[pluginId]
-        console.log(`[PluginAutoStartService] Found plugin instance in global __pluginInstances: ${pluginId}`)
-        return instance
+      // 尝试从 window 全局对象获取插件实例
+      if (typeof window !== 'undefined') {
+        // 常见的插件类名格式
+        const possibleNames = [
+          pluginId,
+          pluginId.charAt(0).toUpperCase() + pluginId.slice(1),
+          pluginId.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()),
+          `${pluginId}Plugin`,
+          `${pluginId.charAt(0).toUpperCase() + pluginId.slice(1)}Plugin`,
+        ]
+
+        for (const name of possibleNames) {
+          if ((window as any)[name]) {
+            const PluginClass = (window as any)[name]
+            // 如果是类，创建实例；如果已经是实例，直接返回
+            if (typeof PluginClass === 'function') {
+              return new PluginClass()
+            } else if (typeof PluginClass === 'object') {
+              return PluginClass
+            }
+          }
+        }
+
+        // 尝试工厂函数
+        const factoryName = `create${pluginId.charAt(0).toUpperCase() + pluginId.slice(1)}`
+        if ((window as any)[factoryName] && typeof (window as any)[factoryName] === 'function') {
+          return (window as any)[factoryName]()
+        }
       }
 
-      console.warn(`[PluginAutoStartService] Plugin instance not found in __pluginInstances: ${pluginId}`)
-      console.log('[PluginAutoStartService] Available instances:', 
-        globalWindow.__pluginInstances ? Object.keys(globalWindow.__pluginInstances) : 'none')
-      
+      console.warn(`No plugin instance found for ${pluginId} in global scope`)
       return null
     } catch (error) {
-      console.error(`[PluginAutoStartService] Error getting plugin instance for ${pluginId}:`, error)
+      console.error(`Failed to get eval plugin instance for ${pluginId}:`, error)
       return null
     }
   }
@@ -196,10 +161,8 @@ export class PluginAutoStartService {
 
           // 3. 首先注册所有插件的元数据（这样插件列表可以显示它们）
           try {
-            // 使用现有的 registerPlugin 方法，但不提供插件类
-            // 这样插件会以 'registered' 状态显示在列表中
-            const registered = await this.pluginStore.registerPlugin(
-              null, // 暂时不提供插件类，元数据优先加载
+            // 注册插件元数据，不提供插件类（因为代码还未执行）
+            const registered = await this.pluginStore.registerPluginMetadata(
               loadResult.metadata,
             )
 
@@ -226,19 +189,27 @@ export class PluginAutoStartService {
                     const pluginInstance = await this.getEvalPluginInstance(loadResult.metadata.id)
                     
                     if (pluginInstance) {
-                      // 现在尝试激活插件
-                      try {
-                        const activated = await this.pluginStore.activatePlugin(
-                          loadResult.metadata.id,
-                        )
-                        if (activated) {
-                          result.activated++
-                          console.log(`🚀 成功激活插件: ${loadResult.metadata.id}`)
+                      // 更新插件注册信息，添加插件类
+                      const updated = await this.pluginStore.updatePluginClass(
+                        loadResult.metadata.id,
+                        pluginInstance.constructor,
+                      )
+
+                      if (updated) {
+                        // 4. 激活插件
+                        try {
+                          const activated = await this.pluginStore.activatePlugin(
+                            loadResult.metadata.id,
+                          )
+                          if (activated) {
+                            result.activated++
+                            console.log(`� 成功激活插件: ${loadResult.metadata.id}`)
+                          }
+                        } catch (activateError) {
+                          const errorMsg = `Failed to activate plugin ${loadResult.metadata.id}: ${activateError}`
+                          result.errors.push(errorMsg)
+                          console.warn(`⚠️ ${errorMsg}`)
                         }
-                      } catch (activateError) {
-                        const errorMsg = `Failed to activate plugin ${loadResult.metadata.id}: ${activateError}`
-                        result.errors.push(errorMsg)
-                        console.warn(`⚠️ ${errorMsg}`)
                       }
                     } else {
                       result.errors.push(
@@ -258,6 +229,29 @@ export class PluginAutoStartService {
               result.errors.push(
                 `Failed to register plugin metadata ${loadResult.metadata.id}`,
               )
+            }
+                      } catch (activateError) {
+                        const errorMsg = `Failed to activate plugin ${loadResult.metadata.id}: ${activateError}`
+                        result.errors.push(errorMsg)
+                        console.warn(`⚠️ ${errorMsg}`)
+                      }
+                    }
+                  } else {
+                    result.errors.push(
+                      `No plugin instance found after eval execution for ${loadResult.metadata.id}`,
+                    )
+                  }
+                } else {
+                  result.errors.push(
+                    `Failed to execute plugin code for ${loadResult.metadata.id}: ${executeResult.error}`,
+                  )
+                }
+              }
+            } else {
+              console.log(`⏸️ 插件 ${loadResult.metadata.id} 未被激活，跳过代码执行`)
+              // 仍然注册插件元数据，但不执行代码
+              result.registered++
+              console.log(`📝 注册插件元数据（未激活）: ${loadResult.metadata.id}`)
             }
           } catch (registerError) {
             const errorMsg = `Failed to process plugin ${loadResult.metadata.id}: ${registerError}`

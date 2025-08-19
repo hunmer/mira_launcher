@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-08-19T00:00:00.000Z",
+  "plugins": [
+    {
+      "id": "file-system-plugin",
+      "directory": "file-system-plugin",
+      "name": "File System Plugin",
+      "version": "1.0.0",
+      "entry": "index.js",
+      "type": "compiled-typescript"
+    },
+    {
+      "id": "minimal-test-plugin",
+      "directory": "minimal-test-plugin", 
+      "name": "Minimal Test Plugin",
+      "version": "1.0.0",
+      "entry": "index.js",
+      "type": "javascript"
+    },
+    {
+      "id": "simple-test-plugin",
+      "directory": "simple-test-plugin",
+      "name": "Simple Test Plugin",
+      "version": "1.0.0", 
+      "entry": "index.js",
+      "type": "compiled-typescript"
+    },
+    {
+      "id": "simple-test-plugin-js",
+      "directory": "simple-test-plugin-js",
+      "name": "Simple Test Plugin JS",
+      "version": "1.0.0",
+      "entry": "index.js", 
+      "type": "javascript"
+    },
+    {
+      "id": "test-plugin",
+      "directory": "test-plugin",
+      "name": "Test Plugin",
+      "version": "1.0.0",
+      "entry": "index.js",
+      "type": "compiled-typescript"
+    },
+    {
+      "id": "web-link-plugin", 
+      "directory": "web-link-plugin",
+      "name": "Web Link Plugin",
+      "version": "1.0.0",
+      "entry": "index.js",
+      "type": "compiled-typescript"
+    }
+  ]
+}

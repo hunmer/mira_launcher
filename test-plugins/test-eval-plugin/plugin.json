@@ -1,0 +1,15 @@
+{
+  "id": "com.mira.test-eval-plugin",
+  "name": "测试 Eval 插件",
+  "version": "1.0.0",
+  "description": "用于测试 eval() 加载方式的插件",
+  "author": "Mira Launcher Team",
+  "entry": "index.js",
+  "dependencies": [],
+  "minAppVersion": "1.0.0",
+  "permissions": ["storage", "notification"],
+  "category": "utility",
+  "tags": ["test", "eval"],
+  "homepage": "",
+  "repository": ""
+}

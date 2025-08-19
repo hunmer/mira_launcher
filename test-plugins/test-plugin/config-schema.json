@@ -1,0 +1,41 @@
+{
+  "apiKey": {
+    "type": "string",
+    "label": "API密钥",
+    "description": "用于访问外部服务的API密钥",
+    "placeholder": "请输入API密钥",
+    "required": true
+  },
+  "maxResults": {
+    "type": "number",
+    "label": "最大结果数",
+    "description": "搜索结果的最大返回数量",
+    "min": 1,
+    "max": 100,
+    "default": 10
+  },
+  "enableNotifications": {
+    "type": "boolean",
+    "label": "启用通知",
+    "description": "是否启用桌面通知功能",
+    "default": true
+  },
+  "theme": {
+    "type": "select",
+    "label": "主题",
+    "description": "选择插件的显示主题",
+    "options": [
+      { "label": "浅色", "value": "light" },
+      { "label": "深色", "value": "dark" },
+      { "label": "自动", "value": "auto" }
+    ],
+    "default": "auto"
+  },
+  "customScript": {
+    "type": "textarea",
+    "label": "自定义脚本",
+    "description": "用于扩展插件功能的自定义JavaScript代码",
+    "placeholder": "// 请输入JavaScript代码",
+    "rows": 5
+  }
+}

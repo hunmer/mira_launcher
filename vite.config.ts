@@ -39,6 +39,8 @@ export default defineConfig({
     cssCodeSplit: true,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000,
+    // Copy plugins to public directory for Tauri access
+    copyPublicDir: true,
   },
 
   // Development server configuration

@@ -3,7 +3,7 @@
     <div class="plugins-page flex flex-col h-screen">
         <Container class="max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden">
             <!-- 工具栏 -->
-            <Toolbar class="mb-6">
+            <Toolbar>
                 <template #start>
                     <div class="flex gap-2">
                         <Button
@@ -56,6 +56,14 @@
                             text
                             :disabled="hotReloadStatus.isReloading"
                             @click="manualReload"
+                        />
+                        <Button
+                            v-if="isDev"
+                            v-tooltip="'调试: 强制刷新插件状态'"
+                            icon="pi pi-refresh"
+                            severity="help"
+                            text
+                            @click="debugRefreshPlugins"
                         />
                         <Button
                             v-tooltip="'设置'"
@@ -141,11 +149,11 @@
                         <template #body="{ data }">
                             <div class="flex items-center gap-3">
                                 <Avatar
-                                    :label="data.name.charAt(0).toUpperCase()"
+                                    :label="data.metadata.name.charAt(0).toUpperCase()"
                                     shape="circle"
                                     size="normal"
                                     :style="{
-                                        backgroundColor: getPluginColor(data.id),
+                                        backgroundColor: getPluginColor(data.metadata.id),
                                         color: 'white',
                                     }"
                                 />
@@ -153,7 +161,7 @@
                                     <div
                                         class="font-medium text-gray-900 dark:text-gray-100 truncate"
                                     >
-                                        {{ data.name }}
+                                        {{ data.metadata.name }}
                                     </div>
                                     <div
                                         class="text-sm text-gray-500 dark:text-gray-400 truncate"
@@ -173,7 +181,7 @@
                     >
                         <template #body="{ data }">
                             <Tag
-                                :value="data.version"
+                                :value="data.metadata.version"
                                 severity="info"
                                 rounded
                             />
@@ -188,7 +196,7 @@
                     >
                         <template #body="{ data }">
                             <span class="text-gray-700 dark:text-gray-300">
-                                {{ data.author }}
+                                {{ data.metadata.author }}
                             </span>
                         </template>
                     </Column>
@@ -330,6 +338,36 @@
                     <Button label="关闭" @click="showSystemInfo = false" />
                 </template>
             </Dialog>
+
+            <!-- 插件配置对话框 -->
+            <PluginConfigDialog
+                :show="showConfigDialog"
+                :plugin="selectedPlugin"
+                @update:show="showConfigDialog = $event"
+                @config-saved="onConfigSaved"
+            />
+
+            <!-- 插件详情对话框 -->
+            <PluginDetailsDialog
+                :show="showDetailsDialog"
+                :plugin="selectedPlugin"
+                @update:show="showDetailsDialog = $event"
+                @toggle-plugin="togglePlugin"
+                @configure-plugin="configurePlugin"
+            />
+
+            <!-- 移除插件确认对话框 -->
+            <ConfirmDialog
+                :show="showRemoveDialog"
+                title="确认移除插件"
+                :message="`确定要移除插件 &quot;${pluginToRemove?.metadata.name}&quot; 吗？此操作不可撤销。`"
+                :confirm-label="'移除'"
+                :cancel-label="'取消'"
+                severity="danger"
+                @update:show="showRemoveDialog = $event"
+                @confirm="confirmRemovePlugin"
+                @cancel="showRemoveDialog = false"
+            />
         </Container>
     </div>
 </template>
@@ -350,7 +388,10 @@ import {
     Toolbar,
 } from '@/components/common'
 import Card from '@/components/common/Card.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Container from '@/components/layout/Container.vue'
+import PluginConfigDialog from '@/components/plugin/PluginConfigDialog.vue'
+import PluginDetailsDialog from '@/components/plugin/PluginDetailsDialog.vue'
 import { useGridStore } from '@/stores/grid'
 import { usePageStore } from '@/stores/page'
 import { usePluginStore } from '@/stores/plugin'
@@ -364,6 +405,13 @@ const searchQuery = ref('')
 const showInstallModal = ref(false)
 const showSystemInfo = ref(false)
 const installPath = ref('')
+
+// 对话框状态
+const showConfigDialog = ref(false)
+const showDetailsDialog = ref(false)
+const showRemoveDialog = ref(false)
+const selectedPlugin = ref<PluginRegistryEntry | null>(null)
+const pluginToRemove = ref<PluginRegistryEntry | null>(null)
 
 // 路由
 const router = useRouter()
@@ -622,31 +670,83 @@ const togglePlugin = async (plugin: PluginRegistryEntry) => {
 
 // 配置插件
 const configurePlugin = (plugin: PluginRegistryEntry) => {
-    console.log(`配置插件: ${plugin.metadata.name}`)
-    // TODO: 实现插件配置界面
+    selectedPlugin.value = plugin
+    showConfigDialog.value = true
 }
 
 // 查看插件详情
 const viewPluginDetails = (plugin: PluginRegistryEntry) => {
-    console.log(`查看插件详情: ${plugin.metadata.name}`)
-    // TODO: 实现插件详情界面
+    selectedPlugin.value = plugin
+    showDetailsDialog.value = true
+}
+
+
+// 配置保存回调
+const onConfigSaved = (plugin: PluginRegistryEntry, config: Record<string, string | number | boolean>) => {
+    console.log(`插件 ${plugin.metadata.name} 配置已保存:`, config)
+    // 这里可以添加配置保存成功的处理逻辑
 }
 
 // 移除插件
 const removePlugin = async (plugin: PluginRegistryEntry) => {
-    if (confirm(`确定要移除插件 "${plugin.metadata.name}" 吗？`)) {
-        try {
-            await pluginStore.unloadPlugin(plugin.metadata.id)
-            updateIntegrationStatus()
-        } catch (error) {
-            console.error('Failed to remove plugin:', error)
-        }
+    pluginToRemove.value = plugin
+    showRemoveDialog.value = true
+}
+
+const confirmRemovePlugin = async () => {
+    if (!pluginToRemove.value) return
+    
+    try {
+        await pluginStore.unloadPlugin(pluginToRemove.value.metadata.id)
+        updateIntegrationStatus()
+        showRemoveDialog.value = false
+        pluginToRemove.value = null
+    } catch (error) {
+        console.error('Failed to remove plugin:', error)
     }
 }
 
+// 调试: 强制刷新插件状态
+const debugRefreshPlugins = async () => {
+    console.log('[Debug] 强制刷新插件状态')
+    
+    // 获取当前插件状态
+    const currentPlugins = pluginStore.plugins
+    console.log('[Debug] 当前插件列表:', currentPlugins.map(p => ({
+        id: p.metadata.id,
+        name: p.metadata.name,
+        state: p.state,
+    })))
+    
+    // 手动触发插件store的更新
+    pluginStore.updateTrigger++
+    console.log('[Debug] 手动触发响应式更新')
+    
+    updateIntegrationStatus()
+}
+
 // 刷新插件列表
-const refreshPlugins = () => {
+const refreshPlugins = async () => {
     console.log('刷新插件列表')
+    
+    try {
+        // 直接使用插件store的数据，不再动态导入registry
+        const currentPlugins = pluginStore.plugins
+        console.log('当前已注册的插件:', currentPlugins.map(p => ({
+            id: p.metadata.id,
+            name: p.metadata.name,
+            state: p.state,
+        })))
+        
+        // 手动触发插件store的更新
+        pluginStore.updateTrigger++
+        
+        console.log('成功刷新插件列表')
+        
+    } catch (error) {
+        console.error('刷新插件列表时出错:', error)
+    }
+    
     updateIntegrationStatus()
 }
 
@@ -675,6 +775,9 @@ onMounted(async () => {
     if (!pluginStore.isInitialized) {
         await pluginStore.initialize()
     }
+
+    // 刷新插件列表
+    await refreshPlugins()
 
     // 初始化状态
     updateIntegrationStatus()
@@ -715,7 +818,6 @@ if (typeof window !== 'undefined') {
 <style scoped>
 .plugins-page {
   height: 100vh;
-  padding: 1rem;
   background-color: #f8fafc;
   overflow: hidden;
 }

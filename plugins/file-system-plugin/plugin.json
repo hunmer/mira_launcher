@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "description": "处理文件和文件夹路径的插件",
     "author": "Mira Launcher Team",
-    "entry": "index.ts",
+    "entry": "index.js",
     "dependencies": [],
     "permissions": [
         "filesystem",

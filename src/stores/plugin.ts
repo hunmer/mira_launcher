@@ -1,5 +1,6 @@
 import { EventBus } from '@/plugins/core/EventBus'
 import { PluginManager } from '@/plugins/core/PluginManager'
+import type { BasePlugin } from '@/plugins/core/BasePlugin'
 import type {
   PluginConfiguration,
   PluginMetadata,
@@ -7,6 +8,7 @@ import type {
 } from '@/types/plugin'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+
 
 /**
  * 插件状态管理 Store
@@ -20,9 +22,14 @@ export const usePluginStore = defineStore('plugin', () => {
   const isInitialized = ref(false)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  
+  // 添加一个触发器来强制响应式更新
+  const updateTrigger = ref(0)
 
   // 计算属性
   const plugins = computed(() => {
+    // 依赖updateTrigger来强制重新计算
+    updateTrigger.value // eslint-disable-line @typescript-eslint/no-unused-expressions
     if (!pluginManager.value) return []
     return pluginManager.value.getAllPlugins()
   })
@@ -94,34 +101,40 @@ export const usePluginStore = defineStore('plugin', () => {
 
     // 监听插件状态变化事件
     eventBus.value.on('plugin:registered', () => {
-      // console.log('[PluginStore] Plugin registered event received')
+      updateTrigger.value++
     })
 
     eventBus.value.on('plugin:loaded', () => {
-      // console.log('[PluginStore] Plugin loaded event received')
+      updateTrigger.value++
     })
 
     eventBus.value.on('plugin:activated', () => {
-      // console.log('[PluginStore] Plugin activated event received')
+      updateTrigger.value++
     })
 
     eventBus.value.on('plugin:deactivated', () => {
-      // console.log('[PluginStore] Plugin deactivated event received')
+      updateTrigger.value++
     })
 
     eventBus.value.on('plugin:unloaded', () => {
-      // console.log('[PluginStore] Plugin unloaded event received')
+      updateTrigger.value++
     })
 
-    eventBus.value.on('plugin:error', (event: any) => {
+    eventBus.value.on('plugin:stateChanged', () => {
+      // 这是新增的事件监听，用于处理所有状态变化
+      updateTrigger.value++
+    })
+
+    eventBus.value.on('plugin:error', (event: { data?: { error?: unknown } }) => {
       console.error('[PluginStore] Plugin error event received:', event.data)
       error.value = `Plugin error: ${event.data?.error || 'Unknown error'}`
+      updateTrigger.value++
     })
   }
 
   // 注册插件
   const registerPlugin = async (
-    pluginClass: new () => any,
+    pluginClass: (new () => BasePlugin) | null,
     metadata: PluginMetadata,
   ): Promise<boolean> => {
     if (!pluginManager.value) {
@@ -132,14 +145,46 @@ export const usePluginStore = defineStore('plugin', () => {
       isLoading.value = true
       error.value = null
 
-      const success = await pluginManager.value.register(pluginClass, metadata)
+      // 如果插件类为空，我们只注册元数据
+      if (pluginClass === null) {
+        // 直接在插件管理器中创建一个只有元数据的条目
+        const registryEntry = {
+          metadata,
+          instance: null,
+          state: 'registered' as const,
+          dependencies: metadata.dependencies || [],
+          dependents: [],
+          loadedAt: Date.now(),
+          activatedAt: null,
+          deactivatedAt: null,
+          error: null,
+        }
 
-      if (success) {
+        // 使用插件管理器的内部方法注册插件元数据
+        // @ts-expect-error - 我们需要访问私有方法
+        pluginManager.value.plugins.set(metadata.id, registryEntry)
+
+        console.log(`[PluginStore] Registered plugin metadata: ${metadata.id}`)
+        
         // 保存插件配置到 localStorage
         await savePluginConfiguration(metadata.id, {})
-      }
+        // 触发响应式更新
+        updateTrigger.value++
+        
+        return true
+      } else {
+        // 正常的插件注册流程
+        const success = await pluginManager.value.register(pluginClass, metadata)
 
-      return success
+        if (success) {
+          // 保存插件配置到 localStorage
+          await savePluginConfiguration(metadata.id, {})
+          // 触发响应式更新
+          updateTrigger.value++
+        }
+
+        return success
+      }
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to register plugin'
@@ -179,6 +224,35 @@ export const usePluginStore = defineStore('plugin', () => {
     try {
       isLoading.value = true
       error.value = null
+
+      // 检查插件当前状态
+      // @ts-expect-error - 访问私有属性
+      const entry = pluginManager.value.plugins.get(pluginId)
+      
+      if (!entry) {
+        throw new Error(`Plugin ${pluginId} not found`)
+      }
+
+      // 如果插件只有元数据（instance 为 null），我们需要先执行插件代码
+      if (entry.state === 'registered' && entry.instance === null) {
+        console.log(`[PluginStore] Plugin ${pluginId} needs code execution before activation`)
+        
+        // 发送自定义事件，让 PluginAutoStartService 处理代码执行
+        const event = new CustomEvent('plugin:requestCodeExecution', {
+          detail: { pluginId },
+        })
+        window.dispatchEvent(event)
+        
+        // 等待一段时间让代码执行完成
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // 重新检查插件状态
+        // @ts-expect-error - 访问私有属性
+        const updatedEntry = pluginManager.value.plugins.get(pluginId)
+        if (!updatedEntry || updatedEntry.instance === null) {
+          throw new Error(`Plugin ${pluginId} code execution failed or plugin class not found`)
+        }
+      }
 
       const success = await pluginManager.value.activate(pluginId)
 
@@ -369,6 +443,46 @@ export const usePluginStore = defineStore('plugin', () => {
     }
   }
 
+  
+  // 更新插件类（当插件代码被执行后）
+  const updatePluginClass = async (
+    pluginId: string, 
+    pluginClass: new () => BasePlugin,
+  ): Promise<boolean> => {
+    if (!pluginManager.value) {
+      throw new Error('Plugin system not initialized')
+    }
+
+    try {
+      // 获取现有的注册条目
+      // @ts-expect-error - 访问私有属性
+      const entry = pluginManager.value.plugins.get(pluginId)
+      
+      if (!entry) {
+        console.error(`[PluginStore] Plugin ${pluginId} not found for class update`)
+        return false
+      }
+
+      // 创建插件实例
+      const instance = new pluginClass()
+      
+      // 更新条目
+      entry.instance = instance
+      
+      console.log(`[PluginStore] Updated plugin class for: ${pluginId}`)
+      
+      // 触发响应式更新
+      updateTrigger.value++
+      
+      return true
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update plugin class'
+      console.error('[PluginStore] Failed to update plugin class:', err)
+      return false
+    }
+  }
+
+
   // 获取存储的配置
   const getStoredConfigurations = (): Record<string, PluginConfiguration> => {
     try {
@@ -447,11 +561,15 @@ export const usePluginStore = defineStore('plugin', () => {
     pluginCount,
     activePluginCount,
 
+    // 调试工具
+    updateTrigger,
+
     // 核心方法
     initialize,
     registerPlugin,
     loadPlugin,
     activatePlugin,
+    updatePluginClass,
     deactivatePlugin,
     unloadPlugin,
     configurePlugin,

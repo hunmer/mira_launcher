@@ -35,6 +35,19 @@ import { registerFieldComponents } from './components/business/fields/components
 // 導入樣式
 import './styles/main.css'
 
+// 初始化全局插件实例容器
+declare global {
+  interface Window {
+    __pluginInstances: Record<string, unknown>
+  }
+}
+
+// 确保全局插件实例容器存在
+if (typeof window !== 'undefined') {
+  window.__pluginInstances = {}
+  console.log('[App] Initialized global plugin instances container')
+}
+
 // 創建 Vue 應用實例
 const app = createApp(App)
 

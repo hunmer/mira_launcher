@@ -182,6 +182,29 @@ export class PluginManager {
   }
 
   /**
+   * 从全局 __pluginInstances 获取插件实例
+   * 用于 eval 执行的插件
+   */
+  private getPluginInstance(pluginId: string): BasePlugin | null {
+    try {
+      const globalWindow = window as unknown as {
+        __pluginInstances?: Record<string, BasePlugin>
+      }
+      
+      if (globalWindow.__pluginInstances && globalWindow.__pluginInstances[pluginId]) {
+        return globalWindow.__pluginInstances[pluginId]
+      }
+      
+      // 如果全局实例不存在，回退到注册时的实例
+      const entry = this.plugins.get(pluginId)
+      return entry?.instance || null
+    } catch (error) {
+      console.error(`[PluginManager] Error getting plugin instance for ${pluginId}:`, error)
+      return null
+    }
+  }
+
+  /**
    * 加载插件
    */
   async load(pluginId: string): Promise<boolean> {
@@ -215,8 +238,39 @@ export class PluginManager {
       // 执行加载
       entry.state = 'loading'
 
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'registered',
+        newState: 'loading',
+      })
+
+      // 获取实际的插件实例（可能是从 __pluginInstances 或注册时的实例）
+      const pluginInstance = this.getPluginInstance(pluginId)
+      if (!pluginInstance) {
+        throw new Error(`Plugin instance not found for ${pluginId}`)
+      }
+
+      // 创建插件API
+      const pluginAPI = this.createPluginAPI(pluginId)
+
+      // 确保插件实例有正确的 API 设置
+      // 特别是从 __pluginInstances 获取的实例可能没有设置 API
+      if (typeof pluginInstance._setAPI === 'function') {
+        pluginInstance._setAPI(pluginAPI)
+        console.log(`[PluginManager] Set API for global plugin instance ${pluginId} during load`)
+      } else if (typeof (pluginInstance as any).initialize === 'function') {
+        (pluginInstance as any).initialize(pluginAPI)
+        console.log(`[PluginManager] Initialized API for global plugin instance ${pluginId} during load`)
+      } else {
+        // 直接设置 _api 属性
+        (pluginInstance as any)._api = pluginAPI
+        console.log(`[PluginManager] Directly set _api for global plugin instance ${pluginId} during load`)
+      }
+
       const loadPromise = this.executeWithTimeout(
-        () => entry.instance.onLoad(),
+        () => pluginInstance.onLoad(pluginAPI as any, null as any),
         this.config.loadTimeout,
         `Plugin ${pluginId} load timeout`,
       )
@@ -225,6 +279,14 @@ export class PluginManager {
 
       entry.state = 'loaded'
       entry.loadedAt = Date.now()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'loading',
+        newState: 'loaded',
+      })
 
       // 发布加载完成事件
       await this.eventBus.emit('plugin:loaded', {
@@ -296,13 +358,51 @@ export class PluginManager {
 
       // 执行激活
       entry.state = 'activating'
-      await entry.instance.onActivate()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'loaded',
+        newState: 'activating',
+      })
+
+      // 获取实际的插件实例（可能是从 __pluginInstances 或注册时的实例）
+      const pluginInstance = this.getPluginInstance(pluginId)
+      if (!pluginInstance) {
+        throw new Error(`Plugin instance not found for ${pluginId}`)
+      }
+
+      // 确保插件实例有正确的 API 设置
+      // 特别是从 __pluginInstances 获取的实例可能没有设置 API
+      const pluginAPI = this.createPluginAPI(pluginId)
+      if (typeof pluginInstance._setAPI === 'function') {
+        pluginInstance._setAPI(pluginAPI)
+        console.log(`[PluginManager] Set API for global plugin instance ${pluginId}`)
+      } else if (typeof (pluginInstance as any).initialize === 'function') {
+        (pluginInstance as any).initialize(pluginAPI)
+        console.log(`[PluginManager] Initialized API for global plugin instance ${pluginId}`)
+      } else {
+        // 直接设置 _api 属性
+        (pluginInstance as any)._api = pluginAPI
+        console.log(`[PluginManager] Directly set _api for global plugin instance ${pluginId}`)
+      }
+
+      await pluginInstance.onActivate()
 
       // 注册插件扩展功能
       await this.registerPluginExtensions(entry)
 
       entry.state = 'active'
       entry.activatedAt = Date.now()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'activating',
+        newState: 'active',
+      })
 
       // 记录激活顺序
       if (!this.activationOrder.includes(pluginId)) {
@@ -375,9 +475,32 @@ export class PluginManager {
 
       // 执行停用
       entry.state = 'deactivating'
-      await entry.instance.onDeactivate()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'active',
+        newState: 'deactivating',
+      })
+
+      // 获取实际的插件实例（可能是从 __pluginInstances 或注册时的实例）
+      const pluginInstance = this.getPluginInstance(pluginId)
+      if (!pluginInstance) {
+        throw new Error(`Plugin instance not found for ${pluginId}`)
+      }
+
+      await pluginInstance.onDeactivate()
       entry.state = 'loaded'
       entry.deactivatedAt = Date.now()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: 'deactivating',
+        newState: 'loaded',
+      })
 
       // 从激活顺序中移除
       const index = this.activationOrder.indexOf(pluginId)
@@ -446,8 +569,24 @@ export class PluginManager {
       }
 
       // 执行卸载
+      const previousState = entry.state
       entry.state = 'unloading'
-      await entry.instance.onUnload()
+
+      // 发布状态变化事件
+      await this.eventBus.emit('plugin:stateChanged', {
+        pluginId,
+        metadata: entry.metadata,
+        oldState: previousState,
+        newState: 'unloading',
+      })
+
+      // 获取实际的插件实例（可能是从 __pluginInstances 或注册时的实例）
+      const pluginInstance = this.getPluginInstance(pluginId)
+      if (!pluginInstance) {
+        throw new Error(`Plugin instance not found for ${pluginId}`)
+      }
+
+      await pluginInstance.onUnload()
 
       // 移除插件
       this.plugins.delete(pluginId)
@@ -1407,7 +1546,7 @@ export class PluginManager {
       },
 
       getVersion: () => {
-        // TODO: 从 package.json 获取应用版本
+        // TODO
         return '1.0.0'
       },
     }

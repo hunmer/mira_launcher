@@ -15,9 +15,9 @@
       </template>
     </SelectButton>
 
-    <div class="controls-container">
+    <div :class="['controls-container', { 'search-expanded': isSearchExpanded }]">
       <!-- 添加按钮 -->
-      <div class="add-controls">
+      <div v-show="!isSearchExpanded" class="add-controls">
         <Button
           icon="pi pi-plus-circle"
           class="add-btn"
@@ -37,7 +37,7 @@
       </div>
 
       <!-- 排序控制 -->
-      <div class="sort-controls">
+      <div v-show="!isSearchExpanded" class="sort-controls">
         <FilterSelect
           :model-value="currentSortType"
           :options="sortOptions"
@@ -388,6 +388,24 @@ onUnmounted(() => {
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* 搜索展开时的容器样式 */
+.controls-container.search-expanded {
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* 搜索展开时隐藏其他元素的动画 */
+.controls-container.search-expanded .add-controls,
+.controls-container.search-expanded .sort-controls {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .add-controls {
@@ -409,6 +427,32 @@ onUnmounted(() => {
 
 .search-container {
   flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-wrapper {
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.search-wrapper.expanded {
+  width: 200px;
+  z-index: 10;
+}
+
+.search-wrapper:not(.expanded) {
+  width: auto;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
 .search-wrapper {

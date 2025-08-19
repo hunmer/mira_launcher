@@ -57,3 +57,19 @@ class MinimalTestPlugin {
 export default MinimalTestPlugin
 export { MinimalTestPlugin }
 
+// CommonJS 兼容性
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = MinimalTestPlugin
+  module.exports.MinimalTestPlugin = MinimalTestPlugin
+  module.exports.default = MinimalTestPlugin
+}
+
+// 全局变量导出（用于 eval 环境）
+if (typeof window !== 'undefined') {
+  window.MinimalTestPlugin = MinimalTestPlugin
+  window.createMinimalTestPlugin = () => new MinimalTestPlugin()
+} else if (typeof global !== 'undefined') {
+  global.MinimalTestPlugin = MinimalTestPlugin
+  global.createMinimalTestPlugin = () => new MinimalTestPlugin()
+}
+
