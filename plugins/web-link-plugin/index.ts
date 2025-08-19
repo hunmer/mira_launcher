@@ -1,19 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type {
-  PluginBuilderFunction,
-  PluginConfigDefinition,
-  PluginContextMenu,
-  PluginHotkey,
-  PluginLogConfig,
-  PluginMetadata,
-  PluginNotificationConfig,
-  PluginQueueConfig,
-  PluginSearchEntry,
-  PluginStorageConfig,
-  PluginSubscription,
-} from '../plugin-sdk'
-import { BasePlugin } from '../plugin-sdk'
+
+// 从 window 变量缓存中同步访问插件SDK模块（通过eval环境可以访问）
+const pluginSDK = (window as any).__moduleCache['../plugin-sdk']
+const BasePlugin = pluginSDK?.BasePlugin
+
+// 由于TypeScript接口在运行时不存在，我们只需要BasePlugin类
+// 其他类型定义用any替代，在运行时会正常工作
 
 /**
  * 网页链接处理插件
@@ -31,7 +24,7 @@ class WebLinkPlugin extends BasePlugin {
   readonly permissions = ['shell', 'storage', 'notification']
 
   // 网页链接搜索入口配置
-  override readonly search_regexps: PluginSearchEntry[] = [
+  readonly search_regexps: any[] = [
     {
       router: 'url',
       title: '网页链接',
@@ -89,14 +82,14 @@ class WebLinkPlugin extends BasePlugin {
     },
   ]
 
-  override readonly logs: PluginLogConfig = {
+  readonly logs: any = {
     level: 'info',
     maxEntries: 500,
     persist: true,
     format: 'simple',
   }
 
-  override readonly configs: PluginConfigDefinition = {
+  readonly configs: any = {
     properties: {
       defaultOpenMethod: {
         type: 'string',
@@ -142,7 +135,7 @@ class WebLinkPlugin extends BasePlugin {
     },
   }
 
-  override readonly contextMenus: PluginContextMenu[] = [
+  readonly contextMenus: any[] = [
     {
       id: 'open-link-system',
       title: '默认浏览器打开',
@@ -169,7 +162,7 @@ class WebLinkPlugin extends BasePlugin {
     },
   ]
 
-  override readonly hotkeys: PluginHotkey[] = [
+  readonly hotkeys: any[] = [
     {
       id: 'quick-open-link',
       combination: 'Ctrl+Shift+O',
@@ -186,7 +179,7 @@ class WebLinkPlugin extends BasePlugin {
     },
   ]
 
-  override readonly subscriptions: PluginSubscription[] = [
+  readonly subscriptions: any[] = [
     {
       event: 'search:query',
       handler: (data?: unknown) => this.onSearchQuery(data as string),
@@ -199,7 +192,7 @@ class WebLinkPlugin extends BasePlugin {
     },
   ]
 
-  override readonly notifications: PluginNotificationConfig = {
+  readonly notifications: any = {
     defaults: {
       type: 'info',
       duration: 3000,
@@ -224,14 +217,14 @@ class WebLinkPlugin extends BasePlugin {
     },
   }
 
-  override readonly storage: PluginStorageConfig = {
+  readonly storage: any = {
     type: 'localStorage',
     prefix: 'web-link-plugin',
     encrypt: false,
     sizeLimit: 2 * 1024 * 1024, // 2MB
   }
 
-  override readonly queue: PluginQueueConfig = {
+  readonly queue: any = {
     type: 'fifo',
     config: {
       concurrency: 2,
@@ -241,7 +234,7 @@ class WebLinkPlugin extends BasePlugin {
     },
   }
 
-  override readonly builder: PluginBuilderFunction = (options) => {
+  readonly builder: any = (options) => {
     console.log('[WebLinkPlugin] Builder executed with options:', options)
     if (options?.app) {
       this.setupAppIntegration(options.app)
@@ -264,7 +257,7 @@ class WebLinkPlugin extends BasePlugin {
   /**
      * 获取插件元数据
      */
-  override getMetadata(): PluginMetadata {
+  getMetadata(): any {
     const baseMetadata = this.metadata
     return {
       ...baseMetadata,
@@ -285,7 +278,7 @@ class WebLinkPlugin extends BasePlugin {
   /**
      * 插件加载生命周期
      */
-  override async onLoad(): Promise<void> {
+  async onLoad(): Promise<void> {
     console.log('[WebLinkPlugin] Loading plugin...')
 
     // 加载配置
@@ -300,7 +293,7 @@ class WebLinkPlugin extends BasePlugin {
   /**
      * 插件激活生命周期
      */
-  override async onActivate(): Promise<void> {
+  async onActivate(): Promise<void> {
     console.log('[WebLinkPlugin] Activating plugin...')
     console.log('[WebLinkPlugin] API status:', {
       hasApi: !!this._api,
@@ -381,7 +374,7 @@ class WebLinkPlugin extends BasePlugin {
   /**
      * 插件停用生命周期
      */
-  override async onDeactivate(): Promise<void> {
+  async onDeactivate(): Promise<void> {
     console.log('[WebLinkPlugin] Deactivating plugin...')
 
     this.isRunning = false
@@ -395,7 +388,7 @@ class WebLinkPlugin extends BasePlugin {
   /**
      * 插件卸载生命周期
      */
-  override async onUnload(): Promise<void> {
+  async onUnload(): Promise<void> {
     console.log('[WebLinkPlugin] Unloading plugin...')
 
     // 保存配置
@@ -443,8 +436,8 @@ class WebLinkPlugin extends BasePlugin {
      */
   private async openWithSystemBrowser(url: string): Promise<void> {
     try {
-      const { open } = await import('@tauri-apps/plugin-shell')
-      await open(url)
+      const shell = await (window as any).__importModule('@tauri-apps/plugin-shell')
+      await shell.open(url)
       this.log('info', `Opened link with system browser: ${url}`)
 
       if (this.pluginConfig.enableNotifications) {
@@ -474,8 +467,8 @@ class WebLinkPlugin extends BasePlugin {
     }
 
     try {
-      const { invoke } = await import('@tauri-apps/api/core')
-      await invoke('execute_command', {
+      const core = await (window as any).__importModule('@tauri-apps/api/core')
+      await core.invoke('execute_command', {
         command: this.pluginConfig.customBrowser,
         args: [url],
       })
@@ -504,8 +497,8 @@ class WebLinkPlugin extends BasePlugin {
      */
   private async openInTauriWindow(url: string): Promise<void> {
     try {
-      const { invoke } = await import('@tauri-apps/api/core')
-      await invoke('create_webview_window', {
+      const core = await (window as any).__importModule('@tauri-apps/api/core')
+      await core.invoke('create_webview_window', {
         label: `web-link-${Date.now()}`,
         url,
         title: '网页浏览',
@@ -869,42 +862,10 @@ interface LinkHistoryEntry {
     visitCount: number
 }
 
-// 导出插件工厂函数
-function createWebLinkPlugin() {
-  return new WebLinkPlugin()
+// 将插件实例暴露到全局 __pluginInstances
+if (typeof (window as any).__pluginInstances === 'object') {
+  const pluginInstance = new WebLinkPlugin()
+  ;(window as any).__pluginInstances['web-link-plugin'] = pluginInstance
+  console.log('[WebLinkPlugin] Exported instance to global __pluginInstances')
 }
 
-// 插件元数据
-const metadata = {
-  id: 'web-link-plugin',
-  name: '网页链接插件',
-  version: '1.0.0',
-  description: '智能识别和处理网页链接，提供多种打开方式选项',
-  author: 'Mira Launcher Team',
-}
-
-// CommonJS 兼容性
-if (typeof module !== 'undefined' && module.exports) {
-  (module as any).exports = createWebLinkPlugin
-  ;(module as any).exports.WebLinkPlugin = WebLinkPlugin
-  ;(module as any).exports.metadata = metadata
-  ;(module as any).exports.default = createWebLinkPlugin
-}
-
-// 全局变量导出（用于 eval 环境）
-if (typeof window !== 'undefined') {
-  (window as any).WebLinkPlugin = WebLinkPlugin
-  ;(window as any).createWebLinkPlugin = createWebLinkPlugin
-  ;(window as any).webLinkPluginMetadata = metadata
-  
-  // 将插件实例暴露到全局 __pluginInstances
-  if (typeof (window as any).__pluginInstances === 'object') {
-    const pluginInstance = createWebLinkPlugin()
-    ;(window as any).__pluginInstances['web-link-plugin'] = pluginInstance
-    console.log('[WebLinkPlugin] Exported instance to global __pluginInstances')
-  }
-} else if (typeof global !== 'undefined') {
-  (global as any).WebLinkPlugin = WebLinkPlugin
-  ;(global as any).createWebLinkPlugin = createWebLinkPlugin
-  ;(global as any).webLinkPluginMetadata = metadata
-}

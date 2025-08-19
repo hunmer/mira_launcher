@@ -35,17 +35,73 @@ import { registerFieldComponents } from './components/business/fields/components
 // 導入樣式
 import './styles/main.css'
 
-// 初始化全局插件实例容器
+// 初始化全局插件实例容器和模块缓存
 declare global {
   interface Window {
     __pluginInstances: Record<string, unknown>
+    __moduleCache: Record<string, unknown>
+    __importModule: (moduleName: string) => Promise<unknown>
   }
 }
 
-// 确保全局插件实例容器存在
+// 模块缓存，用于插件 eval 环境中的模块导入
+const moduleCache: Record<string, unknown> = {}
+
+// 全局模块导入函数
+const importModule = async (moduleName: string): Promise<unknown> => {
+  // 如果已缓存则直接返回
+  if (moduleCache[moduleName]) {
+    return moduleCache[moduleName]
+  }
+
+  try {
+    let module: unknown
+    
+    // 根据模块名称进行动态导入
+    switch (moduleName) {
+      case '@tauri-apps/plugin-fs':
+        module = await import('@tauri-apps/plugin-fs')
+        break
+      case '@tauri-apps/plugin-opener':
+        module = await import('@tauri-apps/plugin-opener')
+        break
+      case '@tauri-apps/plugin-shell':
+        module = await import('@tauri-apps/plugin-shell')
+        break
+      case '@tauri-apps/api/core':
+        module = await import('@tauri-apps/api/core')
+        break
+      case '../plugin-sdk':
+        module = await import('../plugins/plugin-sdk')
+        break
+      default:
+        throw new Error(`Unknown module: ${moduleName}`)
+    }
+
+    // 缓存模块
+    moduleCache[moduleName] = module
+    console.log(`[ModuleCache] Cached module: ${moduleName}`)
+    
+    return module
+  } catch (error) {
+    console.error(`[ModuleCache] Failed to import module ${moduleName}:`, error)
+    throw error
+  }
+}
+
+// 确保全局插件实例容器和模块系统存在
 if (typeof window !== 'undefined') {
   window.__pluginInstances = {}
-  console.log('[App] Initialized global plugin instances container')
+  window.__moduleCache = moduleCache
+  window.__importModule = importModule
+  console.log('[App] Initialized global plugin instances container and module cache')
+  
+  // 预加载 plugin-sdk 模块到缓存中，供插件使用
+  importModule('../plugin-sdk').then(() => {
+    console.log('[App] Pre-loaded plugin-sdk module for plugins')
+  }).catch((error) => {
+    console.error('[App] Failed to pre-load plugin-sdk:', error)
+  })
 }
 
 // 創建 Vue 應用實例

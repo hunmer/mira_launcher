@@ -1,19 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type {
-  PluginBuilderFunction,
-  PluginConfigDefinition,
-  PluginContextMenu,
-  PluginHotkey,
-  PluginLogConfig,
-  PluginMetadata,
-  PluginNotificationConfig,
-  PluginQueueConfig,
-  PluginSearchEntry,
-  PluginStorageConfig,
-  PluginSubscription,
-} from '../plugin-sdk'
-import { BasePlugin } from '../plugin-sdk'
+
+// 从 window 变量缓存中同步访问插件SDK模块（通过eval环境可以访问）
+const pluginSDK = (window as any).__moduleCache['../plugin-sdk']
+const BasePlugin = pluginSDK?.BasePlugin
 
 /**
  * 文件系统处理插件
@@ -31,7 +21,7 @@ class FileSystemPlugin extends BasePlugin {
   readonly permissions = ['filesystem', 'storage', 'notification', 'shell']
 
   // 文件路径搜索入口配置
-  override readonly search_regexps: PluginSearchEntry[] = [
+  readonly search_regexps: any[] = [
     {
       router: 'file',
       title: '文件系统',
@@ -97,14 +87,14 @@ class FileSystemPlugin extends BasePlugin {
     },
   ]
 
-  override readonly logs: PluginLogConfig = {
+  readonly logs: any = {
     level: 'info',
     maxEntries: 500,
     persist: true,
     format: 'simple',
   }
 
-  override readonly configs: PluginConfigDefinition = {
+  readonly configs: any = {
     properties: {
       defaultOpenMethod: {
         type: 'string',
@@ -164,7 +154,7 @@ class FileSystemPlugin extends BasePlugin {
     },
   }
 
-  override readonly contextMenus: PluginContextMenu[] = [
+  readonly contextMenus: any[] = [
     {
       id: 'open-file-system',
       title: '系统默认打开',
@@ -197,7 +187,7 @@ class FileSystemPlugin extends BasePlugin {
     },
   ]
 
-  override readonly hotkeys: PluginHotkey[] = [
+  readonly hotkeys: any[] = [
     {
       id: 'quick-open-file',
       combination: 'Ctrl+Shift+F',
@@ -221,7 +211,7 @@ class FileSystemPlugin extends BasePlugin {
     },
   ]
 
-  override readonly subscriptions: PluginSubscription[] = [
+  readonly subscriptions: any[] = [
     {
       event: 'search:query',
       handler: (data?: unknown) => this.onSearchQuery(data as string),
@@ -239,7 +229,7 @@ class FileSystemPlugin extends BasePlugin {
     },
   ]
 
-  override readonly notifications: PluginNotificationConfig = {
+  readonly notifications: any = {
     defaults: {
       type: 'info',
       duration: 3000,
@@ -274,14 +264,14 @@ class FileSystemPlugin extends BasePlugin {
     },
   }
 
-  override readonly storage: PluginStorageConfig = {
+  readonly storage: any = {
     type: 'localStorage',
     prefix: 'file-system-plugin',
     encrypt: false,
     sizeLimit: 2 * 1024 * 1024, // 2MB
   }
 
-  override readonly queue: PluginQueueConfig = {
+  readonly queue: any = {
     type: 'fifo',
     config: {
       concurrency: 3,
@@ -291,7 +281,7 @@ class FileSystemPlugin extends BasePlugin {
     },
   }
 
-  override readonly builder: PluginBuilderFunction = (options) => {
+  readonly builder: any = (options) => {
     console.log('[FileSystemPlugin] Builder executed with options:', options)
     if (options?.app) {
       this.setupAppIntegration(options.app)
@@ -317,7 +307,7 @@ class FileSystemPlugin extends BasePlugin {
   /**
      * 获取插件元数据
      */
-  override getMetadata(): PluginMetadata {
+  getMetadata(): any {
     const baseMetadata = this.metadata
     return {
       ...baseMetadata,
@@ -340,7 +330,7 @@ class FileSystemPlugin extends BasePlugin {
   /**
      * 插件加载生命周期
      */
-  override async onLoad(): Promise<void> {
+  async onLoad(): Promise<void> {
     console.log('[FileSystemPlugin] Loading plugin...')
 
     // 加载配置
@@ -355,7 +345,7 @@ class FileSystemPlugin extends BasePlugin {
   /**
      * 插件激活生命周期
      */
-  override async onActivate(): Promise<void> {
+  async onActivate(): Promise<void> {
     console.log('[FileSystemPlugin] Activating plugin...')
 
     this.isRunning = true
@@ -498,7 +488,7 @@ class FileSystemPlugin extends BasePlugin {
   /**
      * 插件停用生命周期
      */
-  override async onDeactivate(): Promise<void> {
+  async onDeactivate(): Promise<void> {
     console.log('[FileSystemPlugin] Deactivating plugin...')
 
     this.isRunning = false
@@ -521,7 +511,7 @@ class FileSystemPlugin extends BasePlugin {
   /**
      * 插件卸载生命周期
      */
-  override async onUnload(): Promise<void> {
+  async onUnload(): Promise<void> {
     console.log('[FileSystemPlugin] Unloading plugin...')
 
     // 保存配置
@@ -589,8 +579,8 @@ class FileSystemPlugin extends BasePlugin {
      */
   private async pathExists(path: string): Promise<boolean> {
     try {
-      const { exists } = await import('@tauri-apps/plugin-fs')
-      return await exists(path)
+      const fs = await (window as any).__importModule('@tauri-apps/plugin-fs')
+      return await fs.exists(path)
     } catch (error) {
       this.log('error', 'Failed to check if path exists:', error)
       return false
@@ -602,8 +592,8 @@ class FileSystemPlugin extends BasePlugin {
      */
   private async getFileInfo(path: string): Promise<FileInfo | null> {
     try {
-      const { stat } = await import('@tauri-apps/plugin-fs')
-      const stats = await stat(path)
+      const fs = await (window as any).__importModule('@tauri-apps/plugin-fs')
+      const stats = await fs.stat(path)
 
       return {
         path,
@@ -625,9 +615,9 @@ class FileSystemPlugin extends BasePlugin {
   private async openWithSystem(path: string): Promise<void> {
     try {
       // 使用Tauri官方的opener插件
-      const { openPath } = await import('@tauri-apps/plugin-opener')
+      const opener = await (window as any).__importModule('@tauri-apps/plugin-opener')
       
-      await openPath(path)
+      await opener.openPath(path)
       this.log('info', `Opened with system default: ${path}`)
 
       const fileInfo = await this.getFileInfo(path)
@@ -656,25 +646,25 @@ class FileSystemPlugin extends BasePlugin {
      */
   private async showInFileExplorer(path: string): Promise<void> {
     try {
-      const { invoke } = await import('@tauri-apps/api/core')
+      const core = await (window as any).__importModule('@tauri-apps/api/core')
       // 根据操作系统选择合适的命令
       const userAgent = navigator.userAgent
       if (userAgent.includes('Windows')) {
         // Windows: 使用 explorer 命令选择文件
-        await invoke('execute_command', {
+        await core.invoke('execute_command', {
           command: 'explorer',
           args: [`/select,"${path}"`],
         })
       } else if (userAgent.includes('Macintosh')) {
         // macOS: 使用 open 命令
-        await invoke('execute_command', {
+        await core.invoke('execute_command', {
           command: 'open',
           args: ['-R', path],
         })
       } else {
         // Linux: 使用文件管理器打开父目录
         const parentDir = path.replace(/[^/\\]+$/, '')
-        await invoke('execute_command', {
+        await core.invoke('execute_command', {
           command: this.pluginConfig.customFileExplorer || 'xdg-open',
           args: [parentDir],
         })
@@ -710,8 +700,8 @@ class FileSystemPlugin extends BasePlugin {
     }
 
     try {
-      const { invoke } = await import('@tauri-apps/api/core')
-      await invoke('execute_command', {
+      const core = await (window as any).__importModule('@tauri-apps/api/core')
+      await core.invoke('execute_command', {
         command: this.pluginConfig.customTextEditor,
         args: [path],
       })
@@ -1130,38 +1120,10 @@ interface FileDropInfo {
     type: string
 }
 
-// 导出插件工厂函数
-function createFileSystemPlugin() {
-  return new FileSystemPlugin()
-}
-
-// 插件元数据
-const metadata = {
-  id: 'file-system-plugin',
-  name: '文件系统插件',
-  version: '1.0.0',
-  description: '智能识别和处理文件与文件夹路径，提供多种打开方式选项',
-  author: 'Mira Launcher Team',
-}
-
-// CommonJS 兼容性
-if (typeof module !== 'undefined' && module.exports) {
-  (module as any).exports = createFileSystemPlugin
-  ;(module as any).exports.FileSystemPlugin = FileSystemPlugin
-  ;(module as any).exports.metadata = metadata
-  ;(module as any).exports.default = createFileSystemPlugin
-}
-
 // 全局变量导出（用于 eval 环境）
-if (typeof window !== 'undefined') {
-  // 将插件实例暴露到全局 __pluginInstances
-  if (typeof (window as any).__pluginInstances === 'object') {
-    const pluginInstance = createFileSystemPlugin()
-    ;(window as any).__pluginInstances['file-system-plugin'] = pluginInstance
-    console.log('[FileSystemPlugin] Exported instance to global __pluginInstances')
-  }
-} else if (typeof global !== 'undefined') {
-  (global as any).FileSystemPlugin = FileSystemPlugin
-  ;(global as any).createFileSystemPlugin = createFileSystemPlugin
-  ;(global as any).fileSystemPluginMetadata = metadata
+// 将插件实例暴露到全局 __pluginInstances
+if (typeof (window as any).__pluginInstances === 'object') {
+  const pluginInstance = new FileSystemPlugin()
+  ;(window as any).__pluginInstances['file-system-plugin'] = pluginInstance
+  console.log('[FileSystemPlugin] Exported instance to global __pluginInstances')
 }

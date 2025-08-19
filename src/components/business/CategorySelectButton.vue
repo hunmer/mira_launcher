@@ -40,7 +40,7 @@
       <div v-show="!isSearchExpanded" class="sort-controls">
         <FilterSelect
           :model-value="currentSortType"
-          :options="sortOptions"
+          :options="sortOptions || []"
           option-label="label"
           option-value="value"
           placeholder="排序方式"

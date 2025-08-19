@@ -65,7 +65,7 @@
     "include": [
         "src/**/*",
         "src/**/*.vue"
-    ],
+, "plugins/plugin-sdk.ts"    ],
     "exclude": [
         "src-tauri",
         "dist",
