@@ -44,7 +44,7 @@ export class PluginDiscovery {
 
   constructor(config?: Partial<PluginDiscoveryConfig>) {
     this.config = {
-      pluginDirectories: ['plugins', 'extensions'],
+      pluginDirectories: ['plugins'],
       recursive: true,
       supportedExtensions: ['.js', '.ts', '.vue'],
       maxDepth: 3,
@@ -107,8 +107,9 @@ export class PluginDiscovery {
       }
 
       // 2. 开发环境：项目根目录下的插件目录
-      // 尝试使用相对路径（相对于当前工作目录）
-      paths.push(pluginDir)
+      // TODO: 正确的获取路径
+      paths.push('D:\\mira_launcher\\plugins')
+      
 
       // 3. 尝试资源目录
       try {
@@ -127,6 +128,7 @@ export class PluginDiscovery {
       } catch (e) {
         console.debug('[PluginDiscovery] App config dir not available')
       }
+
 
       console.log(`[PluginDiscovery] Possible paths for ${pluginDir}:`, paths)
       return paths

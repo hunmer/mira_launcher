@@ -199,6 +199,43 @@ try {
 }
 ```
 
+## 插件内部模块导入
+
+### 5. 内部服务和模块导入
+
+由于 eval 环境的限制，插件内部的服务模块也不能使用标准 import 语句。需要通过以下方式处理：
+
+#### ❌ 错误做法
+```typescript
+import { ffmpegService } from './services/FFmpegService'
+import { videoService } from './services/VideoService'
+```
+
+#### ✅ 正确做法 - 方案 1：直接定义
+```typescript
+// 将服务类直接定义在同一个文件中，或通过字符串拼接的方式包含
+// 在插件编译时，可以将所有依赖打包到单个文件中
+```
+
+#### ✅ 正确做法 - 方案 2：动态加载
+```typescript
+// 在插件初始化时动态加载服务
+private ffmpegService: any = null
+private videoService: any = null
+
+async onLoad(): Promise<void> {
+  // 通过 eval 或其他方式动态加载服务代码
+  // 注意：这需要配合构建工具将依赖合并到单个文件
+}
+```
+
+#### ✅ 正确做法 - 方案 3：构建时打包
+```typescript
+// 使用 esbuild 或 webpack 的 bundle 功能，将所有依赖打包到单个文件
+// 在 compile-plugins.js 中启用 bundle 选项：
+// npx esbuild "index.ts" --bundle --outfile="index.js"
+```
+
 ## 常见问题
 
 ### Q: 为什么不能使用标准的 import 语句？
@@ -206,6 +243,9 @@ A: 插件代码通过 eval 执行，eval 环境不支持 ES6 模块导入。需�
 
 ### Q: 为什么要移除 override 修饰符？
 A: 在 eval 环境中，基类可能被解析为 `any` 类型，TypeScript 编译器无法正确识别继承关系。
+
+### Q: 如何解决 "service is not defined" 错误？
+A: 这通常是因为插件内部使用了 import 语句导入服务。需要使用上述的内部模块导入方案，或者启用构建时打包。
 
 ### Q: 如何添加新的 Tauri 模块支持？
 A: 在 `src/main.ts` 的 `importModule` 函数中添加新的 case 分支。

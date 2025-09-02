@@ -17,6 +17,7 @@ import type {
 import { reactive, type Ref } from 'vue'
 import { BasePlugin } from './BasePlugin'
 import { EventBus } from './EventBus'
+import { pluginWindowManager } from './PluginWindowManager'
 
 /**
  * 插件管理器配置
@@ -78,6 +79,9 @@ export class PluginManager {
     this.eventBus.on('plugin:beforeUnload', this.handleBeforeUnload.bind(this))
     this.eventBus.on('plugin:unloaded', this.handleUnloaded.bind(this))
     this.eventBus.on('plugin:error', this.handleError.bind(this))
+    
+    // 监听插件启动事件
+    this.eventBus.on('plugin:launch', this.handlePluginLaunch.bind(this))
   }
 
   /**
@@ -182,29 +186,6 @@ export class PluginManager {
   }
 
   /**
-   * 从全局 __pluginInstances 获取插件实例
-   * 用于 eval 执行的插件
-   */
-  private getPluginInstance(pluginId: string): BasePlugin | null {
-    try {
-      const globalWindow = window as unknown as {
-        __pluginInstances?: Record<string, BasePlugin>
-      }
-      
-      if (globalWindow.__pluginInstances && globalWindow.__pluginInstances[pluginId]) {
-        return globalWindow.__pluginInstances[pluginId]
-      }
-      
-      // 如果全局实例不存在，回退到注册时的实例
-      const entry = this.plugins.get(pluginId)
-      return entry?.instance || null
-    } catch (error) {
-      console.error(`[PluginManager] Error getting plugin instance for ${pluginId}:`, error)
-      return null
-    }
-  }
-
-  /**
    * 加载插件
    */
   async load(pluginId: string): Promise<boolean> {
@@ -270,7 +251,12 @@ export class PluginManager {
       }
 
       const loadPromise = this.executeWithTimeout(
-        () => pluginInstance.onLoad(pluginAPI as any, null as any),
+        async () => {
+          // 使用统一的 call 接口调用 onLoad
+          if (typeof (pluginInstance as any).call === 'function') {
+            await (pluginInstance as any).call('onLoad')
+          }
+        },
         this.config.loadTimeout,
         `Plugin ${pluginId} load timeout`,
       )
@@ -388,7 +374,10 @@ export class PluginManager {
         console.log(`[PluginManager] Directly set _api for global plugin instance ${pluginId}`)
       }
 
-      await pluginInstance.onActivate()
+      // 调用插件激活方法
+      if (typeof (pluginInstance as any).call === 'function') {
+        await (pluginInstance as any).call('onActivate')
+      }
 
       // 注册插件扩展功能
       await this.registerPluginExtensions(entry)
@@ -416,6 +405,40 @@ export class PluginManager {
         activationTime:
           entry.activatedAt! - (entry.loadedAt || entry.activatedAt!),
       })
+
+      // 如果插件类型为 'app'，自动添加到应用列表
+      if (entry.instance.type === 'app') {
+        try {
+          const { useApplicationsStore } = await import('@/stores/applications')
+          const applicationsStore = useApplicationsStore()
+          
+          // 检查应用是否已存在
+          const plugin_schem = `plugin://${pluginId}`
+          const existingApp = applicationsStore.applications.find(app => app.path === plugin_schem)
+          if (!existingApp) {
+            // 添加插件作为应用
+            applicationsStore.addApplication({
+              name: entry.metadata.name,
+              path: plugin_schem,
+              category: 'utility',
+              type: 'app',
+              appType: 'plugin',
+              description: entry.metadata.description || `插件：${entry.metadata.name}`,
+              icon: entry.metadata.icon || 'pi pi-puzzle-piece',
+              isSystem: false,
+              pinned: false,
+              tags: entry.metadata.keywords || [],
+              dynamicFields: {
+                pluginId,
+                pluginType: 'app',
+              },
+            })
+            console.log(`[PluginManager] Added plugin ${pluginId} to applications list`)
+          }
+        } catch (error) {
+          console.warn(`[PluginManager] Failed to add plugin ${pluginId} to applications:`, error)
+        }
+      }
 
       console.log(`[PluginManager] Plugin ${pluginId} activated successfully`)
       return true
@@ -490,7 +513,10 @@ export class PluginManager {
         throw new Error(`Plugin instance not found for ${pluginId}`)
       }
 
-      await pluginInstance.onDeactivate()
+      // 调用插件停用方法
+      if (typeof (pluginInstance as any).call === 'function') {
+        await (pluginInstance as any).call('onDeactivate')
+      }
       entry.state = 'loaded'
       entry.deactivatedAt = Date.now()
 
@@ -586,7 +612,10 @@ export class PluginManager {
         throw new Error(`Plugin instance not found for ${pluginId}`)
       }
 
-      await pluginInstance.onUnload()
+      // 调用插件卸载方法
+      if (typeof (pluginInstance as any).call === 'function') {
+        await (pluginInstance as any).call('onUnload')
+      }
 
       // 移除插件
       this.plugins.delete(pluginId)
@@ -895,9 +924,9 @@ export class PluginManager {
   }
 
   /**
-   * 创建插件API
+   * 创建插件API（公共方法，供插件自我初始化使用）
    */
-  private createPluginAPI(pluginId: string): any {
+  createPluginAPI(pluginId: string): any {
     // 返回扩展的 API，包含 plugin-sdk.ts 需要的方法
     const api = {
       // 添加 plugin-sdk.ts 需要的基础方法
@@ -1069,6 +1098,8 @@ export class PluginManager {
         },
       },
       utils: this.createSimpleUtilsAPI(pluginId),
+      window: this.createWindowAPI(pluginId),
+      protocol: this.createProtocolAPI(pluginId),
     }
     
     return api
@@ -1553,6 +1584,45 @@ export class PluginManager {
   }
 
   /**
+   * 创建窗口API
+   */
+  private createWindowAPI(pluginId: string) {
+    return pluginWindowManager.getWindowAPI(pluginId)
+  }
+
+  /**
+   * 创建协议API
+   */
+  private createProtocolAPI(pluginId: string) {
+    return {
+      registerHandler: (route: string, handler: (params: Record<string, unknown>) => void) => {
+        // 简化的协议处理：在插件管理器内部处理
+        const key = `${pluginId}:${route}`
+        this.protocolHandlers.set(key, handler)
+        console.log(`[PluginManager] Registered protocol handler: ${key}`)
+      },
+      unregisterHandler: (route: string) => {
+        const key = `${pluginId}:${route}`
+        this.protocolHandlers.delete(key)
+        console.log(`[PluginManager] Unregistered protocol handler: ${key}`)
+      },
+      navigate: (targetPluginId: string, route: string, params?: Record<string, unknown>) => {
+        const key = `${targetPluginId}:${route}`
+        const handler = this.protocolHandlers.get(key)
+        if (handler) {
+          handler(params || {})
+          return Promise.resolve()
+        } else {
+          console.warn(`[PluginManager] No protocol handler found for: ${key}`)
+          return Promise.reject(new Error(`No protocol handler found for: ${key}`))
+        }
+      },
+    }
+  }
+
+  private protocolHandlers: Map<string, (params: Record<string, unknown>) => void> = new Map()
+
+  /**
    * 执行带超时的操作
    */
   private async executeWithTimeout<T>(
@@ -1616,6 +1686,86 @@ export class PluginManager {
 
   private async handleError(event: any): Promise<void> {
     console.error('[PluginManager] Plugin error:', event.data)
+  }
+
+  /**
+   * 处理插件启动事件（现在通过新的窗口API处理）
+   */
+  private async handlePluginLaunch(event: { data: { pluginId: string; route?: string; params?: unknown } }): Promise<void> {
+    try {
+      const pluginId = event.data.pluginId
+      const plugin = this.plugins.get(pluginId)
+      
+      if (!plugin) {
+        console.error(`[PluginManager] Plugin not found: ${pluginId}`)
+        return
+      }
+
+      // 获取插件实例
+      const pluginInstance = this.getPluginInstance(pluginId)
+      if (!pluginInstance) {
+        console.error(`[PluginManager] Plugin instance not found: ${pluginId}`)
+        return
+      }
+
+      // 通过 BasePlugin 的统一接口调用 onLaunch 方法
+      if (typeof (pluginInstance as any).call === 'function') {
+        // 准备启动事件数据
+        const launchEvent = {
+          pluginId: event.data.pluginId,
+          action: 'launch',
+          route: event.data.route,
+          params: event.data.params,
+          windowOptions: {},
+        }
+        
+        await (pluginInstance as any).call('onLaunch', launchEvent)
+        console.log(`[PluginManager] Plugin launch handled via call interface: ${pluginId}`)
+      }
+
+      console.log(`[PluginManager] Plugin launch handled: ${event.data.pluginId}`)
+    } catch (error) {
+      console.error('[PluginManager] Failed to handle plugin launch:', error)
+    }
+  }
+
+  /**
+   * 处理plugin://协议事件（现在通过新的窗口API处理）
+   */
+  private async handlePluginProtocol(event: { data: { url: string } }): Promise<void> {
+    try {
+      // 解析plugin://协议URL
+      const match = event.data.url.match(/^plugin:\/\/([^/]+)(?:\/(.*))?$/)
+      if (!match) {
+        console.warn(`[PluginManager] Invalid plugin URL: ${event.data.url}`)
+        return
+      }
+
+      const [, pluginId, route] = match
+      if (!pluginId) {
+        console.warn(`[PluginManager] Missing plugin ID in URL: ${event.data.url}`)
+        return
+      }
+
+      const plugin = this.plugins.get(pluginId)
+      
+      if (!plugin) {
+        console.error(`[PluginManager] Plugin not found for URL: ${event.data.url}`)
+        return
+      }
+
+      // 通知插件处理协议导航
+      if (plugin.instance && typeof plugin.instance === 'object' && 'onProtocolNavigate' in plugin.instance) {
+        const onProtocolNavigate = (plugin.instance as any).onProtocolNavigate
+        if (typeof onProtocolNavigate === 'function') {
+          await onProtocolNavigate(route)
+        }
+      }
+
+      console.log(`[PluginManager] Plugin protocol handled: ${event.data.url}`)
+    } catch (error) {
+      console.error('[PluginManager] Failed to handle plugin protocol:', error)
+    }
   }
 
   // 公共接口方法
@@ -1690,6 +1840,43 @@ export class PluginManager {
       states,
       activationOrder: this.activationOrder.length,
       maxPlugins: this.config.maxPlugins,
+    }
+  }
+
+  /**
+   * 获取插件实例（公共方法）
+   */
+  getPluginInstance(pluginId: string): BasePlugin | null {
+    try {
+      const globalWindow = window as unknown as {
+        __pluginInstances?: Record<string, BasePlugin>
+      }
+      
+      if (globalWindow.__pluginInstances && globalWindow.__pluginInstances[pluginId]) {
+        return globalWindow.__pluginInstances[pluginId]
+      }
+      
+      // 如果全局实例不存在，回退到注册时的实例
+      const entry = this.plugins.get(pluginId)
+      return entry?.instance || null
+    } catch (error) {
+      console.error(`[PluginManager] Error getting plugin instance for ${pluginId}:`, error)
+      return null
+    }
+  }
+
+  /**
+   * 发送插件事件（公共方法）
+   */
+  async emitPluginEvent<T = unknown>(
+    type: PluginEventType,
+    data: T,
+    source?: string,
+  ): Promise<void> {
+    try {
+      await this.eventBus.emit(type, data, source)
+    } catch (error) {
+      console.error(`[PluginManager] Failed to emit event ${type}:`, error)
     }
   }
 

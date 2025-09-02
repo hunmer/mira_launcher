@@ -13,6 +13,7 @@
                     :class="['page-indicator', { active: index === currentPageIndex }]"
                     :title="`第 ${index + 1} 页`"
                     @click="$emit('page-change', index)"
+                    @contextmenu="handlePageContextMenu($event, index)"
                 >
                     {{ index + 1 }}
                 </button>
@@ -45,12 +46,19 @@ interface Props {
 interface Emits {
     (e: 'page-change', pageIndex: number): void
     (e: 'add-page'): void
+    (e: 'page-context-menu', event: MouseEvent): void
 }
 
 defineProps<Props>()
-defineEmits<Emits>()
+const emit = defineEmits<Emits>()
 
 const indicatorsContainer = ref<HTMLElement>()
+
+// 处理页面右键菜单
+const handlePageContextMenu = (event: MouseEvent, _pageIndex: number) => {
+    event.preventDefault()
+    emit('page-context-menu', event)
+}
 
 // 处理滚轮事件
 const handleWheel = (event: WheelEvent) => {

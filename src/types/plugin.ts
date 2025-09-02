@@ -5,6 +5,7 @@
 import type { MenuItem } from 'primevue/menuitem'
 import type { App, Component } from 'vue'
 import type { Router } from 'vue-router'
+import type { PluginWindowAPI } from '../../plugins/plugin-sdk'
 
 /**
  * 插件状态枚举
@@ -31,6 +32,8 @@ export interface PluginMetadata {
   name: string
   /** 插件版本 */
   version: string
+  /** 插件类型 */
+  type?: 'app' | 'background'
   /** 插件描述 */
   description?: string
   /** 插件作者 */
@@ -145,6 +148,7 @@ export type PluginEventType =
   | 'plugin:deactivated'
   | 'plugin:beforeUnload'
   | 'plugin:unloaded'
+  | 'plugin:launch'
   | 'plugin:error'
   | 'plugin:stateChanged'
   | 'plugin:configChanged'
@@ -486,6 +490,17 @@ export interface PluginAPI {
     register(entry: { id?: string; label: string; icon: string; type: 'file' | 'folder' | 'url' | 'test' | 'custom'; priority?: number; handler?: () => void | Promise<void> }): string
     unregister(id: string): void
     list(): Array<{ id: string; label: string; icon: string; type: string; priority?: number }>
+  }
+  /** 窗口 API */
+  window: PluginWindowAPI
+  /** 协议 API */
+  protocol: {
+    /** 注册协议处理器 */
+    registerHandler(route: string, handler: (params: Record<string, unknown>) => void): void
+    /** 取消注册协议处理器 */
+    unregisterHandler(route: string): void
+    /** 导航到目标插件 */
+    navigate(targetPluginId: string, route: string, params?: Record<string, unknown>): Promise<void>
   }
 }
 

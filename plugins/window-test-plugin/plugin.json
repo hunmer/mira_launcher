@@ -1,0 +1,14 @@
+{
+    "id": "window-test-plugin",
+    "name": "窗口测试插件",
+    "version": "1.0.0",
+    "description": "window-test-plugin",
+    "author": "Mira Launcher Team",
+    "entry": "index.js",
+    "dependencies": [],
+    "permissions": [
+    ],
+    "minAppVersion": "1.0.0",
+    "keywords": [
+    ]
+}

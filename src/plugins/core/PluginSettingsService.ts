@@ -69,12 +69,6 @@ export class PluginSettingsService {
 
     // 添加默认路径
     directories.push('plugins')
-
-    // 添加备用路径
-    if (!settings.pluginPath) {
-      directories.push('extensions')
-    }
-
     // 去重
     return [...new Set(directories)]
   }

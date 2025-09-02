@@ -76,6 +76,7 @@
         :total-pages="applicationsStore.totalPages"
         @page-change="applicationsStore.goToPage"
         @add-page="applicationsStore.addPage"
+        @page-context-menu="showPageContextMenu"
       />
     </div>
 
@@ -111,6 +112,16 @@
       :items="blankAreaContextMenuItems"
       @update:show="blankAreaContextMenuVisible = $event"
       @select="onBlankAreaContextMenuSelect"
+    />
+
+    <!-- Page Context Menu -->
+    <ContextMenu
+      :show="pageContextMenuVisible"
+      :x="pageContextMenuPosition.x"
+      :y="pageContextMenuPosition.y"
+      :items="pageContextMenuItems"
+      @update:show="pageContextMenuVisible = $event"
+      @select="onPageContextMenuSelect"
     />
         <!-- Add Menu (placeholder & external trigger) -->
         <ContextMenu
@@ -181,6 +192,7 @@ const { setLayoutMode, layoutMode } = useApplicationLayout()
 const isDragging = ref(false) // 拖拽状态
 const sortSaved = ref(false) // 排序保存状态
 const launchingApps = ref(new Set<string>()) // 启动中的应用ID集合
+const isDeletingPage = ref(false) // 删除页面状态，防止重复执行
 
 // 面包屑数据
 const breadcrumbHome = ref({
@@ -273,6 +285,10 @@ const selectedApp = ref<Application | null>(null)
 const blankAreaContextMenuVisible = ref(false)
 const blankAreaContextMenuPosition = ref({ x: 0, y: 0 })
 
+// 页面右键菜单
+const pageContextMenuVisible = ref(false)
+const pageContextMenuPosition = ref({ x: 0, y: 0 })
+
 // 空白区域右键菜单项目
 const blankAreaContextMenuItems = computed((): MenuItem[] => [
     {
@@ -291,9 +307,19 @@ const blankAreaContextMenuItems = computed((): MenuItem[] => [
         icon: 'pi pi-trash',
         danger: true,
         action: () => {
-            if (applicationsStore.totalPages > 1) {
-                applicationsStore.removePage()
-            }
+            confirmDeletePage()
+        },
+    },
+])
+
+// 页面右键菜单项目
+const pageContextMenuItems = computed((): MenuItem[] => [
+    {
+        label: '删除页面',
+        icon: 'pi pi-trash',
+        danger: true,
+        action: () => {
+            confirmDeletePage()
         },
     },
 ])
@@ -357,6 +383,63 @@ const launchApp = async (app: Application) => {
         // 仅在当前排序为按最后使用时间时更新 lastUsed 以触发重新排序
         if (applicationsStore.currentSortType === 'lastUsed') {
             applicationsStore.updateLastUsed(app.id)
+        }
+        
+        // 处理 plugin:// 协议
+        if (app.path && app.path.startsWith('plugin://')) {
+            const pluginId = app.path.replace('plugin://', '')
+            console.log(`[Launch] 启动插件: ${pluginId}`)
+            
+            // 获取插件管理器实例
+            const { usePluginStore } = await import('@/stores/plugin')
+            const pluginStore = usePluginStore()
+            
+            if (pluginStore.pluginManager) {
+                const plugin = pluginStore.pluginManager.getPlugin(pluginId)
+                if (plugin) {
+                    if (plugin.state === 'active') {
+                        // 插件已激活，触发插件启动事件
+                        await pluginStore.pluginManager.emitPluginEvent('plugin:launch', {
+                            pluginId,
+                            appId: app.id,
+                            appName: app.name,
+                        })
+                        
+                        toast.add({
+                            severity: 'success',
+                            summary: '插件已启动',
+                            detail: `插件 ${app.name} 已成功启动`,
+                            life: 3000,
+                        })
+                        return
+                    } else {
+                        // 插件未激活，先激活插件
+                        const activated = await pluginStore.pluginManager.activate(pluginId)
+                        if (activated) {
+                            // 激活后触发启动事件
+                            await pluginStore.pluginManager.emitPluginEvent('plugin:launch', {
+                                pluginId,
+                                appId: app.id,
+                                appName: app.name,
+                            })
+                            
+                            toast.add({
+                                severity: 'success',
+                                summary: '插件已启动',
+                                detail: `插件 ${app.name} 已成功激活并启动`,
+                                life: 3000,
+                            })
+                            return
+                        } else {
+                            throw new Error(`无法激活插件 ${pluginId}`)
+                        }
+                    }
+                } else {
+                    throw new Error(`找不到插件 ${pluginId}`)
+                }
+            } else {
+                throw new Error('插件管理器未初始化')
+            }
         }
         
         // 插件自定义 exec
@@ -560,9 +643,58 @@ const onBlankAreaContextMenuSelect = (item: MenuItem) => {
     hideBlankAreaContextMenu()
 }
 
+// 页面右键菜单
+const showPageContextMenu = (event: MouseEvent) => {
+    pageContextMenuPosition.value = { x: event.clientX, y: event.clientY }
+    pageContextMenuVisible.value = true
+}
+
+const hidePageContextMenu = () => {
+    pageContextMenuVisible.value = false
+}
+
+const onPageContextMenuSelect = (item: MenuItem) => {
+    item.action?.()
+    hidePageContextMenu()
+}
+
+const confirmDeletePage = () => {
+    // 防止重复执行
+    if (isDeletingPage.value) {
+        return
+    }
+    
+    isDeletingPage.value = true
+    
+    try {
+        if (applicationsStore.totalPages > 1) {
+            applicationsStore.removePage()
+            toast.add({
+                severity: 'success',
+                summary: '删除成功',
+                detail: '页面已删除',
+                life: 3000,
+            })
+        } else {
+            toast.add({
+                severity: 'warn',
+                summary: '无法删除',
+                detail: '至少需要保留一个页面',
+                life: 3000,
+            })
+        }
+    } finally {
+        // 延迟重置标志，防止快速连击
+        setTimeout(() => {
+            isDeletingPage.value = false
+        }, 500)
+    }
+}
+
 const handleClickOutside = () => {
     hideContextMenu()
     hideBlankAreaContextMenu()
+    hidePageContextMenu()
 }
 
 onMounted(() => {

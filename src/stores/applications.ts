@@ -261,14 +261,8 @@ export const useApplicationsStore = defineStore('applications', () => {
 
   // 确保每页都有足够的应用数量
   const ensureMinimumAppsPerPage = () => {
-    const totalNeeded = totalPages.value * appsPerPage.value
-    const currentCount = applications.value.length
-    
-    if (currentCount < totalNeeded) {
-      const neededCount = totalNeeded - currentCount
-      console.log(`📈 需要补充 ${neededCount} 个应用以填满 ${totalPages.value} 页`)
-      generateTestApplications(neededCount)
-    }
+    // 不再自动生成测试应用，空间不足时将由 currentPageApps 计算属性自动生成占位符
+    console.log(`📊 当前应用数量: ${applications.value.length}, 每页显示: ${appsPerPage.value}`)
   }
 
   const saveApplications = () => {
@@ -318,8 +312,8 @@ export const useApplicationsStore = defineStore('applications', () => {
     app: Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>,
   ) => {
     const newApp: Application = {
-      ...app,
       id: `app-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      ...app,
       createdAt: new Date(),
       updatedAt: new Date(),
       sortOrder: applications.value.length, // 设置为当前最大的排序值

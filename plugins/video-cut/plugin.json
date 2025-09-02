@@ -1,0 +1,49 @@
+{
+  "id": "video-cut",
+  "name": "Video Cut Editor",
+  "version": "1.0.0",
+  "description": "專業視頻剪輯插件，支持精確剪輯、水印添加、批量處理等功能",
+  "author": "Mira Launcher Team",
+  "homepage": "https://github.com/miralauncher/video-cut-plugin",
+  "keywords": ["video", "edit", "cut", "ffmpeg", "multimedia"],
+  "category": "multimedia",
+  "license": "MIT",
+   "entry": "index.js",
+  "engines": {
+    "mira": ">=1.0.0"
+  },
+  "permissions": [
+
+  ],
+  "dependencies": {
+    "ffmpeg": ">=4.0.0"
+  },
+  "configuration": {
+    "ffmpegPath": {
+      "type": "string",
+      "default": "",
+      "title": "FFmpeg 可執行文件路徑",
+      "description": "指定 FFmpeg 程序的完整路徑，留空將使用系統 PATH"
+    },
+    "outputDir": {
+      "type": "string", 
+      "default": "",
+      "title": "默認輸出目錄",
+      "description": "視頻導出的默認保存目錄"
+    },
+    "maxConcurrentTasks": {
+      "type": "number",
+      "default": 2,
+      "minimum": 1,
+      "maximum": 8,
+      "title": "最大並發任務數",
+      "description": "同時處理的視頻任務數量限制"
+    },
+    "enableWatermark": {
+      "type": "boolean",
+      "default": false,
+      "title": "啟用全局水印",
+      "description": "是否在所有導出的視頻中添加水印"
+    }
+  }
+}

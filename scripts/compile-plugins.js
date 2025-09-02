@@ -8,13 +8,25 @@ import { promisify } from 'util'
 const execAsync = promisify(exec)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.join(__dirname, '..')
-const pluginsDir = path.join(projectRoot, 'plugins')
+
+// Get plugins directory from command line argument or use default
+const getPluginsDir = () => {
+  const argIndex = process.argv.findIndex(arg => arg === '--plugins-dir')
+  if (argIndex !== -1 && process.argv[argIndex + 1]) {
+    const customPath = process.argv[argIndex + 1]
+    return path.isAbsolute(customPath) ? customPath : path.join(projectRoot, customPath)
+  }
+  return path.join(projectRoot, 'plugins')
+}
+
+const pluginsDir = getPluginsDir()
 
 async function compileTypeScriptFile(filePath, outputPath) {
   try {
-    // Use esbuild for fast TypeScript compilation
+    // Use esbuild for fast TypeScript compilation with bundling
+    // Bundle is enabled to resolve internal module dependencies in eval environment
     const { stderr } = await execAsync(
-      `npx esbuild "${filePath}" --outfile="${outputPath}" --format=esm --target=es2020 --bundle=false --platform=browser --loader:.ts=ts`,
+      `npx esbuild "${filePath}" --outfile="${outputPath}" --format=esm --target=es2020 --bundle --platform=browser --loader:.ts=ts --external:vue --external:@tauri-apps/*`,
     )
     
     if (stderr) {
@@ -31,6 +43,12 @@ async function compileTypeScriptFile(filePath, outputPath) {
 
 async function compilePlugins() {
   console.log('🔨 Compiling TypeScript plugins...')
+  console.log(`📁 Using plugins directory: ${pluginsDir}`)
+  
+  if (!fs.existsSync(pluginsDir)) {
+    console.error(`❌ Plugins directory does not exist: ${pluginsDir}`)
+    return
+  }
   
   const pluginDirs = fs.readdirSync(pluginsDir, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
@@ -65,6 +83,23 @@ async function compilePlugins() {
 
 // Run if called directly
 if (process.argv[1].endsWith('compile-plugins.js')) {
+  // Show help if requested
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log(`
+Usage: node compile-plugins.js [options]
+
+Options:
+  --plugins-dir <path>    Specify plugins directory (default: ./plugins)
+  --help, -h             Show this help message
+
+Examples:
+  node compile-plugins.js
+  node compile-plugins.js --plugins-dir ./my-plugins
+  node compile-plugins.js --plugins-dir /absolute/path/to/plugins
+    `)
+    process.exit(0)
+  }
+  
   compilePlugins().catch(console.error)
 }
 

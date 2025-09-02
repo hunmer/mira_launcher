@@ -1,0 +1,10 @@
+{
+    "name": "window-test-plugin",
+    "version": "1.0.0",
+    "description": "",
+    "author": "Mira Launcher Team",
+    "main": "index.ts",
+    "dependencies": {
+        "@tauri-apps/api": "^1.0.0"
+    }
+}
